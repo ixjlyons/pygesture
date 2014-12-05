@@ -1,0 +1,7 @@
+*.swp
+*.pyc
+__pycache__
+build
+dist
+env
+pygesture.egg-info

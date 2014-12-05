@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+"""
+Processes raw recordings (WAV files), generating new WAV files and one feature
+file per session.
+
+Run with `--help` to see usage information. See the pygesture.processing module
+for details on the processing done.
+"""
+
+import os
+import sys
+import argparse
+
+try:
+    import pygesture.processing 
+except ImportError:
+    sys.path.insert(0, '..')
+    import pygesture.processing
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+            description="Process pygesture session data")
+    parser.add_argument('rootdir', 
+            help="root data directory")
+    parser.add_argument('pid', 
+            help="participant identifier")
+    parser.add_argument('-s', '--sid', dest='sid_list', nargs='+', 
+            help="session identifiers")
+    parser.add_argument('-a', '--all', dest='proc_all', action='store_true', 
+            help="process all sessions for the specified pid")
+    parser.add_argument('-p', '--pool', default=1, type=int,
+            help="number of processes to start (multiprocessing), default=1")
+    args = parser.parse_args()
+
+    rootdir = os.path.normpath(args.rootdir)
+    pid = args.pid
+
+    if args.proc_all:
+        pygesture.processing.batch_process(rootdir, args.pid, pool=args.pool) 
+    
+    else:
+        if args.sid_list is None:
+            parser.error("Must specify SID list if '-a' option isn't given.")
+        pygesture.processing.batch_process(rootdir, pid, sid_list=args.sid_list,
+                pool=args.pool)
