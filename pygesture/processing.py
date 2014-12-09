@@ -318,7 +318,7 @@ class Recording:
         fs_raw, data = siowav.read(wavfile)
         self.fs_raw = fs_raw
         self.raw_data = data / 32768.0
-        _, self.filename = os.path.split(wavfile)
+        path, self.filename = os.path.split(wavfile)
         self.location = loc
         self.parse_details(self.filename)
 

@@ -27,7 +27,18 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.prediction = 0
         self.calibration = np.zeros((1, st.NUM_CHANNELS))
 
-        self.recorder = recorder.RecordThread()
+        while True:
+            try: 
+                self.recorder = recorder.RecordThread()
+                break
+            except ValueError:
+                ret = QtGui.QMessageBox().critical(
+                    self, "Error",
+                    "Could not connect to DAQ.",
+                    QtGui.QMessageBox.Retry|QtGui.QMessageBox.Abort)
+                if ret == QtGui.QMessageBox.Abort:
+                    raise ValueError("Could not connect to DAQ.")
+
         self.init_recorder()
         self.init_pid_list()
         self.init_gesture_view()
@@ -191,9 +202,13 @@ class CalibrateDialog(QtGui.QDialog):
 
 def main():
     app = QtGui.QApplication([])
-    mw = RealTimeGUI()
+    try:
+        mw = RealTimeGUI()
+    except ValueError:
+        sys.exit(-1)
+
     mw.show()
     app.exec_()
     app.deleteLater()
-    sys.exit()
+    sys.exit(0)
     
