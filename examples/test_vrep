@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import time
+
+from pygesture.simulation import config, vrepsim
+
+sim = vrepsim.VrepSimulation(config.vrep_port)
+sim.start()
+robot = vrepsim.Robot(sim.clientId, config.actions)
+
+robot.do_action("forearm_supination")
+time.sleep(1.8)
+robot.do_action("rest")
+
+robot.do_action("elbow_extension")
+time.sleep(1.3)
+robot.do_action("rest")
+
+robot.do_action("closed_fist")
+time.sleep(1.7)
+robot.do_action("rest")
+
+robot.do_action("elbow_flexion")
+time.sleep(2)
+robot.do_action("rest")
+
+robot.do_action("forearm_pronation")
+time.sleep(1.5)
+robot.do_action("rest")
+
+sim.finish()
