@@ -12,6 +12,7 @@ from sklearn.lda import LDA
 from sklearn.svm import SVC
 
 from PyQt4 import QtGui, QtCore
+
 from pygesture.ui.rtgui_template_pyqt4 import *
 from pygesture.ui.calibrationdialog_template_pyqt4 import *
 
@@ -29,7 +30,7 @@ class RealTimeGUI(QtGui.QMainWindow):
 
         while True:
             try: 
-                self.recorder = recorder.RecordThread()
+                self.recorder = recorder.RecordThread(run_sim=True)
                 break
             except ValueError:
                 ret = QtGui.QMessageBox().critical(
@@ -159,7 +160,6 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.calibration = calibration
 
 
-import time
 class CalibrateDialog(QtGui.QDialog):
 
     save_signal = QtCore.pyqtSignal(np.ndarray)
@@ -198,6 +198,10 @@ class CalibrateDialog(QtGui.QDialog):
 
     def save_callback(self):
         self.save_signal.emit(self.calibration_data)
+
+    def closeEvent(self, event):
+        recorder.cleanup()
+        QMainWindow.closeEvent(self, event)
 
 
 def main():

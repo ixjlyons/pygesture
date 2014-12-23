@@ -257,7 +257,6 @@ class Conditioner:
 
     def condition(self, x):
         x_centered = x - self.x_mean
-        print(np.mean(x_centered, 0))
         x_filtered, self.zi = signal.lfilter(self.b, self.a, x_centered,
             axis=0, zi=self.zi)
         x_downsampled = x_filtered[::self.fs/st.FS_PROC, :]
@@ -287,7 +286,7 @@ class Session:
         if os.path.isfile(self.featfile):
             os.remove(self.featfile)
 
-        feat_fid = open(self.featfile, 'a')
+        feat_fid = open(self.featfile, 'ab')
 
         dict_list = []
         for f in self.recording_file_list:

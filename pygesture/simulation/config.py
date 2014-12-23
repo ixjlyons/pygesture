@@ -9,30 +9,30 @@ vrep_port = 20013
 # Mapping from gestures to objects (joints) in the v-rep scene, with velocities
 # specified in rad/s.
 actions = {
-    "elbow_flexion": [
+    "radial-deviation": [ # aka elbow flexion
         ("IRB140_joint3", 5)
     ],
-    "elbow_extension": [
+    "ulnar-deviation": [ # aka elbow extension
         ("IRB140_joint3", -5)
     ],
-    "forearm_supination": [
+    "forearm-supination": [
         ("IRB140_joint4", 20)
     ],
-    "forearm_pronation": [
+    "forearm-pronation": [
         ("IRB140_joint4", -20)
     ],
-    "wrist_extension": [
+    "wrist-extension": [
         ("IRB140_joint5", 10)
     ],
-    "wrist_flexion": [
+    "wrist-flexion": [
         ("IRB140_joint5", -10)
     ],
-    "closed_fist": [
+    "closed-fist": [
         ("BarrettHand_jointB_0", 10),
         ("BarrettHand_jointB_1", 10),
         ("BarrettHand_jointB_2", 10)
     ],
-    "open_hand": [
+    "open-hand": [
         ("BarrettHand_jointB_0", -10),
         ("BarrettHand_jointB_1", -10),
         ("BarrettHand_jointB_2", -10)
@@ -44,5 +44,6 @@ actions = {
         ("BarrettHand_jointB_0", 0),
         ("BarrettHand_jointB_1", 0),
         ("BarrettHand_jointB_2", 0)
-    ]
+    ],
+    "thumb-extension": []
 }

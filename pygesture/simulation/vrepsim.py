@@ -62,7 +62,7 @@ class Robot:
         objectType = vrep.sim_object_joint_type
         res, handles, intData, floatData, names = vrep.simxGetObjectGroupData(
             self.clientId, objectType, 0, vrep.simx_opmode_oneshot_wait)
-        validate(res)
+        #validate(res)
         joints = dict()
         for i in range(len(names)): 
             if query not in names[i]:

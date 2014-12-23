@@ -9,6 +9,7 @@ import scipy.io.wavfile as siowav
 from pygesture import settings as st
 from pygesture import mccdaq
 from pygesture import filestruct
+from pygesture.simulation import config, vrepsim
 
 
 class RecordThread(QtCore.QThread):
@@ -17,17 +18,23 @@ class RecordThread(QtCore.QThread):
     finished_sig = QtCore.pyqtSignal(np.ndarray)
     prediction_sig = QtCore.pyqtSignal(int)
 
-    def __init__(self, usedaq=True):
+    def __init__(self, usedaq=True, run_sim=False):
         QtCore.QThread.__init__(self, parent=None)
         self.usedaq = usedaq
+        self.run_sim = run_sim
         self.continuous = False
         self.single_channel_mode = False
         self.running = False
         self.daq = None
+        self.simulation = None
         self.pipeline = None
-        if usedaq and self.daq is None:
+
+        if self.usedaq and self.daq is None:
             self.daq = mccdaq.MccDaq(st.SAMPLE_RATE, st.INPUT_RANGE,
                                      st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+
+        if self.run_sim:
+            self.simulation = vrepsim.VrepSimulation(config.vrep_port)
 
     def run(self):
         self.running = True
@@ -38,6 +45,11 @@ class RecordThread(QtCore.QThread):
             self.run_fixed()
 
     def run_continuous(self):
+        robot = None
+        if self.simulation:
+            self.simulation.start()
+            robot = vrepsim.Robot(self.simulation.clientId, config.actions)
+
         if self.usedaq:
             self.daq.start()
 
@@ -48,6 +60,10 @@ class RecordThread(QtCore.QThread):
                     y = self.pipeline.run(d)
                     self.prediction_sig.emit(y)
 
+                    if robot is not None:
+                        robot.do_action("rest")
+                        robot.do_action(st.gesture_dict['l'+str(int(y[0]))][1])
+
             else:
                 nch = st.NUM_CHANNELS
                 if self.single_channel_mode:
@@ -56,6 +72,11 @@ class RecordThread(QtCore.QThread):
                 self.msleep(1000*st.SAMPLES_PER_READ/st.SAMPLE_RATE)
 
             self.update_sig.emit(d)
+
+        if self.simulation is not None:
+            if robot is not None:
+                robot.do_action("rest")
+            self.simulation.stop()
 
     def run_fixed(self):
         data = np.zeros((st.NUM_CHANNELS,
@@ -97,6 +118,10 @@ class RecordThread(QtCore.QThread):
     def kill(self):
         self.running = False
         self.wait()
+
+    def cleanup(self):
+        if self.simulation is not None:
+            self.simulation.finish()
 
 
 class Session:
