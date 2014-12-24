@@ -197,7 +197,7 @@ class MainWindow(QtGui.QWidget):
     def probe_signal(self):
         self.probe_window = signals.SignalProbeWindow(debug=self.debug)
         self.record_thread.set_continuous(True)
-        self.record_thread.set_single_channel_mode(True, 1)
+        self.record_thread.set_single_channel_mode(True, st.PROBE_CHANNEL)
         self.record_thread.update_sig.connect(self.probe_window.update_plot)
         self.record_thread.start()
         self.probe_window.exec_()

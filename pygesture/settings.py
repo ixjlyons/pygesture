@@ -7,7 +7,8 @@ import os
 
 # recording settings
 SAMPLE_RATE = 4096 
-CHANNEL_RANGE = (0, 1)
+CHANNEL_RANGE = (0, 5)
+PROBE_CHANNEL = 6
 NUM_CHANNELS = CHANNEL_RANGE[1] - CHANNEL_RANGE[0] + 1
 SAMPLES_PER_READ = 512 
 INPUT_RANGE = 2
@@ -84,6 +85,7 @@ leg_sensor_map = [
     ['d', 'EHL', 'extensor-hallucis-longus'],
     ['e', 'EDL', 'extensor-digitorum-longus'],
     ['f', 'FDL', 'flexor-digitorum-longus']]
+
 
 # processing settings
 FC = [10, 450]
