@@ -51,7 +51,14 @@
     </property>
     <addaction name="action_Quit"/>
    </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="mainDock">
@@ -100,7 +107,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>285</width>
+          <width>302</width>
           <height>427</height>
          </rect>
         </property>
@@ -208,13 +215,17 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>false</bool>
+    <bool>true</bool>
    </attribute>
    <addaction name="actionCalibrate"/>
+   <addaction name="actionProbe"/>
+   <addaction name="actionCheck_Signals"/>
   </widget>
   <action name="action_Quit">
    <property name="icon">
-    <iconset theme="application-exit"/>
+    <iconset theme="application-exit">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -225,7 +236,9 @@
   </action>
   <action name="actionNew">
    <property name="icon">
-    <iconset theme="window-new"/>
+    <iconset theme="window-new">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;New</string>
@@ -240,6 +253,21 @@
    </property>
    <property name="toolTip">
     <string>Calibrate input signals</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings...</string>
+   </property>
+  </action>
+  <action name="actionProbe">
+   <property name="text">
+    <string>Probe...</string>
+   </property>
+  </action>
+  <action name="actionCheck_Signals">
+   <property name="text">
+    <string>Check Signals</string>
    </property>
   </action>
  </widget>

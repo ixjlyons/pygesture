@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+"""
+This is a simple script to generate Python code from Qt UI files. It is
+helpful while modifying and testing the GUI programs and associated UI
+files.
+
+At the moment, the script needs to be run from the root directory of the
+repository (i.e. run it as `./tools/build_ui`).
+"""
+
+import os
+import subprocess
+
+# path from the root directory of the repo to the ui subpackage
+ui_dir = os.path.join('pygesture', 'ui')
+# list of ui files (no extension) to generate code for
+ui_files = [
+    os.path.join(ui_dir, 'calibrationdialog_template'),
+    os.path.join(ui_dir, 'rtgui_template'),
+    os.path.join(ui_dir, 'settings_template'),
+]
+# either '4' or '5'
+pyuic_version = '4' 
+
+for f in ui_files:
+    infile = f + '.ui'
+    outfile = f + '.py'
+    subprocess.call(['pyuic'+pyuic_version, '-o', outfile, infile])

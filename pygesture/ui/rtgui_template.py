@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'rtgui_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/rtgui_template.ui'
 #
-# Created: Thu Dec  4 21:52:55 2014
+# Created: Tue Dec 30 18:28:39 2014
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,6 +48,8 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
+        self.menu_Edit = QtGui.QMenu(self.menubar)
+        self.menu_Edit.setObjectName(_fromUtf8("menu_Edit"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -77,7 +79,7 @@ class Ui_MainWindow(object):
         self.mainDockScrollArea.setWidgetResizable(True)
         self.mainDockScrollArea.setObjectName(_fromUtf8("mainDockScrollArea"))
         self.mainDockScrollContents = QtGui.QWidget()
-        self.mainDockScrollContents.setGeometry(QtCore.QRect(0, 0, 285, 427))
+        self.mainDockScrollContents.setGeometry(QtCore.QRect(0, 0, 302, 427))
         self.mainDockScrollContents.setObjectName(_fromUtf8("mainDockScrollContents"))
         self.gridLayout_3 = QtGui.QGridLayout(self.mainDockScrollContents)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
@@ -134,6 +136,7 @@ class Ui_MainWindow(object):
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        MainWindow.insertToolBarBreak(self.toolBar)
         self.action_Quit = QtGui.QAction(MainWindow)
         icon = QtGui.QIcon.fromTheme(_fromUtf8("application-exit"))
         self.action_Quit.setIcon(icon)
@@ -144,9 +147,19 @@ class Ui_MainWindow(object):
         self.actionNew.setObjectName(_fromUtf8("actionNew"))
         self.actionCalibrate = QtGui.QAction(MainWindow)
         self.actionCalibrate.setObjectName(_fromUtf8("actionCalibrate"))
+        self.actionSettings = QtGui.QAction(MainWindow)
+        self.actionSettings.setObjectName(_fromUtf8("actionSettings"))
+        self.actionProbe = QtGui.QAction(MainWindow)
+        self.actionProbe.setObjectName(_fromUtf8("actionProbe"))
+        self.actionCheck_Signals = QtGui.QAction(MainWindow)
+        self.actionCheck_Signals.setObjectName(_fromUtf8("actionCheck_Signals"))
         self.menu_File.addAction(self.action_Quit)
+        self.menu_Edit.addAction(self.actionSettings)
         self.menubar.addAction(self.menu_File.menuAction())
+        self.menubar.addAction(self.menu_Edit.menuAction())
         self.toolBar.addAction(self.actionCalibrate)
+        self.toolBar.addAction(self.actionProbe)
+        self.toolBar.addAction(self.actionCheck_Signals)
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.action_Quit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.close)
@@ -155,6 +168,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         self.menu_File.setTitle(_translate("MainWindow", "&File", None))
+        self.menu_Edit.setTitle(_translate("MainWindow", "&Edit", None))
         self.mainDock.setWindowTitle(_translate("MainWindow", "Controls", None))
         self.startButton.setText(_translate("MainWindow", "Start", None))
         self.sessionInfoBox.setTitle(_translate("MainWindow", "Session Info", None))
@@ -170,5 +184,8 @@ class Ui_MainWindow(object):
         self.actionNew.setShortcut(_translate("MainWindow", "Ctrl+N", None))
         self.actionCalibrate.setText(_translate("MainWindow", "Calibrate", None))
         self.actionCalibrate.setToolTip(_translate("MainWindow", "Calibrate input signals", None))
+        self.actionSettings.setText(_translate("MainWindow", "Settings...", None))
+        self.actionProbe.setText(_translate("MainWindow", "Probe...", None))
+        self.actionCheck_Signals.setText(_translate("MainWindow", "Check Signals", None))
 
 from pygesture.ui.widgets import GestureView

@@ -13,8 +13,8 @@ from sklearn.svm import SVC
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.rtgui_template_pyqt4 import *
-from pygesture.ui.calibrationdialog_template_pyqt4 import *
+from pygesture.ui.rtgui_template import *
+from pygesture.ui.calibrationdialog_template import *
 
 
 class RealTimeGUI(QtGui.QMainWindow):
