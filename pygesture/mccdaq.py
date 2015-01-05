@@ -63,29 +63,15 @@ class MccDaq:
         SAMPLES_PER_READ).
         """
         data = self.device.read_scan_data(
-                self.samples_per_read*self.num_channels, self.rate)
+            self.samples_per_read*self.num_channels, self.rate)
 
         data = np.array(data, dtype=np.float)
-        data = np.reshape(data, (self.num_channels, -1))
+        data = np.reshape(data, (-1, self.num_channels)).T
         for i in range(self.num_channels):
             data[i, :] = self.device.scale_and_calibrate_data(data[i, :],
-                    -self.input_range, self.input_range,
-                    self.calibration_data[i])
-        ## this loop is necessary due to limitations of packet size
-        #read_len = self.num_channels*self.samples_per_read*8
-        #bytes_read = 0
-        #raw_data = []
-        #while bytes_read < read_len:
-        #    in_data = self.sock.recv(MccDaq.BUFFER_SIZE)
-        #    bytes_read += len(in_data)
-        #    raw_data.append(in_data)
-        #raw_data = ''.join(raw_data)
-
-        ## decode the data using float64, little-endian
-        #dec_data = fromstring(raw_data, dtype=dtype('<f8'))
-
-        ## reshape the data
-        #rsh_data = reshape(dec_data.transpose(), (self.num_channels, -1))
+                -self.input_range, self.input_range,
+                self.calibration_data[i])
+        data = data / float(self.input_range)
 
         return data
 
