@@ -22,10 +22,12 @@ actions = {
         ("IRB140_joint4", -20)
     ],
     "wrist-extension": [
-        ("IRB140_joint5", 10)
+        #("IRB140_joint5", 10)
+        ("IRB140_joint3", 5)
     ],
     "wrist-flexion": [
-        ("IRB140_joint5", -10)
+        #("IRB140_joint5", -10)
+        ("IRB140_joint3", -5)
     ],
     "closed-fist": [
         ("BarrettHand_jointB_0", 10),

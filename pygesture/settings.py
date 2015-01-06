@@ -7,13 +7,14 @@ import os
 
 # recording settings
 SAMPLE_RATE = 4096 
-CHANNEL_RANGE = (0, 5)
+CHANNEL_RANGE = (0, 3)
 PROBE_CHANNEL = 6
 NUM_CHANNELS = CHANNEL_RANGE[1] - CHANNEL_RANGE[0] + 1
 SAMPLES_PER_READ = 512 
 INPUT_RANGE = 2
 SECONDS_PER_RECORD = 6
-TRIGGERS_PER_RECORD = int(SAMPLE_RATE / SAMPLES_PER_READ) * SECONDS_PER_RECORD
+TRIGGERS_PER_SECOND = int(SAMPLE_RATE / SAMPLES_PER_READ)
+TRIGGERS_PER_RECORD = TRIGGERS_PER_SECOND * SECONDS_PER_RECORD
 ONSET_TRANSITION = 2
 OFFSET_TRANSITION = 5
 INTERTRIAL_TIMEOUT = 3
@@ -26,11 +27,11 @@ gesture_dict = {
     'l2': ('FP', 'forearm-pronation'),
     'l3': ('FS', 'forearm-supination'),
     'l4': ('OH', 'open-hand'),
-    'l5': ('RD', 'radial-deviation'),
-    'l6': ('TE', 'thumb-extension'),
-    'l7': ('UD', 'ulnar-deviation'),
-    'l8': ('WE', 'wrist-extension'),
-    'l9': ('WF', 'wrist-flexion')}
+    #'l5': ('RD', 'radial-deviation'),
+    #'l6': ('TE', 'thumb-extension'),
+    #'l7': ('UD', 'ulnar-deviation'),
+    'l5': ('WE', 'wrist-extension'),
+    'l6': ('WF', 'wrist-flexion')}
 #        'l10': ('EE', 'wrist-flexion-closed'),
 #        'l11': ('EF', 'wrist-extension-closed') }
 
@@ -102,11 +103,13 @@ REST_START_MS = 1000
 REST_END_MS = 1500
 GESTURE_START_MS = 2000
 GESTURE_END_MS = 4000
-WINDOW_LENGTH_MS = 150
-WINDOW_OVERLAP_MS = 50
+
+SAMPS_PER_MS = int(FS_PROC / 1000)
+
+WINDOW_OVERLAP_MS = 0
+WINDOW_LENGTH_MS = int(1000 / TRIGGERS_PER_SECOND)
 
 WINDOW_SHIFT_MS = WINDOW_LENGTH_MS - WINDOW_OVERLAP_MS
-SAMPS_PER_MS = int(FS_PROC / 1000)
 
 REST_START_SAMP = REST_START_MS * SAMPS_PER_MS
 REST_END_SAMP = REST_END_MS * SAMPS_PER_MS
