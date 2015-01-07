@@ -38,8 +38,7 @@ class VrepSimulation:
 
     def _connect(self):
         vrep.simxFinish(-1)
-        cid = vrep.simxStart("127.0.0.1", self.port, True, True,
-            5000, 5)
+        cid = vrep.simxStart("127.0.0.1", self.port, True, True, 5000, 5)
         if cid == -1:
             raise Exception('Failed to connect V-REP remote API server.')
 
@@ -57,7 +56,7 @@ class Robot:
         self.joints = None
 
         self.initialize_joints()
-    
+
     def initialize_joints(self, query=""):
         objectType = vrep.sim_object_joint_type
         res, handles, intData, floatData, names = vrep.simxGetObjectGroupData(
@@ -86,42 +85,42 @@ class Robot:
 
 class Joint(object):
 
-  def __init__(self, clientId, name, handle):
-      self.clientId = clientId
-      self.name = name
-      self.handle = handle
-      self.position = None
-      self.force = None
+    def __init__(self, clientId, name, handle):
+        self.clientId = clientId
+        self.name = name
+        self.handle = handle
+        self.position = None
+        self.force = None
 
-  def __repr__(self):
-     return "(name={0}, handle={1}, position={2:2.5f}, force={3:.5f})".format(
-         self.name, self.handle, self.position, self.force)
+    def __repr__(self):
+        return "(name={0}, handle={1}, position={2:2.5f}, force={3:.5f})".format(
+            self.name, self.handle, self.position, self.force)
 
-  def initialize(self):
-      self.getPosition()
-      self.getForce()
+    def initialize(self):
+        self.getPosition()
+        self.getForce()
 
-  def getPosition(self):
-      res, self.position = vrep.simxGetJointPosition(self.clientId,
+    def getPosition(self):
+        res, self.position = vrep.simxGetJointPosition(self.clientId,
             self.handle, vrep.simx_opmode_oneshot_wait)
-      validate(res)
+        validate(res)
 
-  def setPosition(self, position):
-    res = vrep.simxSetJointPosition(self.clientId, self.handle, position,
-        vrep.simx_opmode_oneshot)
-    validate(res)
-    self.getPosition()
+    def setPosition(self, position):
+        res = vrep.simxSetJointPosition(self.clientId, self.handle, position,
+            vrep.simx_opmode_oneshot)
+        validate(res)
+        self.getPosition()
 
-  def getForce(self):
-    res, self.force = vrep.simxGetJointForce(self.clientId, self.handle,
-        vrep.simx_opmode_oneshot_wait)
-    validate(res)
+    def getForce(self):
+        res, self.force = vrep.simxGetJointForce(self.clientId, self.handle,
+            vrep.simx_opmode_oneshot_wait)
+        validate(res)
 
-  def setForce(self, force):
-    res = vrep.simxSetJointForce(self.clientId, self.handle, force,
-        vrep.simx_opmode_oneshot)
-    validate(res)
-    self.getForce()
+    def setForce(self, force):
+        res = vrep.simxSetJointForce(self.clientId, self.handle, force,
+            vrep.simx_opmode_oneshot)
+        validate(res)
+        self.getForce()
 
 
 def validate(res):
