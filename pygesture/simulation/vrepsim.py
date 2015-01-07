@@ -75,12 +75,19 @@ class Robot:
     def do_action(self, action_name):
         action = self.actions[action_name]
 
-        # TODO pause comm, send all commands, then resume comm
-        for joint_name, vel_deg in action:
-            j = self.joints[joint_name]
-            vel_rad = math.radians(vel_deg)
-            vrep.simxSetJointTargetVelocity(self.clientId, j.handle, vel_rad,
-                vrep.simx_opmode_oneshot)
+        if action_name == 'closed-fist':
+            print("closing hand")
+            res = vrep.simxSetIntegerSignal(self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
+        elif action_name == 'open-hand':
+            print("opening hand")
+            res = vrep.simxSetIntegerSignal(self.clientId, 'request', 1, vrep.simx_opmode_oneshot)
+        else:
+            # TODO pause comm, send all commands, then resume comm
+            for joint_name, vel_deg in action:
+                j = self.joints[joint_name]
+                vel_rad = math.radians(vel_deg)
+                vrep.simxSetJointTargetVelocity(self.clientId, j.handle, vel_rad,
+                    vrep.simx_opmode_oneshot)
 
 
 class Joint(object):

@@ -12,22 +12,21 @@ robot.do_action("forearm-supination")
 time.sleep(1.8)
 robot.do_action("rest")
 
-robot.do_action("ulnar-deviation")
-time.sleep(1.3)
+robot.do_action("wrist-flexion")
+time.sleep(2.3)
 robot.do_action("rest")
 
 robot.do_action("closed-fist")
 time.sleep(1.2)
 robot.do_action("rest")
 
-robot.do_action("radial-deviation")
-time.sleep(2)
+robot.do_action("wrist-extension")
+time.sleep(1.3)
 robot.do_action("rest")
 
 robot.do_action("forearm-pronation")
-time.sleep(2.5)
+time.sleep(2.0)
 robot.do_action("rest")
 
-time.sleep(2)
 
 sim.finish()

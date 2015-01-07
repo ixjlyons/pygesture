@@ -936,7 +936,7 @@ def simxSetStringSignal(clientID, signalName, signalValue, operationMode):
     Please have a look at the function description/documentation in the V-REP user manual
     '''
 
-    return c_SetStringSignal(clientID, signalName.encode('utf-8'), signalValue, len(signalValue), operationMode)
+    return c_SetStringSignal(clientID, signalName.encode('utf-8'), cast(signalValue, POINTER(c_ubyte)), len(signalValue), operationMode)
 
 def simxAppendStringSignal(clientID, signalName, signalValue, operationMode):
     '''
@@ -1109,11 +1109,11 @@ def simxQuery(clientID, signalName, signalValue, retSignalName, timeOutInMs):
     '''
     Please have a look at the function description/documentation in the V-REP user manual
     '''
-
+    sigval = cast(signalValue, POINTER(c_ubyte))
     retSignalLength = c_int();
     retSignalValue = pointer(c_ubyte())
 
-    ret = c_Query(clientID, signalName.encode('utf-8'), signalValue, len(signalValue), retSignalName, byref(retSignalValue), byref(retSignalLength), timeOutInMs)
+    ret = c_Query(clientID, signalName.encode('utf-8'), sigval, len(signalValue), retSignalName, byref(retSignalValue), byref(retSignalLength), timeOutInMs)
 
     a = bytearray()
     if ret == 0:
