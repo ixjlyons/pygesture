@@ -9,15 +9,15 @@ sim.start()
 robot = vrepsim.Robot(sim.clientId, config.actions)
 
 robot.do_action("forearm-supination")
-time.sleep(1.8)
+time.sleep(1.5)
 robot.do_action("rest")
 
 robot.do_action("wrist-flexion")
-time.sleep(2.3)
+time.sleep(1.9)
 robot.do_action("rest")
 
 robot.do_action("closed-fist")
-time.sleep(1.2)
+time.sleep(2)
 robot.do_action("rest")
 
 robot.do_action("wrist-extension")
@@ -25,8 +25,28 @@ time.sleep(1.3)
 robot.do_action("rest")
 
 robot.do_action("forearm-pronation")
-time.sleep(2.0)
+time.sleep(1.7)
 robot.do_action("rest")
+
+time.sleep(0.5)
+
+robot.do_action("forearm-supination")
+time.sleep(1.7)
+robot.do_action("rest")
+
+robot.do_action("wrist-flexion")
+time.sleep(1.2)
+robot.do_action("rest")
+
+robot.do_action("open-hand")
+time.sleep(1.0)
+robot.do_action("rest")
+
+robot.do_action("wrist-extension")
+time.sleep(1.9)
+robot.do_action("rest")
+
+time.sleep(1)
 
 
 sim.finish()
