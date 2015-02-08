@@ -32,11 +32,9 @@ except ImportError:
 
 try:
     from pygesture import classification
-    from pygesture import settings as st
 except:
     sys.path.insert(0, '..')
     from pygesture import classification
-    from pygesture import settings as st
 
 def main():
     parser = argparse.ArgumentParser(
