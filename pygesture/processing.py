@@ -17,6 +17,7 @@ import numpy as np
 import scipy.io.wavfile as siowav
 from scipy import signal
 
+from pygesture import features
 from pygesture import filestruct
 from pygesture import settings as st
 
@@ -62,108 +63,6 @@ def process_session(session_info):
     sess.process()
 
 
-def mav(x):
-    """
-    Calculates the mean absolute value of a signal.
-
-    Parameters
-    ----------
-    x : ndarray
-        The signal (can be multidimensional, in which case the MAV is
-        calculated along columns)
-
-    Returns
-    -------
-    y : ndarray
-        The mean absolute value of each channel of the input.
-    """
-    y = np.mean(np.absolute(x), 0)
-    return y
-
-
-def wl(x):
-    """
-    Calculates the waveform length of a signal. Waveform length is just the
-    sum of the absolute value of all deltas (between adjacent taps) of a
-    signal.
-
-    Parameters
-    ----------
-    x : ndarray
-        The raw signal(s) to calculate WL for. If multidimensional, WL is
-        calculated along columns.
-
-    Returns
-    -------
-    y : ndarray
-        The waveform length of each channel of the input.
-    """
-    x2 = np.vstack((x[0, :], x[:-1, :]))
-    y = np.sum(np.absolute(x - x2), 0)
-    return y
-
-
-def zc(x, thresh):
-    """
-    Calculates the number of zero crossings in a signal, subject to a threshold
-    for discarding noisy fluctuations above and below zero.
-
-    Parameters
-    ----------
-    x : ndarray
-        The raw signal(s) to calculate ZC for. If multidimensional, ZC is
-        calculated along columns.
-    thresh : float
-        The threshold for discriminating true zero crossings from those caused
-        by noise.
-
-    Returns
-    -------
-    y : ndarray
-        The number of zero crossings in each channel of the input.
-    """
-    xrows, xcols = x.shape
-    y = np.zeros(xcols)
-    for i in range(xcols):
-        for j in range(1, xrows):
-            if ((x[j, i] > 0 and x[j-1, i] < 0) or
-                    (x[j, i] < 0 and x[j-1, i] > 0)):
-                if np.absolute(x[j, i] - x[j-1, i]) > thresh:
-                    y[i] += 1
-    return y
-
-
-def ssc(x, thresh):
-    """
-    Calculates the number of slope sign changes in a signal, subject to a
-    threshold for discarding noisy fluctuations.
-
-    Parameters
-    ----------
-    x : ndarray
-        The raw signal(s) to calculate SSC for. If multidimensional, SSC is
-        calculated along columns.
-    thresh : float
-        The threshold for discriminating true slope sign changes from those
-        caused by noise.
-
-    Returns
-    -------
-    y : ndarray
-        The number of slope sign changes in each channel of the input.
-    """
-    xrows, xcols = x.shape
-    y = np.zeros(xcols)
-    for i in range(xcols):
-        for j in range(1, xrows-1):
-            if ((x[j, i] > x[j-1, i] and x[j, i] > x[j+1, i]) or
-                    (x[j, i] < x[j-1, i] and x[j, i] < x[j+1, i])):
-                if (np.absolute(x[j, i] - x[j-1, i]) > thresh or
-                        np.absolute(x[j, i] - x[j+1, i]) > thresh):
-                    y[i] += 1
-    return y
-
-
 def get_features(x):
     """
     Calculates the four time-domain features (MAV, WL, ZC, and SSC) and stacks
@@ -181,7 +80,11 @@ def get_features(x):
         The features, stacked such that each group of columns represents the
         feature for all channels.
     """
-    return np.hstack((mav(x), wl(x), zc(x, 0.001), ssc(x, 0.001)))
+    return np.hstack((
+        features.mav(x),
+        features.wl(x),
+        features.zc(x, 0.001),
+        features.ssc(x, 0.001)))
 
 
 def condition(x, fs):
@@ -325,7 +228,7 @@ class Recording:
                               st.WINDOW_SHIFT_SAMP)
         self.gest_ind = range(st.GESTURE_START_SAMP, st.GESTURE_END_SAMP,
                               st.WINDOW_SHIFT_SAMP)
-        self.num_features = get_features(self.raw_data[1:4, :]).size
+        self.num_features = get_features(self.raw_data[:100, :]).size
 
     def parse_details(self, filename):
         trial_number = filestruct.parse_trial_number(filename)
