@@ -114,6 +114,11 @@ def spectral_moment(x, n):
         column.
     n : int
         The order of the moment to take. Should be even and >= 0.
+
+    Returns
+    -------
+    y : ndarray
+        The spectral moment of each channel of the input.
     """
     xrows, xcols = x.shape
     y = np.zeros(xcols)
@@ -161,3 +166,48 @@ def khushaba_set(x, u=0):
         np.log(m4 / m0**4),
         np.log(S),
         np.log(IF / WL)))
+
+
+def sampen(x, m, r):
+    """
+    Calculates the sample entropy of time series data. See Richman and Moorman
+    2000. Note this has not been thoroughly tested.
+
+    Parameters
+    ----------
+    x : ndarray
+        Input data. Sample entropy is calculated for each column.
+    m : int
+        Length of sequences to compare
+    r : float
+        Tolerance for counting matches. 
+    """
+
+    xrows, xcols = x.shape
+    y = np.zeros(xcols)
+
+    rvec = r * np.std(x, axis=0)
+
+    N = xrows
+    for c in range(xcols):
+        correl = np.zeros(2)
+        xmat = np.zeros((m+1, (N-1)-m))
+        for i in range(m+1):
+            xmat[i, :] = x[i:(N-1)-m+i, c]
+
+        for mc in [m, m+1]:
+            count = np.zeros((N-1)-m)
+            temp = xmat[:mc, :]
+
+            for i in range((N-1)-mc):
+                dist = np.max(
+                    np.abs(
+                        temp[:, i+1:(N-1)-m] - temp[:, i][:, np.newaxis]), axis=0)
+
+                count[i] = np.sum(dist < rvec[c]) / float(N-m)
+
+            correl[mc-m] = np.sum(count)
+
+        y[c] = np.log(correl[0] / correl[1])
+
+    return y
