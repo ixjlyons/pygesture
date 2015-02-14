@@ -37,8 +37,7 @@ def wl(x):
     y : ndarray
         The waveform length of each channel of the input.
     """
-    x2 = np.vstack((x[0, :], x[:-1, :]))
-    y = np.sum(np.absolute(x - x2), 0)
+    y = np.sum(np.diff(x, axis=0), axis=0)
     return y
 
 
@@ -72,6 +71,21 @@ def zc(x, thresh):
     return y
 
 
+def zc_sm(x):
+    """
+    Computes the number of zero crossings in a signal using spectral moments.
+    This version is much faster to compute than plain zc(), but there is no
+    threshold parameter.
+
+    Parameters
+    ----------
+    x : ndarray
+        The raw signal. ZC is computed for each column.
+    """
+    y = np.sqrt(spectral_moment(x, 2) / spectral_moment(x, 0))
+    return y
+
+
 def ssc(x, thresh):
     """
     Calculates the number of slope sign changes in a signal, subject to a
@@ -100,6 +114,21 @@ def ssc(x, thresh):
                 if (np.absolute(x[j, i] - x[j-1, i]) > thresh or
                         np.absolute(x[j, i] - x[j+1, i]) > thresh):
                     y[i] += 1
+    return y
+
+
+def ssc_sm(x):
+    """
+    Computes the number of slope sign changes (peaks) in a signal using
+    spectral moments. This version is much faster to compute than plain
+    ssc(), but there is no threshold parameter.
+
+    Parameters
+    ----------
+    x : ndarray
+        The raw signal. SSC is computed for each column.
+    """
+    y = np.sqrt(spectral_moment(x, 4) / spectral_moment(x, 2))
     return y
 
 
