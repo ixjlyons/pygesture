@@ -156,7 +156,7 @@ def khushaba_set(x, u=0):
     m0 = spectral_moment(x, 0)
     m2 = spectral_moment(x, 2)
     m4 = spectral_moment(x, 4)
-    S = m0 / np.sqrt((m0-m2)*(m0-m4))
+    S = m0 / np.sqrt(np.abs((m0-m2)*(m0-m4)))
     IF = np.sqrt(m2**2 / (m0*m4))
     WL = wl(x)
 
@@ -171,14 +171,23 @@ def khushaba_set(x, u=0):
 def sampen(x, m, r):
     """
     Calculates the sample entropy of time series data. See Richman and Moorman
-    2000. Note this has not been thoroughly tested.
+    2000. The basic idea is to take all possible m-length subsequences of the
+    time series and count the number of these subsequences whose Chebyshev
+    distance from all other subsequences is less than the tolerance parameter,
+    r (self-matches excluded). This is repeated for (m+1)-length subsequences,
+    and SampEn is given by the log of the number of m-length matches divided
+    by the number of (m+1)-length matches.
+
+    This feature can have some issues if the tolerance r is too low and/or the
+    subsequence length m is too high. A typical value for r is apparently
+    0.2*std(x).
 
     Parameters
     ----------
     x : ndarray
         Input data. Sample entropy is calculated for each column.
     m : int
-        Length of sequences to compare
+        Length of sequences to compare (>1)
     r : float
         Tolerance for counting matches. 
     """
@@ -186,27 +195,27 @@ def sampen(x, m, r):
     xrows, xcols = x.shape
     y = np.zeros(xcols)
 
-    rvec = r * np.std(x, axis=0)
-
     N = xrows
     for c in range(xcols):
-        correl = np.zeros(2)
-        xmat = np.zeros((m+1, (N-1)-m))
-        for i in range(m+1):
-            xmat[i, :] = x[i:(N-1)-m+i, c]
+        correl = np.zeros(2) + np.finfo(np.float).eps
+
+        xmat = np.zeros((m+1, N-m+1))
+        for i in range(m):
+            xmat[i, :] = x[i:N-m+i+1, c]
+        # handle last row separately
+        xmat[m, :-1] = x[m:N, c]
+        xmat[-1, -1] = 10*np.max(xmat) # something that won't get matched
 
         for mc in [m, m+1]:
-            count = np.zeros((N-1)-m)
-            temp = xmat[:mc, :]
-
-            for i in range((N-1)-mc):
+            count = 0
+            for i in range(N-mc-1):
                 dist = np.max(
                     np.abs(
-                        temp[:, i+1:(N-1)-m] - temp[:, i][:, np.newaxis]), axis=0)
+                        xmat[:mc, i+1:] - xmat[:mc, i][:, np.newaxis]), axis=0)
 
-                count[i] = np.sum(dist < rvec[c]) / float(N-m)
+                count += np.sum(dist <= r)
 
-            correl[mc-m] = np.sum(count)
+            correl[mc-m] = count
 
         y[c] = np.log(correl[0] / correl[1])
 
