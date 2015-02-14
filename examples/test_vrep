@@ -1,14 +1,28 @@
 #!/usr/bin/env python
 
-import time
+"""
+This is a script for testing the example v-rep simulation
+`arm_scene_example.ttt`. The purpose is to demonstrate how the simulation
+works, not necessarily to test the vrepsim module.
+"""
 
-from pygesture.simulation import config, vrepsim
+import time
+import sys
+
+try:
+    from pygesture.simulation import config, vrepsim
+except ImportError:
+    sys.path.insert(0, '..')
+    from pygesture.simulation import config, vrepsim
 
 sim = vrepsim.VrepSimulation(config.vrep_port)
 sim.start()
 robot = vrepsim.Robot(sim.clientId, config.actions)
 
 def do(action, length):
+    """
+    Shorthand for doing an action for some time, then resting.
+    """
     robot.do_action(action)
     time.sleep(length)
     robot.do_action("rest")
