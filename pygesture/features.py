@@ -1,20 +1,43 @@
 import numpy as np
 
+from pygesture.base import PipelineBlock
 
-class MAV:
+
+class FeatureExtractor(PipelineBlock):
+
+    def __init__(self, features, n_channels):
+        super(FeatureExtractor, self).__init__()
+        self.features = features
+
+        self.output = np.zeros(
+            n_channels*sum([f.dim_per_channel for f in self.features]))
+
+    def process(self, data):
+        # TODO use pre-allocated output array instead of hstack
+        return np.hstack([f.compute(data) for f in self.features])
+
+    def __repr__(self):
+        return "%s.%s()" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.features
+        )
+
+
+class MAV(object):
     """
     Calculates the mean absolute value of a signal.
     """
 
     def __init__(self):
-        pass
+        self.dim_per_channel = 1
 
     def compute(self, x):
         y = np.mean(np.absolute(x), axis=0)
         return y
 
 
-class WL:
+class WL(object):
     """
     Calculates the waveform length of a signal. Waveform length is just the
     sum of the absolute value of all deltas (between adjacent taps) of a
@@ -22,14 +45,14 @@ class WL:
     """
 
     def __init__(self):
-        pass
+        self.dim_per_channel = 1
 
     def compute(self, x):
         y = np.sum(np.diff(x, axis=0), axis=0)
         return y
 
 
-class ZC:
+class ZC(object):
     """
     Calculates the number of zero crossings in a signal, subject to a threshold
     for discarding noisy fluctuations above and below zero.
@@ -46,6 +69,7 @@ class ZC:
     """
 
     def __init__(self, thresh=0.0, use_sm=False):
+        self.dim_per_channel = 1
         self.thresh = thresh
         self.use_sm = use_sm
 
@@ -67,7 +91,7 @@ class ZC:
         return y
 
 
-class SSC:
+class SSC(object):
     """
     Calculates the number of slope sign changes in a signal, subject to a
     threshold for discarding noisy fluctuations.
@@ -84,6 +108,7 @@ class SSC:
     """
 
     def __init__(self, thresh=0.0, use_sm=False):
+        self.dim_per_channel = 1
         self.thresh = thresh
         self.use_sm = use_sm
 
@@ -105,7 +130,7 @@ class SSC:
         return y
 
 
-class SpectralMoment:
+class SpectralMoment(object):
     """
     Calculates the nth-order spectral moment.
 
@@ -117,6 +142,7 @@ class SpectralMoment:
     """
 
     def __init__(self, n):
+        self.dim_per_channel = 1
         self.n = n
 
     def compute(self, x):
@@ -136,7 +162,7 @@ class SpectralMoment:
         return y
 
 
-class KhushabaSet:
+class KhushabaSet(object):
     """
     Calcuates a set of 5 features introduced by Khushaba et al. at ISCIT 2012.
     (see reference [1]). They are:
@@ -160,9 +186,14 @@ class KhushabaSet:
     """
 
     def __init__(self, u=0):
+        self.dim_per_channel = 5
         self.u = u
 
     def compute(self, x):
+        xrows, xcols = x.shape
+        y = np.zeros(self.dim_per_channel*xcols)
+        # TODO fill this instead of using hstack
+
         m0 = SpectralMoment(0).compute(x)
         m2 = SpectralMoment(2).compute(x)
         m4 = SpectralMoment(4).compute(x)
@@ -177,7 +208,7 @@ class KhushabaSet:
             np.log(IF / WL().compute(x))))
 
 
-class SampEn:
+class SampEn(object):
     """
     Calculates the sample entropy of time series data. See reference [1].
 
@@ -208,6 +239,7 @@ class SampEn:
     """
 
     def __init__(self, m, r):
+        self.dim_per_channel = 1
         self.m = m
         self.r = r
 

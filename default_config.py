@@ -16,6 +16,41 @@ sensors = {
     5: ('PT', 'pronator teres')
 }
 
+pipeline = {
+    'node': Recorder(),
+    'output': [
+        {
+            'node': Filter(),
+            'output': [
+                {
+                    'node': SampleRateConverter(),
+                    'output': [
+                        {
+                            'node': FeatureExtractor(),
+                            'output': [
+                                {
+                                    'node': Classifier(),
+                                    'output': [
+                                        {
+                                            'node': VrepSimulation(),
+                                        },
+                                        {
+                                            'node': FileStream(),
+                                        },
+                                    ]
+                                ,}
+                            ]
+                        },
+                    ]
+                },
+            ]
+        },
+        {
+            'node': Filestrem(),
+        },
+    ]
+}
+
 recorder = dict( 
     fs=fs,
     channels=list(sensors.keys()),
