@@ -148,7 +148,8 @@ class Session:
 
     def init_file_structure(self, force=False):
         session_dir, date_str = \
-            filestruct.new_session_dir(self.participant_id, self.session_id)
+            filestruct.new_session_dir(st.DATA_ROOT,
+                self.participant_id, self.session_id)
         recording_dir = filestruct.get_recording_dir(session_dir)
 
         if os.path.isdir(session_dir):

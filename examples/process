@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     rootdir = os.path.normpath(args.rootdir)
 
-    all_pids = filestruct.get_participant_list()
+    all_pids = filestruct.get_participant_list(rootdir)
     if args.pid == 'all':
         pids = all_pids
     else:

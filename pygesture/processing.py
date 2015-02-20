@@ -42,7 +42,7 @@ def batch_process(rootdir, pid, sid_list='all', pool=1):
         means the function will not use the multiprocessing module.
     """
     if sid_list == 'all':
-        sid_list = filestruct.get_session_list(pid)
+        sid_list = filestruct.get_session_list(rootdir, pid)
 
     if pool > 1:
         pool = Pool(processes=pool)

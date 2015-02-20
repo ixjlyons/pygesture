@@ -54,7 +54,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.recorder.prediction_sig.connect(self.prediction_callback)
 
     def init_pid_list(self):
-        pid_list = filestruct.get_participant_list()
+        pid_list = filestruct.get_participant_list(st.DATA_ROOT)
         pid_list = [pid for pid in pid_list if pid.startswith('p')]
         self.pid_list = pid_list
 
@@ -90,7 +90,7 @@ class RealTimeGUI(QtGui.QMainWindow):
     def set_pid(self, index):
         self.pid = self.pid_list[index]
         self.ui.trainingList.clear()
-        self.sid_list = filestruct.get_session_list(self.pid)
+        self.sid_list = filestruct.get_session_list(st.DATA_ROOT, self.pid)
         for sid in self.sid_list:
             item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)

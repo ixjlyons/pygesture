@@ -68,16 +68,16 @@ class Conditioner(PipelineBlock):
         specified, the sampling rate is unchanged.
     """
 
-    def __init__(self, n, fc, fs, fd=None):
+    def __init__(self, order, f_cut, f_samp, f_down=None):
         super(Conditioner, self).__init__()
-        self.n = n
-        self.fc = fc
-        self.fs = fs
+        self.n = order
+        self.fc = f_cut 
+        self.fs = f_samp 
 
         if fd is None:
-            fd = fs
+            f_down = self.fs
 
-        self.m = int(self.fs/fd)
+        self.m = int(self.fs/f_down)
 
         self._build_filter()
         self.zi = None

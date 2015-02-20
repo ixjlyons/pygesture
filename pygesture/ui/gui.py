@@ -209,7 +209,7 @@ class MainWindow(QtGui.QWidget):
         pid = self.participant_input.text()
 
         # make sure participant has completed all sessions
-        sid_list = filestruct.get_session_list(pid)
+        sid_list = filestruct.get_session_list(st.DATA_ROOT, pid)
         for sid in st.arm_session_list + st.leg_session_list:
             if sid not in sid_list:
                 QtGui.QMessageBox().warning(

@@ -4,6 +4,7 @@ from PyQt4 import QtGui, QtCore
 from sklearn.lda import LDA
 
 from pygesture import filestruct
+from pygesture import settings as st
 
 
 class ClassifierBuilderDialog(QtGui.QDialog):
@@ -45,7 +46,7 @@ class ClassifierBuilderDialog(QtGui.QDialog):
     def create_participant_selector(self):
         self.participant_label = QtGui.QLabel('Participant:')
         self.participant_selector = QtGui.QComboBox()
-        self.pid_list = filestruct.get_participant_list()
+        self.pid_list = filestruct.get_participant_list(st.DATA_ROOT)
         self.participant_selector.addItems(self.pid_list)
 
     def create_session_selector(self):
@@ -59,7 +60,7 @@ class ClassifierBuilderDialog(QtGui.QDialog):
     def update_pid(self, index):
         self.pid = self.pid_list[index]
         self.session_selector.clear()
-        self.sids = filestruct.get_session_list(self.pid)
+        self.sids = filestruct.get_session_list(st.DATA_ROOT, self.pid)
         for sid in self.sids:
             item = QtGui.QListWidgetItem(sid, self.session_selector)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)

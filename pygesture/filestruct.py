@@ -3,10 +3,8 @@ import os
 import glob
 import re
 
-from pygesture import settings as st
 
-
-def new_session_dir(pid, sid):
+def new_session_dir(rootdir, pid, sid):
     """
     Creates a path to a new session directory.
     Example:
@@ -14,7 +12,7 @@ def new_session_dir(pid, sid):
     """
     date_str = datetime.date.today().strftime('%Y-%m-%d')
     session_dir = os.path.join(
-        st.DATA_ROOT,
+        rootdir,
         pid,
         'session_' + date_str + '_' + pid + '_' + sid)
     return (session_dir, date_str)
@@ -91,18 +89,18 @@ def find_feature_file(rootdir, pid, sid):
     return feature_file
 
 
-def get_participant_list():
+def get_participant_list(rootdir):
     """
     Obtains a list of the IDs of participants who have data stored.
     """
-    return sorted(os.listdir(st.DATA_ROOT))
+    return sorted(os.listdir(rootdir))
 
 
-def get_session_list(pid):
+def get_session_list(rootdir, pid):
     """
     Obtains a list of the session IDs the given participant has produced.
     """
-    dirs = sorted(os.listdir(os.path.join(st.DATA_ROOT, pid)))
+    dirs = sorted(os.listdir(os.path.join(rootdir, pid)))
     return [d.split('_')[-1] for d in dirs]
 
 
