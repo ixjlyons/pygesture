@@ -19,7 +19,6 @@ ONSET_TRANSITION = 2
 OFFSET_TRANSITION = 5
 INTERTRIAL_TIMEOUT = 3
 DATA_ROOT = os.path.join(os.path.expanduser('~'), 'pygesture-data')
-VREP_BASE_PATH = "/home/kenny/usr/v-rep/v-rep-3.1.3rev2b"
 
 gesture_dict = {
     'l0': ('NC', 'rest'),

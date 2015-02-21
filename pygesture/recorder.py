@@ -34,6 +34,7 @@ class RecordThread(QtCore.QThread):
                                      st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
 
         if self.run_sim:
+            vrepsim.set_path(config.path)
             self.simulation = vrepsim.VrepSimulation(config.vrep_port)
 
     def run(self):

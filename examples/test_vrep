@@ -15,6 +15,7 @@ except ImportError:
     sys.path.insert(0, '..')
     from pygesture.simulation import config, vrepsim
 
+vrepsim.set_path(config.path)
 sim = vrepsim.VrepSimulation(config.vrep_port)
 sim.start()
 robot = vrepsim.Robot(sim.clientId, config.actions)

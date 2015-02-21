@@ -2,6 +2,9 @@
 Configuration file for v-rep simulation of a robotic arm.
 """
 
+# path to v-rep
+path = "/home/kenny/usr/v-rep/v-rep-3.2.0"
+
 # The port that v-rep's remote server is listening on. This is specified in
 # v-rep's remoteApiConnections.txt config file
 vrep_port = 20013

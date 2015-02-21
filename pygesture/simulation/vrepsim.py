@@ -1,6 +1,31 @@
 import math
+import os
+import platform
+import importlib
 
-from pygesture.simulation import vrep
+vrep = None
+
+def set_path(path):
+    """
+    Sets an environment variable for loading v-rep's remote API dynamic linked
+    library. Right now it will only work on Linux but it is kind of a hack
+    anyway. A better approach is needed, but the Python bindings v-rep provides
+    make it not very straightforward without modification. This must be done
+    before using the rest of this module, making it even more evil.
+    """
+    global vrep
+    remote_path = os.path.join(
+        path, "programming", "remoteApiBindings", "lib", "lib")
+
+    system = platform.system()
+    if platform.architecture()[0] == '64bit':
+        remote_lib = os.path.join(remote_path, "64Bit", "remoteApi.so")
+    else:
+        remote_lib = os.path.join(remote_path, "32Bit", "remoteApi.so")
+
+    os.environ['VREPLIB'] = remote_lib
+
+    vrep = importlib.import_module('pygesture.simulation.vrep')
 
 
 class VrepSimulation:
