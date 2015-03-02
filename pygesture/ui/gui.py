@@ -6,6 +6,7 @@ from PyQt4 import QtGui, QtCore
 
 from pygesture import settings as st
 from pygesture.ui import signals, results, clfbuilder
+from pygesture import daq
 from pygesture import filestruct
 from pygesture import recorder
 
@@ -50,7 +51,16 @@ class MainWindow(QtGui.QWidget):
         self.pause_button.clicked.connect(self.pause_session)
 
     def create_record_thread(self):
-        self.record_thread = recorder.RecordThread(usedaq=(not self.debug))
+        try:
+            self.daq = daq.MccDaq(st.SAMPLE_RATE, st.INPUT_RANGE,
+                                  st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+        except ValueError:
+            # fall back on "fake" DAQ
+            self.daq = daq.Daq(st.SAMPLE_RATE, st.INPUT_RANGE,
+                               st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+
+        self.record_thread = recorder.RecordThread(self.daq)
+        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
         self.record_thread.finished_sig.connect(self.record_finished)
 
     def create_menu(self):
@@ -188,22 +198,24 @@ class MainWindow(QtGui.QWidget):
 
     def check_signals(self):
         self.signal_window = signals.SignalCheckWindow(debug=self.debug)
-        self.record_thread.set_continuous(True)
+        self.record_thread.set_continuous()
         self.record_thread.update_sig.connect(self.signal_window.update_plot)
         self.record_thread.start()
         self.signal_window.exec_()
         self.record_thread.kill()
+        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
         self.record_thread.update_sig.disconnect(self.signal_window.update_plot)
 
     def probe_signal(self):
         self.probe_window = signals.SignalProbeWindow(debug=self.debug)
-        self.record_thread.set_continuous(True)
-        self.record_thread.set_single_channel_mode(True, st.PROBE_CHANNEL)
+        self.record_thread.set_continuous()
+        self.daq.set_channel_range((st.PROBE_CHANNEL, st.PROBE_CHANNEL))
         self.record_thread.update_sig.connect(self.probe_window.update_plot)
         self.record_thread.start()
         self.probe_window.exec_()
         self.record_thread.kill()
-        self.record_thread.set_single_channel_mode(False)
+        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
+        self.daq.set_channel_range(st.CHANNEL_RANGE)
         self.record_thread.update_sig.disconnect(self.probe_window.update_plot)
 
     def process_session(self):

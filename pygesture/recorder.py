@@ -6,8 +6,6 @@ from PyQt4 import QtCore
 import numpy as np
 import scipy.io.wavfile as siowav
 
-from pygesture import settings as st
-from pygesture import mccdaq
 from pygesture import filestruct
 from pygesture.simulation import config, vrepsim
 
@@ -18,20 +16,16 @@ class RecordThread(QtCore.QThread):
     finished_sig = QtCore.pyqtSignal(np.ndarray)
     prediction_sig = QtCore.pyqtSignal(int)
 
-    def __init__(self, usedaq=True, run_sim=False):
+    def __init__(self, daq, run_sim=False):
         QtCore.QThread.__init__(self, parent=None)
-        self.usedaq = usedaq
+        self.daq = daq
         self.run_sim = run_sim
-        self.continuous = False
-        self.single_channel_mode = False
+
+        self.continuous = True
+        self.triggers_per_record = 0
         self.running = False
-        self.daq = None
         self.simulation = None
         self.pipeline = None
-
-        if self.usedaq and self.daq is None:
-            self.daq = mccdaq.MccDaq(st.SAMPLE_RATE, st.INPUT_RANGE,
-                                     st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
 
         if self.run_sim:
             vrepsim.set_path(config.path)
@@ -51,26 +45,17 @@ class RecordThread(QtCore.QThread):
             self.simulation.start()
             robot = vrepsim.Robot(self.simulation.clientId, config.actions)
 
-        if self.usedaq:
-            self.daq.start()
+        self.daq.start()
 
         while self.running:
-            if self.usedaq:
-                d = self.daq.read()
-                if self.pipeline is not None:
-                    y = self.pipeline.run(d)
-                    self.prediction_sig.emit(y)
+            d = self.daq.read()
+            if self.pipeline is not None:
+                y = self.pipeline.run(d)
+                self.prediction_sig.emit(y)
 
-                    if robot is not None:
-                        robot.do_action("rest")
-                        robot.do_action(st.gesture_dict['l'+str(int(y[0]))][1])
-
-            else:
-                nch = st.NUM_CHANNELS
-                if self.single_channel_mode:
-                    nch = 1
-                d = 0.2*(np.random.rand(nch, st.SAMPLES_PER_READ) - 0.5)
-                self.msleep(1000*st.SAMPLES_PER_READ/st.SAMPLE_RATE)
+                if robot is not None:
+                    robot.do_action("rest")
+                    #robot.do_action(st.gesture_dict['l'+str(int(y[0]))][1])
 
             self.update_sig.emit(d)
 
@@ -80,38 +65,24 @@ class RecordThread(QtCore.QThread):
             self.simulation.stop()
 
     def run_fixed(self):
-        data = np.zeros((st.NUM_CHANNELS,
-                         st.SAMPLES_PER_READ*st.TRIGGERS_PER_RECORD))
-        if self.usedaq:
-            self.daq.start()
-        for i in range(st.TRIGGERS_PER_RECORD):
-            if self.usedaq:
-                d = self.daq.read()
-            else:
-                nch = st.NUM_CHANNELS
-                if self.single_channel_mode:
-                    nch = 1
-                d = 0.2*(np.random.rand(nch, st.SAMPLES_PER_READ) - 0.5)
-                self.msleep(1000*st.SAMPLES_PER_READ/st.SAMPLE_RATE)
+        spr = self.daq.samples_per_read
+        data = np.zeros((self.daq.num_channels, spr*self.triggers_per_record))
+        self.daq.start()
+        for i in range(self.triggers_per_record):
+            d = self.daq.read()
 
-            data[:, i*st.SAMPLES_PER_READ:(i+1)*st.SAMPLES_PER_READ] = d
+            data[:, i*spr:(i+1)*spr] = d
             self.update_sig.emit(d)
 
-        if self.usedaq:
-            self.daq.stop()
+        self.daq.stop()
         self.finished_sig.emit(data)
 
-    def set_single_channel_mode(self, single_channel, ch=0):
-        self.single_channel_mode = single_channel
-        if single_channel:
-            if self.usedaq:
-                self.daq.set_channel_range((ch, ch))
-        else:
-            if self.usedaq:
-                self.daq.set_channel_range(st.CHANNEL_RANGE)
+    def set_continuous(self):
+        self.continuous = True
 
-    def set_continuous(self, continuous):
-        self.continuous = continuous
+    def set_fixed(self, triggers_per_record):
+        self.triggers_per_record = triggers_per_record
+        self.continuous = False
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline

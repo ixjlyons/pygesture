@@ -5,6 +5,7 @@ import pkg_resources
 from pygesture import filestruct
 from pygesture import processing
 from pygesture import settings as st
+from pygesture import daq
 from pygesture import recorder
 
 import numpy as np
@@ -28,18 +29,6 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.prediction = 0
         self.calibration = np.zeros((1, st.NUM_CHANNELS))
 
-        while True:
-            try: 
-                self.recorder = recorder.RecordThread(run_sim=True)
-                break
-            except ValueError:
-                ret = QtGui.QMessageBox().critical(
-                    self, "Error",
-                    "Could not connect to DAQ.",
-                    QtGui.QMessageBox.Retry|QtGui.QMessageBox.Abort)
-                if ret == QtGui.QMessageBox.Abort:
-                    raise ValueError("Could not connect to DAQ.")
-
         self.init_recorder()
         self.init_pid_list()
         self.init_gesture_view()
@@ -50,7 +39,19 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.setWindowTitle('pygesture-rt')
 
     def init_recorder(self):
-        self.recorder.set_continuous(True)
+        try: 
+            self.daq = daq.MccDaq(st.SAMPLE_RATE, st.INPUT_RANGE,
+                                  st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+        except ValueError:
+            # fall back on "fake" DAQ
+            self.daq = daq.Daq(st.SAMPLE_RATE, st.INPUT_RANGE,
+                               st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+            #ret = QtGui.QMessageBox().warning(
+            #    self, "Warning",
+            #    "Falling back to emulated DAQ.",
+            #    QtGui.QMessageBox.Ok)
+
+        self.recorder = recorder.RecordThread(self.daq, run_sim=False)
         self.recorder.prediction_sig.connect(self.prediction_callback)
 
     def init_pid_list(self):
@@ -172,7 +173,7 @@ class CalibrateDialog(QtGui.QDialog):
         self.progress = 0
 
         self.recorder = recorder
-        self.recorder.set_continuous(False)
+        self.recorder.set_fixed(st.TRIGGERS_PER_RECORD)
         self.recorder.finished_sig.connect(self.record_finished_callback)
         self.recorder.update_sig.connect(self.record_update_callback)
         self.calibration_data = np.zeros((1, st.NUM_CHANNELS))
@@ -201,16 +202,13 @@ class CalibrateDialog(QtGui.QDialog):
 
     def closeEvent(self, event):
         recorder.cleanup()
+        recorder.set_continuous()
         QMainWindow.closeEvent(self, event)
 
 
 def main():
     app = QtGui.QApplication([])
-    try:
-        mw = RealTimeGUI()
-    except ValueError:
-        sys.exit(-1)
-
+    mw = RealTimeGUI()
     mw.show()
     app.exec_()
     app.deleteLater()

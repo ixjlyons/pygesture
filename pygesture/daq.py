@@ -1,8 +1,38 @@
+import time
 import numpy as np
 import daqflex
 
 
-class MccDaq:
+class Daq(object):
+    """
+    A base class which fakes DAQ device functionality by generating random
+    data.
+    """
+
+    def __init__(self, rate, input_range, channel_range, samples_per_read):
+        self.rate = rate
+        self.input_range = input_range
+        self.samples_per_read = samples_per_read
+
+        self.set_channel_range(channel_range)
+
+    def start(self):
+        pass
+
+    def read(self):
+        d = 0.2*self.input_range*(
+            np.random.rand(self.num_channels, self.samples_per_read) - 0.5)
+        time.sleep(float(self.samples_per_read/self.rate))
+        return d
+
+    def stop(self):
+        pass
+        
+    def set_channel_range(self, channel_range):
+        self.num_channels = channel_range[1] - channel_range[0] + 1
+
+
+class MccDaq(Daq):
     """
     Access to data read by a Measurement Computing DAQ.
 

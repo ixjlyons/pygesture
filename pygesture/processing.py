@@ -81,10 +81,10 @@ def get_features(x):
         feature for all channels.
     """
     return np.hstack((
-        features.mav(x),
-        features.wl(x),
-        features.zc(x, 0.001),
-        features.ssc(x, 0.001)))
+        features.MAV().compute(x),
+        features.WL().compute(x),
+        features.ZC(thresh=0.001).compute(x),
+        features.SSC(thresh=0.001).compute(x)))
 
 
 def condition(x, fs):
