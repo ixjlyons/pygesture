@@ -36,7 +36,6 @@ class MccDaq:
         self.rate = rate
         self.input_range = input_range
         self.samples_per_read = samples_per_read
-
             
         self.device.send_message("AISCAN:XFRMODE=BLOCKIO")
         self.device.send_message("AISCAN:SAMPLES=0")

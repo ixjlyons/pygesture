@@ -122,7 +122,8 @@ class MainWindow(QtGui.QWidget):
         self.intertrial_timer.setSingleShot(True)
 
     def start_session(self):
-        self.session = recorder.Session()
+        self.session = recorder.Session(
+            st.DATA_ROOT, list(st.gesture_dict), st.NUM_REPEATS)
         pid = self.participant_input.text()
         sid = self.session_input.text()
         if pid == '' or sid == '':
@@ -157,7 +158,7 @@ class MainWindow(QtGui.QWidget):
         self.prompt_anim.start()
 
     def record_finished(self, data):
-        self.session.write_recording(data)
+        self.session.write_recording(data, st.SAMPLE_RATE)
 
         self.gesture_view.setPixmap(self.gesture_images['l0'])
         self.pause_button.setEnabled(True)

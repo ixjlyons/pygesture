@@ -125,18 +125,29 @@ class RecordThread(QtCore.QThread):
             self.simulation.finish()
 
 
+def generate_trial_order(labels, n_repeat):
+    """
+    Generates the sequence of trials for the session. Each label is represented
+    a specified number of times, and the order is randomized.
+
+    Parameters
+    ----------
+    labels : list
+        List of trial labels (e.g. 'l0', 'l5', etc.).
+    n_repeat : int
+        Number of times to repeat each gesture.
+    """
+    l = labels * n_repeat
+    random.shuffle(l)
+    return l
+
+
 class Session:
 
-    def __init__(self):
-        self.generate_gesture_order()
+    def __init__(self, data_root, labels, n_repeat):
+        self.gesture_order = generate_trial_order(labels, n_repeat)
         self.current_trial = 0
-
-    def generate_gesture_order(self):
-        self.gesture_indices = []
-        for i in range(1, st.NUM_GESTURES+1):
-            self.gesture_indices.extend([i]*st.NUM_REPEATS)
-
-        random.shuffle(self.gesture_indices)
+        self.data_root = data_root
 
     def set_ids(self, pid, sid):
         self.participant_id = pid
@@ -149,7 +160,7 @@ class Session:
 
     def init_file_structure(self, force=False):
         session_dir, date_str = \
-            filestruct.new_session_dir(st.DATA_ROOT,
+            filestruct.new_session_dir(self.data_root,
                 self.participant_id, self.session_id)
         recording_dir = filestruct.get_recording_dir(session_dir)
 
@@ -172,15 +183,14 @@ class Session:
 
     def start_trial(self):
         self.current_trial += 1
-        self.current_gesture = 'l' + \
-            str(self.gesture_indices[self.current_trial-1])
+        self.current_gesture = self.gesture_order[self.current_trial-1]
         return (self.current_trial, self.current_gesture)
 
-    def write_recording(self, data):
+    def write_recording(self, data, fs):
         rec_file = filestruct.get_recording_file(
             self.recording_dir, self.participant_id, self.session_id,
             self.date_str, self.current_trial, self.current_gesture)
 
         data *= 32768
         data = data.astype(np.int16, copy=False)
-        siowav.write(rec_file, st.SAMPLE_RATE, data.T)
+        siowav.write(rec_file, fs, data.T)

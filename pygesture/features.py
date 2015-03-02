@@ -1,6 +1,6 @@
 import numpy as np
 
-from pygesture.base import PipelineBlock
+from pygesture.pipeline import PipelineBlock
 
 
 class FeatureExtractor(PipelineBlock):
