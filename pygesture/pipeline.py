@@ -1,6 +1,19 @@
 from scipy import signal
 import numpy as np
 
+
+class Pipeline(object):
+    def __init__(self, block_list):
+        self.block_list = block_list
+
+    def process(self, data):
+        out = data
+        for block in self.block_list:
+            out = block.process(out) 
+
+        return out
+
+
 class PipelineBlock(object):
     """
     A generic processing block in the pipeline.
@@ -33,7 +46,6 @@ class PipelineBlock(object):
             hook(data)
 
         for child in self.children:
-            print("{0} to {1} : {2}".format(type(self), type(child), data))
             child.process(data)
 
     def __repr__(self):
@@ -74,7 +86,7 @@ class Conditioner(PipelineBlock):
         self.fc = f_cut 
         self.fs = f_samp 
 
-        if fd is None:
+        if f_down is None:
             f_down = self.fs
 
         self.m = int(self.fs/f_down)
@@ -107,58 +119,14 @@ class Conditioner(PipelineBlock):
         )
 
 
-class Recorder(PipelineBlock):
+class Classifier(PipelineBlock):
 
-    def __init__(self, rate):
-        super(Recorder, self).__init__()
-        self.rate = rate
+    def __init__(self, clf):
+        super(Classifier, self).__init__()
+        self.clf = clf
 
-    def process(self, data):
-        f = data + self.rate
-        self.propogate(f)
-
-    def __repr__(self):
-        return "%s.%s(rate=%s)" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.rate
-        )
-
-
-class Filter(PipelineBlock):
-
-    def __init__(self, wc):
-        super(Filter, self).__init__()
-        self.wc = wc
+    def fit(self, data):
+        self.clf.fit(data)
 
     def process(self, data):
-        out = 0
-        for w in self.wc:
-            out += data / float(w)
-
-        self.propogate(out)
-
-    def __repr__(self):
-        return "%s.%s(wc=%s)" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.wc
-        )
-
-
-class Filestream(PipelineBlock):
-
-    def __init__(self, filename):
-        super(Filestream, self).__init__()
-        self.filename = filename
-
-    def process(self, data):
-        with open(self.filename, 'w') as f:
-            f.write(str(data))
-
-    def __repr__(self):
-        return "%s.%s(filename=%s)" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self.filename
-        )
+        return self.clf.predict(data)

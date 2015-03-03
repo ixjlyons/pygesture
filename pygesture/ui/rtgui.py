@@ -4,6 +4,8 @@ import pkg_resources
 
 from pygesture import filestruct
 from pygesture import processing
+from pygesture import features
+from pygesture import pipeline
 from pygesture import settings as st
 from pygesture import daq
 from pygesture import recorder
@@ -131,7 +133,21 @@ class RealTimeGUI(QtGui.QMainWindow):
         else:
             clf = LDA()
 
-        pl = processing.Pipeline(clf, training_data, self.calibration)
+        clf.fit(*training_data)
+
+        conditioner = pipeline.Conditioner(st.FILTER_ORDER, st.FC,
+            st.SAMPLE_RATE, st.FS_PROC)
+        feature_ext = features.FeatureExtractor(
+            [
+                features.MAV(),
+                features.WL(),
+                features.ZC(thresh=0.001),
+                features.SSC(thresh=0.001)
+            ],
+            st.NUM_CHANNELS)
+        classifier = pipeline.Classifier(clf)
+
+        pl = pipeline.Pipeline([conditioner, feature_ext, classifier])
 
         self.recorder.set_pipeline(pl)
         self.recorder.start()

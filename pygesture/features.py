@@ -8,9 +8,11 @@ class FeatureExtractor(PipelineBlock):
     def __init__(self, features, n_channels):
         super(FeatureExtractor, self).__init__()
         self.features = features
+        self.n_channels = n_channels
+        self.n_features = n_channels*sum(
+            [f.dim_per_channel for f in self.features])
 
-        self.output = np.zeros(
-            n_channels*sum([f.dim_per_channel for f in self.features]))
+        self.output = np.zeros(self.n_channels*self.n_features)
 
     def process(self, data):
         # TODO use pre-allocated output array instead of hstack

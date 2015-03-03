@@ -233,9 +233,7 @@ class MainWindow(QtGui.QWidget):
                 return
 
         
-        dialog = results.SessionResultsDialog(st.DATA_ROOT, pid,
-            st.arm_session_list, st.leg_session_list, st.arm_label_dict,
-            st.leg_label_dict)
+        dialog = results.SessionResultsDialog(pid, st)
         dialog.exec_()
 
     def train_classifier(self):

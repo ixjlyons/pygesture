@@ -50,7 +50,7 @@ class RecordThread(QtCore.QThread):
         while self.running:
             d = self.daq.read()
             if self.pipeline is not None:
-                y = self.pipeline.run(d)
+                y = self.pipeline.process(d.T)
                 self.prediction_sig.emit(y)
 
                 if robot is not None:

@@ -10,20 +10,17 @@ from matplotlib.figure import Figure
 
 from pygesture import processing
 from pygesture import classification
+from pygesture import features
+from pygesture import pipeline
 
 
 class SessionResultsDialog(QtGui.QDialog):
 
-    def __init__(self, data_root, pid, arm_sid_list, leg_sid_list, arm_labels,
-            leg_labels):
+    def __init__(self, pid, config):
         super(SessionResultsDialog, self).__init__()
 
-        self.data_root = data_root
+        self.config = config
         self.pid = pid
-        self.arm_sid_list = arm_sid_list
-        self.leg_sid_list = leg_sid_list
-        self.arm_labels = arm_labels
-        self.leg_labels = leg_labels
 
         self.progress_layout = QtGui.QVBoxLayout()
         self.progress_bar = QtGui.QProgressBar()
@@ -42,8 +39,24 @@ class SessionResultsDialog(QtGui.QDialog):
         self.setLayout(self.progress_layout)
         self.setWindowTitle("session results")
 
-        self.processor = SessionProcessor(self.data_root, self.pid, 
-            self.arm_sid_list+self.leg_sid_list)
+        conditioner = pipeline.Conditioner(config.FILTER_ORDER, config.FC,
+            config.SAMPLE_RATE, config.FS_PROC)
+        feature_ext = features.FeatureExtractor(
+            [
+                features.MAV(),
+                features.WL(),
+                features.ZC(thresh=0.001),
+                features.SSC(thresh=0.001)
+            ],
+            config.NUM_CHANNELS)
+        proc = processing.Processor(conditioner, feature_ext,
+            (config.REST_START_SAMP, config.REST_END_SAMP),
+            (config.GESTURE_START_SAMP, config.GESTURE_END_SAMP),
+            config.WINDOW_LENGTH_SAMP,
+            config.WINDOW_OVERLAP_SAMP)
+
+        self.processor = SessionProcessor(config.DATA_ROOT, self.pid, 
+            config.arm_session_list+config.leg_session_list, proc)
         self.processor.finished_sig.connect(self._show_plots)
         self.processor.start()
 
@@ -54,16 +67,16 @@ class SessionResultsDialog(QtGui.QDialog):
         clf_dict_arm = {
             'name': 'arm',
             'n_train': 2,
-            'sid_list': self.arm_sid_list}
+            'sid_list': self.config.arm_session_list}
         clf_dict_leg = {
             'name': 'leg',
             'n_train': 2,
-            'sid_list': self.leg_sid_list}
+            'sid_list': self.config.leg_session_list}
 
-        cm_arm = classification.run_cv(self.data_root, [self.pid], clf_dict_arm,
-            label_dict=self.arm_labels)
-        cm_leg = classification.run_cv(self.data_root, [self.pid], clf_dict_leg,
-            label_dict=self.leg_labels)
+        cm_arm = classification.run_cv(self.config.DATA_ROOT, [self.pid],
+                clf_dict_arm, label_dict=self.config.arm_label_dict)
+        cm_leg = classification.run_cv(self.config.DATA_ROOT, [self.pid],
+                clf_dict_leg, label_dict=self.config.leg_label_dict)
         self.arm_plot.plot(cm_arm)
         self.leg_plot.plot(cm_leg)
 
@@ -82,14 +95,15 @@ class ConfusionMatrixWidget(FigureCanvas):
 class SessionProcessor(QtCore.QThread):
     finished_sig = QtCore.Signal()
 
-    def __init__(self, data_root, pid, sid_list, pools=6):
+    def __init__(self, data_root, pid, sid_list, processor, pools=6):
         QtCore.QThread.__init__(self, parent=None)
         self.data_root = data_root
         self.pid = pid
         self.sid_list = sid_list
+        self.processor = processor
         self.pools = pools
 
     def run(self):
-        processing.batch_process(self.data_root, self.pid,
+        processing.batch_process(self.data_root, self.pid, self.processor,
                                  sid_list=self.sid_list, pool=self.pools)
         self.finished_sig.emit()

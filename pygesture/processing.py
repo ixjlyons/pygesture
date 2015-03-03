@@ -1,17 +1,5 @@
-"""
-Handles processing (filtering, downsampling) of raw recording files and
-calculation of features. The locations of the output files is determined
-by the `filestruct` module, but the format of the feature file is specified
-here within the `Session` class.
-"""
-
-# TODO: document Recording class
-# TODO: document Session class
-# TODO: better documentation of ndarray sizes
-
 import os
 from multiprocessing import Pool
-import pickle
 
 import numpy as np
 import scipy.io.wavfile as siowav
@@ -19,10 +7,40 @@ from scipy import signal
 
 from pygesture import features
 from pygesture import filestruct
-from pygesture import settings as st
 
 
-def batch_process(rootdir, pid, sid_list='all', pool=1):
+class Processor(object):
+    """
+    Speficies how to process recording files, including conditioning and
+    feature extraction from relevant segments of the files.
+
+    Parameters
+    ----------
+    conditioner : pipeline.Conditioner object
+        Conditions the data (usually filters and downsamples).
+    feature_extractor : features.FeatureExtractor object
+        Extracts features from waveform data.
+    rest_bounds : 2-tuple of ints
+        Specifies (start, end) sample indices for the rest class.
+    gesture_bounds : 2-tuple of ints
+        Specifies (start, end) smaple indices for the gesture class.
+    window_length : int
+        Length of segment used for feature extraction (samples).
+    window_overlap : int
+        Amount of overlap between adjacent windows (samples).
+    """
+
+    def __init__(self, conditioner, feature_extractor, rest_bounds,
+            gesture_bounds, window_length, window_overlap):
+        self.conditioner = conditioner
+        self.feature_extractor = feature_extractor
+        self.rest_bounds = rest_bounds
+        self.gesture_bounds = gesture_bounds
+        self.window_length = window_length
+        self.window_overlap = window_overlap
+
+
+def batch_process(rootdir, pid, processor, sid_list='all', pool=1):
     """
     Processes the given participants' sessions. If sid_list is not provided,
     all sessions are processed.
@@ -46,71 +64,22 @@ def batch_process(rootdir, pid, sid_list='all', pool=1):
 
     if pool > 1:
         pool = Pool(processes=pool)
-        pool.map(process_session, [(rootdir, pid, sid) for sid in sid_list])
+        pool.map(_process_session, [
+            (rootdir, pid, sid, processor) for sid in sid_list])
         pool.close()
     else:
         for sid in sid_list:
-            process_session((rootdir, pid, sid))
+            _process_session((
+                rootdir, pid, sid, processor))
 
 
-def process_session(session_info):
+def _process_session(args):
     """
     Internally used for processing a single session. The input should be a
-    tuple with (rootdir, pid, sid).
+    tuple matching the input args of the Session constructor.
     """
-    rootdir, pid, sid = session_info
-    sess = Session(rootdir, pid, sid)
+    sess = Session(*args)
     sess.process()
-
-
-def get_features(x):
-    """
-    Calculates the four time-domain features (MAV, WL, ZC, and SSC) and stacks
-    the result in a matrix.
-
-    Parameters
-    ----------
-    x : ndarray
-        The raw signal(s) to calculate features for. Features will be calculate
-        for each channel.
-
-    Returns
-    -------
-    y : ndarray
-        The features, stacked such that each group of columns represents the
-        feature for all channels.
-    """
-    return np.hstack((
-        features.MAV().compute(x),
-        features.WL().compute(x),
-        features.ZC(thresh=0.001).compute(x),
-        features.SSC(thresh=0.001).compute(x)))
-
-
-def condition(x, fs):
-    """
-    Conditions the signals according to experimental protocol. The processing
-    steps are band pass filtering, mean-zeroing, and downsampling from the give
-    sampling frequency.
-
-    Parameters
-    ----------
-    x : ndarray
-        The raw data to condition.
-    fs : int
-        The input sampling frequency in Hz.
-
-    Returns
-    -------
-    y : ndarray
-        The conditioned data, the same size as x.
-    """
-    wc = [f / (fs / 2.) for f in st.FC]
-    b, a = signal.butter(st.FILTER_ORDER, wc, 'bandpass')
-    x = x - np.mean(x, 0)
-    x = signal.lfilter(b, a, x, 0)
-    x = x[::fs/st.FS_PROC, :]
-    return x
 
 
 def read_feature_file_list(file_list):
@@ -134,43 +103,12 @@ def get_session_data(pid, sid_list):
     return (X, y)
 
 
-class Pipeline:
-
-    def __init__(self, classifier, training_data, calibration_data):
-        self.conditioner = Conditioner(calibration_data)
-        self.classifier = classifier
-        self.classifier.fit(*training_data)
-
-    def run(self, x):
-        x_cond = self.conditioner.condition(x.T)
-        features = get_features(x_cond)
-        y = self.classifier.predict(features)
-        return y
-
-
-class Conditioner:
-
-    def __init__(self, calibration_data):
-        self.fs = st.SAMPLE_RATE
-        wc = [f / (self.fs/2.0) for f in st.FC]
-        self.b, self.a = signal.butter(st.FILTER_ORDER, wc, 'bandpass')
-        zi = signal.lfilter_zi(self.b, self.a)
-        self.zi = np.tile(zi, (st.NUM_CHANNELS, 1)).T
-        self.x_mean = calibration_data
-
-    def condition(self, x):
-        x_centered = x - self.x_mean
-        x_filtered, self.zi = signal.lfilter(self.b, self.a, x_centered,
-            axis=0, zi=self.zi)
-        x_downsampled = x_filtered[::self.fs/st.FS_PROC, :]
-        return x_downsampled
-
-
 class Session:
 
-    def __init__(self, rootdir, pid, sid):
+    def __init__(self, rootdir, pid, sid, processor):
         self.sid = sid
         self.pid = pid
+        self.processor = processor
 
         self.sessdir = filestruct.find_session_dir(rootdir, pid, sid)
         self.datestr = filestruct.parse_date_string(self.sessdir)
@@ -191,10 +129,9 @@ class Session:
 
         feat_fid = open(self.featfile, 'ab')
 
-        dict_list = []
         for f in self.recording_file_list:
             try:
-                rec = Recording(f)
+                rec = Recording(f, self.processor)
             except KeyError:
                 continue
             proc_data, features = rec.process()
@@ -203,10 +140,6 @@ class Session:
             self.write_proc_file(outfile, proc_data)
 
             np.savetxt(feat_fid, features, delimiter=',', fmt='%.5e')
-            dict_list.append(rec.get_dict())
-
-        pickle_fid = open(self.featfile[:-4]+'.p', 'ab')
-        pickle.dump(dict_list,  pickle_fid)
 
     def write_proc_file(self, filepath, data):
         data *= 32768
@@ -216,7 +149,12 @@ class Session:
 
 class Recording:
 
-    def __init__(self, wavfile, loc='leg'):
+    def __init__(self, wavfile, processor, loc='leg'):
+        self.conditioner = processor.conditioner
+        self.feature_extractor = processor.feature_extractor
+        self.n_features = self.feature_extractor.n_features
+        self.window_length = processor.window_length
+
         fs_raw, data = siowav.read(wavfile)
         self.fs_raw = fs_raw
         self.raw_data = data / 32768.0
@@ -224,43 +162,36 @@ class Recording:
         self.location = loc
         self.parse_details(self.filename)
 
-        self.rest_ind = range(st.REST_START_SAMP, st.REST_END_SAMP,
-                              st.WINDOW_SHIFT_SAMP)
-        self.gest_ind = range(st.GESTURE_START_SAMP, st.GESTURE_END_SAMP,
-                              st.WINDOW_SHIFT_SAMP)
-        self.num_features = get_features(self.raw_data[:100, :]).size
+        self.rest_ind = range(
+            processor.rest_bounds[0], processor.rest_bounds[1],
+            processor.window_length-processor.window_overlap)
+        self.gest_ind = range(
+            processor.gesture_bounds[0], processor.gesture_bounds[1],
+            processor.window_length-processor.window_overlap)
 
     def parse_details(self, filename):
         trial_number = filestruct.parse_trial_number(filename)
-        label_id = filestruct.parse_label(filename)
+        self.label_id = filestruct.parse_label(filename)
 
-        if self.location == 'arm':
-            label = st.arm_label_dict[label_id]
-        else:
-            label = st.leg_label_dict[label_id]
-
-        self.label_id = label_id
         self.trial_number = trial_number
-        self.label_short, self.label_long = label
 
     def process(self):
-        conditioner = Conditioner(self.raw_data)
-        cd = condition(self.raw_data, self.fs_raw)
+        cd = self.conditioner.process(self.raw_data)
 
         num_gestures = len(self.rest_ind) + len(self.gest_ind)
-        fd = np.zeros((num_gestures, self.num_features+1))
+        fd = np.zeros((num_gestures, self.n_features+1))
         for i, n in enumerate(self.rest_ind):
             label = 0
-            x = cd[n:n+st.WINDOW_LENGTH_SAMP, :]
+            x = cd[n:n+self.window_length, :]
             fd[i, 0] = label
-            fd[i, 1:] = get_features(x)
+            fd[i, 1:] = self.feature_extractor.process(x)
 
         rl = len(self.rest_ind)
         for i, n in enumerate(self.gest_ind):
             label = int(self.label_id[1:])
-            x = cd[n:n+st.WINDOW_LENGTH_SAMP, :]
+            x = cd[n:n+self.window_length, :]
             fd[rl+i, 0] = label
-            fd[rl+i, 1:] = get_features(x)
+            fd[rl+i, 1:] = self.feature_extractor.process(x)
 
         self.conditioned_data = cd
         self.feature_data = fd

@@ -6,11 +6,11 @@ specifying them.
 import os
 
 # recording settings
-SAMPLE_RATE = 4096 
+SAMPLE_RATE = 8000
 CHANNEL_RANGE = (0, 5)
 PROBE_CHANNEL = 6
 NUM_CHANNELS = CHANNEL_RANGE[1] - CHANNEL_RANGE[0] + 1
-SAMPLES_PER_READ = 512 
+SAMPLES_PER_READ = 1000
 INPUT_RANGE = 2
 SECONDS_PER_RECORD = 6
 TRIGGERS_PER_SECOND = int(SAMPLE_RATE / SAMPLES_PER_READ)
@@ -26,13 +26,13 @@ gesture_dict = {
     'l2': ('FP', 'forearm-pronation'),
     'l3': ('FS', 'forearm-supination'),
     'l4': ('OH', 'open-hand'),
-    #'l5': ('RD', 'radial-deviation'),
-    #'l6': ('TE', 'thumb-extension'),
-    #'l7': ('UD', 'ulnar-deviation'),
+    'l5': ('RD', 'radial-deviation'),
+    'l6': ('TE', 'thumb-extension'),
+    'l7': ('UD', 'ulnar-deviation'),
     'l5': ('WE', 'wrist-extension'),
-    'l6': ('WF', 'wrist-flexion')}
-#        'l10': ('EE', 'wrist-flexion-closed'),
-#        'l11': ('EF', 'wrist-extension-closed') }
+    'l6': ('WF', 'wrist-flexion'),
+    'l10': ('EE', 'wrist-flexion-closed'),
+    'l11': ('EF', 'wrist-extension-closed') }
 
 NUM_GESTURES = len(gesture_dict)-1
 NUM_REPEATS = 3
@@ -52,9 +52,9 @@ arm_label_dict = {
     'l6': ('TE', 'thumb-extension'),
     'l7': ('UD', 'ulnar-deviation'),
     'l8': ('WE', 'wrist-extension'),
-    'l9': ('WF', 'wrist-flexion')}
-#        'l10': ('EE', 'wrist-flexion-closed'),
-#        'l11': ('EF', 'wrist-extension-closed') }
+    'l9': ('WF', 'wrist-flexion'),
+    'l10': ('EE', 'wrist-flexion-closed'),
+    'l11': ('EF', 'wrist-extension-closed') }
 
 leg_label_dict = {
     'l0': ('NC', 'no-contraction'),
@@ -66,9 +66,9 @@ leg_label_dict = {
     'l6': ('HE', 'hallucis-extension'),
     'l7': ('AB', 'foot-abduction'),
     'l8': ('DF', 'dorsiflexion'),
-    'l9': ('PF', 'plantarflexion')}
-#        'l10': ('PFC', 'plantarflexion-closed'),
-#        'l11': ('DFC', 'dorsiflexion-closed') }
+    'l9': ('PF', 'plantarflexion'),
+    'l10': ('PFC', 'plantarflexion-closed'),
+    'l11': ('DFC', 'dorsiflexion-closed') }
 
 arm_sensor_map = [
     ['a', 'ECR', 'extensor-carpi-radialis-brevis'],
@@ -90,13 +90,13 @@ leg_sensor_map = [
 # processing settings
 FC = [10, 450]
 FILTER_ORDER = 4
-FS_PROC = 2048
+FS_PROC = 2000
 #REST_START_MS = 1000
 #REST_END_MS = 1500
 #GESTURE_START_MS = 2200
 #GESTURE_END_MS = 4700
-#WINDOW_LENGTH_MS = 100
-#WINDOW_OVERLAP_MS = 0
+WINDOW_LENGTH_MS = 150
+WINDOW_OVERLAP_MS = 50
 
 REST_START_MS = 1000
 REST_END_MS = 1500

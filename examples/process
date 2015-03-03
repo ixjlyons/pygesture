@@ -13,10 +13,12 @@ import sys
 import argparse
 
 try:
-    from pygesture import processing, filestruct
+    from pygesture import settings as st
 except ImportError:
     sys.path.insert(0, '..')
-    from pygesture import processing, filestruct
+    from pygesture import settings as st
+from pygesture import processing, filestruct, pipeline, features
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -35,6 +37,22 @@ if __name__ == '__main__':
 
     rootdir = os.path.normpath(args.rootdir)
 
+    conditioner = pipeline.Conditioner(st.FILTER_ORDER, st.FC,
+        st.SAMPLE_RATE, st.FS_PROC)
+    feature_ext = features.FeatureExtractor(
+        [
+            features.MAV(),
+            features.WL(),
+            features.ZC(thresh=0.001),
+            features.SSC(thresh=0.001)
+        ],
+        st.NUM_CHANNELS)
+    processor = processing.Processor(conditioner, feature_ext,
+        (st.REST_START_SAMP, st.REST_END_SAMP),
+        (st.GESTURE_START_SAMP, st.GESTURE_END_SAMP),
+        st.WINDOW_LENGTH_SAMP,
+        st.WINDOW_OVERLAP_SAMP)
+
     all_pids = filestruct.get_participant_list(rootdir)
     if args.pid == 'all':
         pids = all_pids
@@ -45,7 +63,7 @@ if __name__ == '__main__':
     
     if args.proc_all:
         for pid in pids:
-            processing.batch_process(rootdir, pid, pool=args.pool) 
+            processing.batch_process(rootdir, pid, processor, pool=args.pool) 
     
     else:
         if args.sid_list is None:
@@ -53,4 +71,4 @@ if __name__ == '__main__':
 
         for pid in pids:
             processing.batch_process(
-                rootdir, pid, sid_list=args.sid_list, pool=args.pool)
+                rootdir, pid, processor, sid_list=args.sid_list, pool=args.pool)
