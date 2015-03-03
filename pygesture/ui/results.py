@@ -8,17 +8,19 @@ from matplotlib.backends.backend_qt4agg \
     import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-import pygesture.settings as st
 from pygesture import processing
 from pygesture import classification
 
 
 class SessionResultsDialog(QtGui.QDialog):
 
-    def __init__(self, pid):
+    def __init__(self, data_root, pid, arm_sid_list, leg_sid_list):
         super(SessionResultsDialog, self).__init__()
 
+        self.data_root = data_root
         self.pid = pid
+        self.arm_sid_list = arm_sid_list
+        self.leg_sid_list = leg_sid_list
 
         self.progress_layout = QtGui.QVBoxLayout()
         self.progress_bar = QtGui.QProgressBar()
@@ -37,7 +39,8 @@ class SessionResultsDialog(QtGui.QDialog):
         self.setLayout(self.progress_layout)
         self.setWindowTitle("session results")
 
-        self.processor = SessionProcessor(pid)
+        self.processor = SessionProcessor(self.data_root, self.pid, 
+            self.arm_sid_list+self.leg_sid_list)
         self.processor.finished_sig.connect(self.show_plots)
         self.processor.start()
 
@@ -48,14 +51,14 @@ class SessionResultsDialog(QtGui.QDialog):
         clf_dict_arm = {
             'name': 'arm',
             'n_train': 2,
-            'sid_list': st.arm_session_list}
+            'sid_list': self.arm_sid_list}
         clf_dict_leg = {
             'name': 'leg',
             'n_train': 2,
-            'sid_list': st.leg_session_list}
+            'sid_list': self.leg_sid_list}
 
-        cm_arm = classification.run_cv(st.DATA_ROOT, self.pid, clf_dict_arm)
-        cm_leg = classification.run_cv(st.DATA_ROOT, self.pid, clf_dict_leg)
+        cm_arm = classification.run_cv(self.data_root, [self.pid], clf_dict_arm)
+        cm_leg = classification.run_cv(self.data_root, [self.pid], clf_dict_leg)
         self.arm_plot.plot(cm_arm)
         self.leg_plot.plot(cm_leg)
 
@@ -74,12 +77,14 @@ class ConfusionMatrixWidget(FigureCanvas):
 class SessionProcessor(QtCore.QThread):
     finished_sig = QtCore.Signal()
 
-    def __init__(self, pid):
+    def __init__(self, data_root, pid, sid_list, pools=6):
         QtCore.QThread.__init__(self, parent=None)
+        self.data_root = data_root
         self.pid = pid
+        self.sid_list = sid_list
+        self.pools = pools
 
     def run(self):
-        sid_list = st.arm_session_list + st.leg_session_list
-        processing.batch_process(st.DATA_ROOT, self.pid,
-                                 sid_list=sid_list, pool=6)
+        processing.batch_process(self.data_root, self.pid,
+                                 sid_list=self.sid_list, pool=self.pools)
         self.finished_sig.emit()
