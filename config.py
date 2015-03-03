@@ -21,30 +21,6 @@ data_path = '~/pygesture-data'
 # path to v-rep (needed for simulation package)
 vrep_path = '~/usr/v-rep/v-rep-3.2.0'
 
-recorder = dict( 
-    fs=fs,
-    channels=list(sensors.keys()),
-    trigger_rate=trigger_rate,
-    input_range=input_range
-)
-
-processor = dict(
-    input_fs=fs,
-    downsample_factor=2,
-    bandpass_filter=dict(
-        fs=f_samp,
-        order=4,
-        fc=(10, 450)
-    )
-    )
-)
-
-conditioner = pipeline.Conditioner(
-    order=4,
-    f_cut=(8, 512),
-    f_samp=f_samp,
-    f_down=k)
-
 # sensor mappings
 # channel_number: ('abbrv', 'description')
 sensors_arm = {
@@ -66,7 +42,7 @@ sensors_leg = {
 
 # gesture mappings
 # 'label': ('abbrv', 'description')
-gestures_arm = {
+arm_gestures = {
     'l0': ('NC', 'no-contraction'),
     'l1': ('CF', 'closed-fist'),
     'l2': ('FP', 'forearm-pronation'),
@@ -78,7 +54,7 @@ gestures_arm = {
     'l8': ('WE', 'wrist-extension'),
     'l9': ('UD', 'wrist-flexion')
 }
-gestures_leg = {
+leg_gestures = {
     'l0': ('NC', 'no-contraction'),
     'l1': ('TF', 'closed-fist'),
     'l2': ('FE', 'forearm-pronation'),

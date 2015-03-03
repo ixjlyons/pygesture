@@ -5,6 +5,7 @@ import os
 from PyQt4 import QtGui, QtCore
 
 from pygesture import settings as st
+from pygesture import config
 from pygesture.ui import signals, results, clfbuilder
 from pygesture import daq
 from pygesture import filestruct
@@ -13,11 +14,11 @@ from pygesture import recorder
 
 class MainWindow(QtGui.QWidget):
 
-    def __init__(self, debug=False):
+    def __init__(self, config):
         super(MainWindow, self).__init__()
+        self.cfg = config
 
         self.running = False
-        self.debug = debug
 
         self.create_record_thread()
         self.create_menu()
@@ -327,12 +328,14 @@ class PromptWidget(QtGui.QWidget):
 import argparse
 def main():
     parser = argparse.ArgumentParser(description="Gesture recording system.")
-    parser.add_argument('-d', '--debug', action='store_true',
-        help="Run in debug mode (random input instead of DAQ hardware).")
+    parser.add_argument('-c', dest='config', default='config.py',
+        help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 
+    cfg = config.Config(args.config)
+
     app = QtGui.QApplication([])
-    mw = MainWindow(args.debug)
+    mw = MainWindow(cfg)
     mw.show()
     app.exec_()
     app.deleteLater()
