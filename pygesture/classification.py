@@ -29,7 +29,6 @@ import matplotlib.pyplot as plt
 plt.rc('font', family='serif')
 
 from pygesture import filestruct
-from pygesture import settings
 
 
 def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
