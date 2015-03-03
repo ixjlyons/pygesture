@@ -14,13 +14,16 @@ from pygesture import classification
 
 class SessionResultsDialog(QtGui.QDialog):
 
-    def __init__(self, data_root, pid, arm_sid_list, leg_sid_list):
+    def __init__(self, data_root, pid, arm_sid_list, leg_sid_list, arm_labels,
+            leg_labels):
         super(SessionResultsDialog, self).__init__()
 
         self.data_root = data_root
         self.pid = pid
         self.arm_sid_list = arm_sid_list
         self.leg_sid_list = leg_sid_list
+        self.arm_labels = arm_labels
+        self.leg_labels = leg_labels
 
         self.progress_layout = QtGui.QVBoxLayout()
         self.progress_bar = QtGui.QProgressBar()
@@ -41,10 +44,10 @@ class SessionResultsDialog(QtGui.QDialog):
 
         self.processor = SessionProcessor(self.data_root, self.pid, 
             self.arm_sid_list+self.leg_sid_list)
-        self.processor.finished_sig.connect(self.show_plots)
+        self.processor.finished_sig.connect(self._show_plots)
         self.processor.start()
 
-    def show_plots(self):
+    def _show_plots(self):
         self.progress_bar.setMaximum(100)
         self.progress_bar.setValue(100)
 
@@ -57,8 +60,10 @@ class SessionResultsDialog(QtGui.QDialog):
             'n_train': 2,
             'sid_list': self.leg_sid_list}
 
-        cm_arm = classification.run_cv(self.data_root, [self.pid], clf_dict_arm)
-        cm_leg = classification.run_cv(self.data_root, [self.pid], clf_dict_leg)
+        cm_arm = classification.run_cv(self.data_root, [self.pid], clf_dict_arm,
+            label_dict=self.arm_labels)
+        cm_leg = classification.run_cv(self.data_root, [self.pid], clf_dict_leg,
+            label_dict=self.leg_labels)
         self.arm_plot.plot(cm_arm)
         self.leg_plot.plot(cm_leg)
 

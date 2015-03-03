@@ -32,7 +32,7 @@ from pygesture import filestruct
 from pygesture import settings
 
 
-def run_single(rootdir, pids, clf_dict, exclude_indices=[]):
+def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
     """
     Runs a single batch classifier.
 
@@ -84,10 +84,10 @@ def run_single(rootdir, pids, clf_dict, exclude_indices=[]):
 
         location = clf_dict['sid_list_test'][0][:3]
         lid = ['l' + str(i) for i in np.unique(y_train.astype(int))]
-        if location == 'leg':
-            labels = [settings.leg_label_dict[l][0] for l in lid]
+        if label_dict is None:
+            labels = lid
         else:
-            labels = [settings.arm_label_dict[l][0] for l in lid]
+            labels = [label_dict[l][0] for l in lid]
 
         (X_train, X_test) = condition_data(X_train, X_test)
 
@@ -100,7 +100,7 @@ def run_single(rootdir, pids, clf_dict, exclude_indices=[]):
     return average_confusion_matrix(cm_list)
 
 
-def run_avg(rootdir, pids, avg_group, exclude_indices=[]):
+def run_avg(rootdir, pids, avg_group, label_dict=None, exclude_indices=[]):
     """Runs several train/test pairs and averages the results.
 
     The data is specified as a set of pairs of train/test data. Each pair is
@@ -144,14 +144,16 @@ def run_avg(rootdir, pids, avg_group, exclude_indices=[]):
         cm_sub = []
         for config in avg_group['configs']:
             config['name'] = avg_group['name']
-            cm_sub.append(run_single(rootdir, [pid], config, exclude_indices))
+            cm_sub.append(
+                run_single(
+                    rootdir, [pid], config, label_dict, exclude_indices))
 
         cm_list.append(average_confusion_matrix(cm_sub))
 
     return average_confusion_matrix(cm_list)
 
 
-def run_cv(rootdir, pids, cv_group, exclude_indices=[]):
+def run_cv(rootdir, pids, cv_group, label_dict=None, exclude_indices=[]):
     """Runs a group of sessions through leave-p-out cross validation.
 
     The data is specified as a list of session IDs which is split into groups
@@ -199,7 +201,8 @@ def run_cv(rootdir, pids, cv_group, exclude_indices=[]):
                 'sid_list_train': [sid_list[i] for i in idx_train],
                 'sid_list_test': [sid_list[i] for i in idx_test]}
             cm_sub.append(
-                run_single(rootdir, [pid], clf_dict, exclude_indices))
+                run_single(
+                    rootdir, [pid], clf_dict, label_dict, exclude_indices))
 
         cm_list.append(average_confusion_matrix(cm_sub))
 
