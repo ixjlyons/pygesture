@@ -117,6 +117,7 @@ class Session:
 
     def __init__(self, data_root, labels, n_repeat):
         self.gesture_order = generate_trial_order(labels, n_repeat)
+        self.num_trials = len(self.gesture_order)
         self.current_trial = 0
         self.data_root = data_root
 

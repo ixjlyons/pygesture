@@ -29,8 +29,8 @@ gesture_dict = {
     'l5': ('RD', 'radial-deviation'),
     'l6': ('TE', 'thumb-extension'),
     'l7': ('UD', 'ulnar-deviation'),
-    'l5': ('WE', 'wrist-extension'),
-    'l6': ('WF', 'wrist-flexion'),
+    'l8': ('WE', 'wrist-extension'),
+    'l9': ('WF', 'wrist-flexion'),
     'l10': ('EE', 'wrist-flexion-closed'),
     'l11': ('EF', 'wrist-extension-closed') }
 
@@ -105,8 +105,8 @@ GESTURE_END_MS = 4000
 
 SAMPS_PER_MS = int(FS_PROC / 1000)
 
-WINDOW_OVERLAP_MS = 0
-WINDOW_LENGTH_MS = int(1000 / TRIGGERS_PER_SECOND)
+#WINDOW_OVERLAP_MS = 0
+#WINDOW_LENGTH_MS = int(1000 / TRIGGERS_PER_SECOND)
 
 WINDOW_SHIFT_MS = WINDOW_LENGTH_MS - WINDOW_OVERLAP_MS
 

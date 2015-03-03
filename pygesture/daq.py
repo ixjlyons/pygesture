@@ -55,27 +55,30 @@ class MccDaq(Daq):
 
     >>> import mccdaq
     >>> daq = mccdaq.MccDaq(2048, 1, (0, 1), 1024)
+    >>> daq.initialize()
     >>> daq.start()
     >>> data = daq.read()
     >>> daq.close()
     """
 
     def __init__(self, rate, input_range, channel_range, samples_per_read):
-        self.device = daqflex.USB_1608G()
-
         self.rate = rate
         self.input_range = input_range
+        self.channel_range = channel_range
         self.samples_per_read = samples_per_read
+
+    def initialize(self):
+        self.device = daqflex.USB_1608G()
             
         self.device.send_message("AISCAN:XFRMODE=BLOCKIO")
         self.device.send_message("AISCAN:SAMPLES=0")
         self.device.send_message("AISCAN:BURSTMODE=ENABLE")
         self.device.send_message("AI:CHMODE=SE")
 
-        self.device.send_message("AISCAN:RATE={0}".format(rate))
-        self.device.send_message("AISCAN:RANGE=BIP{0}V".format(input_range))
+        self.device.send_message("AISCAN:RATE=%s" % self.rate)
+        self.device.send_message("AISCAN:RANGE=BIP%sV" % self.input_range)
 
-        self.set_channel_range(channel_range)
+        self.set_channel_range(self.channel_range)
 
     def start(self):
         """

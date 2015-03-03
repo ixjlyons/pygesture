@@ -4,7 +4,6 @@ import os
 #from PySide import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
 
-from pygesture import settings as st
 from pygesture import config
 from pygesture.ui import signals, results, clfbuilder
 from pygesture import daq
@@ -53,15 +52,21 @@ class MainWindow(QtGui.QWidget):
 
     def create_record_thread(self):
         try:
-            self.daq = daq.MccDaq(st.SAMPLE_RATE, st.INPUT_RANGE,
-                                  st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+            self.daq = self.cfg.daq
+            self.daq.initialize()
         except ValueError:
             # fall back on "fake" DAQ
-            self.daq = daq.Daq(st.SAMPLE_RATE, st.INPUT_RANGE,
-                               st.CHANNEL_RANGE, st.SAMPLES_PER_READ)
+            self.daq = daq.Daq(
+                self.daq.rate, self.daq.input_range, self.daq.channel_range,
+                self.daq.samples_per_read)
+
+            ret = QtGui.QMessageBox().warning(
+                self, "Warning",
+                "Couldn't find the specified DAQ. Falling back to emulator.",
+                QtGui.QMessageBox.Ok)
 
         self.record_thread = recorder.RecordThread(self.daq)
-        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
+        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
         self.record_thread.finished_sig.connect(self.record_finished)
 
     def create_menu(self):
@@ -86,7 +91,7 @@ class MainWindow(QtGui.QWidget):
         self.gesture_view = QtGui.QLabel()
         imgpath = os.path.join(os.path.dirname(__file__), 'images')
         self.gesture_images = dict()
-        for (key, val) in st.gesture_dict.items():
+        for (key, val) in self.cfg.arm_gestures.items():
             filepath = os.path.join(imgpath, val[1] + '.png')
             img = QtGui.QPixmap(filepath).scaled(
                 800, 600, QtCore.Qt.KeepAspectRatio)
@@ -95,12 +100,12 @@ class MainWindow(QtGui.QWidget):
 
     def create_gesture_prompt(self):
         self.gesture_prompt = PromptWidget(
-            st.SECONDS_PER_RECORD, (st.ONSET_TRANSITION, st.OFFSET_TRANSITION))
+            self.cfg.seconds_per_prompt, (self.cfg.gesture_time))
         self.prompt_anim = QtCore.QPropertyAnimation(
             self.gesture_prompt, 'value_prop')
-        self.prompt_anim.setDuration(1000*st.SECONDS_PER_RECORD)
+        self.prompt_anim.setDuration(1000*self.cfg.seconds_per_prompt)
         self.prompt_anim.setStartValue(0)
-        self.prompt_anim.setEndValue(1000*st.SECONDS_PER_RECORD)
+        self.prompt_anim.setEndValue(1000*self.cfg.seconds_per_prompt)
 
     def create_session_form(self):
         self.session_info_box = QtGui.QGroupBox("Session Info")
@@ -114,7 +119,8 @@ class MainWindow(QtGui.QWidget):
     def create_session_progressbar(self):
         self.session_progressbar = QtGui.QProgressBar(self)
         self.session_progressbar.setMinimum(0)
-        self.session_progressbar.setMaximum(st.NUM_GESTURES*st.NUM_REPEATS)
+        self.session_progressbar.setMaximum(
+            self.cfg.num_repeats*len(list(self.cfg.arm_gestures)))
         self.session_progressbar.setFormat('Trial: %v / %m')
         self.session_progressbar.setValue(0)
 
@@ -134,7 +140,8 @@ class MainWindow(QtGui.QWidget):
 
     def start_session(self):
         self.session = recorder.Session(
-            st.DATA_ROOT, list(st.gesture_dict), st.NUM_REPEATS)
+            self.cfg.data_path, list(self.cfg.arm_gestures),
+            self.cfg.num_repeats)
         pid = self.participant_input.text()
         sid = self.session_input.text()
         if pid == '' or sid == '':
@@ -169,17 +176,17 @@ class MainWindow(QtGui.QWidget):
         self.prompt_anim.start()
 
     def record_finished(self, data):
-        self.session.write_recording(data, st.SAMPLE_RATE)
+        self.session.write_recording(data, self.daq.rate)
 
         self.gesture_view.setPixmap(self.gesture_images['l0'])
         self.pause_button.setEnabled(True)
 
-        if self.session.current_trial == st.NUM_TRIALS:
+        if self.session.current_trial == self.session.num_trials:
             self.finish_session()
             return
 
         if self.running:
-            self.intertrial_timer.start(1000*st.INTERTRIAL_TIMEOUT)
+            self.intertrial_timer.start(1000*self.cfg.inter_trial_timeout)
 
     def pause_session(self):
         if self.running:
@@ -198,33 +205,35 @@ class MainWindow(QtGui.QWidget):
         self.session_info_box.setEnabled(True)
 
     def check_signals(self):
-        self.signal_window = signals.SignalCheckWindow(st.NUM_CHANNELS)
+        self.signal_window = signals.SignalCheckWindow(len(self.cfg.channels))
         self.record_thread.set_continuous()
         self.record_thread.update_sig.connect(self.signal_window.update_plot)
         self.record_thread.start()
         self.signal_window.exec_()
         self.record_thread.kill()
-        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
+        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
         self.record_thread.update_sig.disconnect(self.signal_window.update_plot)
 
     def probe_signal(self):
         self.probe_window = signals.SignalProbeWindow()
         self.record_thread.set_continuous()
-        self.daq.set_channel_range((st.PROBE_CHANNEL, st.PROBE_CHANNEL))
+        self.daq.set_channel_range(
+            (self.cfg.probe_channel, self.cfg.probe_channel))
         self.record_thread.update_sig.connect(self.probe_window.update_plot)
         self.record_thread.start()
         self.probe_window.exec_()
         self.record_thread.kill()
-        self.record_thread.set_fixed(st.TRIGGERS_PER_RECORD)
-        self.daq.set_channel_range(st.CHANNEL_RANGE)
+        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
+        self.daq.set_channel_range(
+            (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.update_sig.disconnect(self.probe_window.update_plot)
 
     def process_session(self):
         pid = self.participant_input.text()
 
         # make sure participant has completed all sessions
-        sid_list = filestruct.get_session_list(st.DATA_ROOT, pid)
-        for sid in st.arm_session_list + st.leg_session_list:
+        sid_list = filestruct.get_session_list(self.cfg.data_path, pid)
+        for sid in self.cfg.results_sid_arm + self.cfg.results_sid_leg:
             if sid not in sid_list:
                 QtGui.QMessageBox().warning(
                     self, "Warning",
@@ -232,8 +241,7 @@ class MainWindow(QtGui.QWidget):
                     QtGui.QMessageBox.Ok)
                 return
 
-        
-        dialog = results.SessionResultsDialog(pid, st)
+        dialog = results.SessionResultsDialog(pid, self.cfg)
         dialog.exec_()
 
     def train_classifier(self):

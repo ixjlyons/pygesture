@@ -39,24 +39,10 @@ class SessionResultsDialog(QtGui.QDialog):
         self.setLayout(self.progress_layout)
         self.setWindowTitle("session results")
 
-        conditioner = pipeline.Conditioner(config.FILTER_ORDER, config.FC,
-            config.SAMPLE_RATE, config.FS_PROC)
-        feature_ext = features.FeatureExtractor(
-            [
-                features.MAV(),
-                features.WL(),
-                features.ZC(thresh=0.001),
-                features.SSC(thresh=0.001)
-            ],
-            config.NUM_CHANNELS)
-        proc = processing.Processor(conditioner, feature_ext,
-            (config.REST_START_SAMP, config.REST_END_SAMP),
-            (config.GESTURE_START_SAMP, config.GESTURE_END_SAMP),
-            config.WINDOW_LENGTH_SAMP,
-            config.WINDOW_OVERLAP_SAMP)
-
-        self.processor = SessionProcessor(config.DATA_ROOT, self.pid, 
-            config.arm_session_list+config.leg_session_list, proc)
+        self.processor = SessionProcessor(
+            config.data_path, self.pid, 
+            config.results_sid_arm+config.results_sid_leg,
+            config.post_processor)
         self.processor.finished_sig.connect(self._show_plots)
         self.processor.start()
 
@@ -67,16 +53,16 @@ class SessionResultsDialog(QtGui.QDialog):
         clf_dict_arm = {
             'name': 'arm',
             'n_train': 2,
-            'sid_list': self.config.arm_session_list}
+            'sid_list': self.config.results_sid_arm}
         clf_dict_leg = {
             'name': 'leg',
             'n_train': 2,
-            'sid_list': self.config.leg_session_list}
+            'sid_list': self.config.results_sid_leg}
 
-        cm_arm = classification.run_cv(self.config.DATA_ROOT, [self.pid],
-                clf_dict_arm, label_dict=self.config.arm_label_dict)
-        cm_leg = classification.run_cv(self.config.DATA_ROOT, [self.pid],
-                clf_dict_leg, label_dict=self.config.leg_label_dict)
+        cm_arm = classification.run_cv(self.config.data_path, [self.pid],
+                clf_dict_arm, label_dict=self.config.arm_gestures)
+        cm_leg = classification.run_cv(self.config.data_path, [self.pid],
+                clf_dict_leg, label_dict=self.config.leg_gestures)
         self.arm_plot.plot(cm_arm)
         self.leg_plot.plot(cm_leg)
 
