@@ -2,14 +2,12 @@
 from PyQt4 import QtGui
 import pyqtgraph
 
-import pygesture.settings as st
-
 
 class SignalCheckWindow(QtGui.QDialog):
 
-    def __init__(self, debug=False, parent=None):
+    def __init__(self, n_channels, parent=None):
         super(SignalCheckWindow, self).__init__()
-        self.debug = debug
+        self.n_channels = n_channels
         self.spacer = 0.5
 
         self.create_plot()
@@ -24,8 +22,8 @@ class SignalCheckWindow(QtGui.QDialog):
 
     def create_plot(self):
         self.plot_widget = pyqtgraph.PlotWidget(name='Signal Check')
-        self.plot_list = [self.plot_widget.plot(pen=(i, st.NUM_CHANNELS))
-                          for i in range(st.NUM_CHANNELS)]
+        self.plot_list = [self.plot_widget.plot(pen=(i, self.n_channels))
+                          for i in range(self.n_channels)]
         # p = self.plot_widget.getPlotItem()
         self.plot_widget.getPlotItem().showAxis('bottom', False)
         self.plot_widget.getPlotItem().showAxis('left', False)
@@ -52,16 +50,15 @@ class SignalCheckWindow(QtGui.QDialog):
             self.spacer = 0
 
     def update_plot(self, data):
-        for i in range(st.NUM_CHANNELS):
+        for i in range(self.n_channels):
             self.plot_list[i].setData(data[i, :] - i*self.spacer)
 
 
 class SignalProbeWindow(QtGui.QDialog):
 
-    def __init__(self, debug=False):
+    def __init__(self, parent=None):
         super(SignalProbeWindow, self).__init__()
-        self.debug = debug
-        self.lim = st.INPUT_RANGE
+        self.lim = 1.0
 
         self.create_plot()
         self.create_button_box()

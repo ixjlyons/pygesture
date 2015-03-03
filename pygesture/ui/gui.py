@@ -197,7 +197,7 @@ class MainWindow(QtGui.QWidget):
         self.session_info_box.setEnabled(True)
 
     def check_signals(self):
-        self.signal_window = signals.SignalCheckWindow(debug=self.debug)
+        self.signal_window = signals.SignalCheckWindow(st.NUM_CHANNELS)
         self.record_thread.set_continuous()
         self.record_thread.update_sig.connect(self.signal_window.update_plot)
         self.record_thread.start()
@@ -207,7 +207,7 @@ class MainWindow(QtGui.QWidget):
         self.record_thread.update_sig.disconnect(self.signal_window.update_plot)
 
     def probe_signal(self):
-        self.probe_window = signals.SignalProbeWindow(debug=self.debug)
+        self.probe_window = signals.SignalProbeWindow()
         self.record_thread.set_continuous()
         self.daq.set_channel_range((st.PROBE_CHANNEL, st.PROBE_CHANNEL))
         self.record_thread.update_sig.connect(self.probe_window.update_plot)
