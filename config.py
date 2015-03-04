@@ -4,6 +4,9 @@ from pygesture import features
 from pygesture import processing
 from pygesture import daq
 
+"""
+some things for local use
+"""
 # sampling frequency for the DAQ [Hz]
 f_samp = 4096
 # frequency of signals for processing [Hz]
@@ -19,13 +22,20 @@ input_range = 2
 window_length = 512
 # amount of overlap between adjacent windows [samples]
 window_overlap = 256
-
-num_repeats = 3
 samples_per_read = window_length - window_overlap
-seconds_per_prompt = 6
-gesture_time = (2, 5)
+
+
+"""
+attributes picked up by pygesture.config
+"""
+# number of times to repeat each gesture during training
+num_repeats = 3
+# length of each trial during training [seconds]
+trial_duration = 6
+# gesture onset and offset times for training [seconds]
+prompt_times = (2, 5)
+# time between trials in training [seconds]
 inter_trial_timeout = 3
-reads_per_prompt = seconds_per_prompt * int((f_samp / samples_per_read))
 
 # path to save/load recordings and feature CSVs
 data_path = os.path.expanduser('~/pygesture-data')

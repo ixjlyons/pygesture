@@ -65,8 +65,10 @@ class MainWindow(QtGui.QWidget):
                 "Couldn't find the specified DAQ. Falling back to emulator.",
                 QtGui.QMessageBox.Ok)
 
+        tpr = self.cfg.trial_duration * \
+            int(self.daq.rate / self.daq.samples_per_read)
         self.record_thread = recorder.RecordThread(self.daq)
-        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
+        self.record_thread.set_fixed(triggers_per_record=tpr)
         self.record_thread.finished_sig.connect(self.record_finished)
 
     def create_menu(self):
@@ -100,12 +102,12 @@ class MainWindow(QtGui.QWidget):
 
     def create_gesture_prompt(self):
         self.gesture_prompt = PromptWidget(
-            self.cfg.seconds_per_prompt, (self.cfg.gesture_time))
+            self.cfg.trial_duration, (self.cfg.prompt_times))
         self.prompt_anim = QtCore.QPropertyAnimation(
             self.gesture_prompt, 'value_prop')
-        self.prompt_anim.setDuration(1000*self.cfg.seconds_per_prompt)
+        self.prompt_anim.setDuration(1000*self.cfg.trial_duration)
         self.prompt_anim.setStartValue(0)
-        self.prompt_anim.setEndValue(1000*self.cfg.seconds_per_prompt)
+        self.prompt_anim.setEndValue(1000*self.cfg.trial_duration)
 
     def create_session_form(self):
         self.session_info_box = QtGui.QGroupBox("Session Info")
@@ -211,7 +213,7 @@ class MainWindow(QtGui.QWidget):
         self.record_thread.start()
         self.signal_window.exec_()
         self.record_thread.kill()
-        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
+        self.record_thread.set_fixed()
         self.record_thread.update_sig.disconnect(self.signal_window.update_plot)
 
     def probe_signal(self):
@@ -223,7 +225,7 @@ class MainWindow(QtGui.QWidget):
         self.record_thread.start()
         self.probe_window.exec_()
         self.record_thread.kill()
-        self.record_thread.set_fixed(self.cfg.reads_per_prompt)
+        self.record_thread.set_fixed()
         self.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.update_sig.disconnect(self.probe_window.update_plot)

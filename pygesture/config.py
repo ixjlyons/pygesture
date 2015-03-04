@@ -3,19 +3,10 @@ import os
 
 # settings that need to be specified in the config
 config_options = [
-    "f_samp",
-    "f_proc",
-    "f_cutoff",
-    "filt_order",
-    "input_range",
-    "window_length",
-    "window_overlap",
     "num_repeats",
-    "samples_per_read",
-    "seconds_per_prompt",
-    "gesture_time",
+    "trial_duration",
+    "prompt_times",
     "inter_trial_timeout",
-    "reads_per_prompt",
     "data_path",
     "vrep_path",
     "conditioner",

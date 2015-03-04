@@ -80,8 +80,9 @@ class RecordThread(QtCore.QThread):
     def set_continuous(self):
         self.continuous = True
 
-    def set_fixed(self, triggers_per_record):
-        self.triggers_per_record = triggers_per_record
+    def set_fixed(self, triggers_per_record=None):
+        if triggers_per_record is not None:
+            self.triggers_per_record = triggers_per_record
         self.continuous = False
 
     def set_pipeline(self, pipeline):
