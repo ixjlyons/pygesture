@@ -10,6 +10,7 @@ config_options = [
     "data_path",
     "vrep_path",
     "conditioner",
+    "windower",
     "feature_extractor",
     "post_processor",
     "arm_sensors",

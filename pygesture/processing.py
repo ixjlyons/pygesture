@@ -12,32 +12,31 @@ from pygesture import filestruct
 class Processor(object):
     """
     Speficies how to process recording files, including conditioning and
-    feature extraction from relevant segments of the files.
+    feature extraction from relevant segments of the files. It is basically a
+    workaround so all of this information can be passed conveniently from the
+    config to the Recording class, which does all of the work.
 
     Parameters
     ----------
     conditioner : pipeline.Conditioner object
         Conditions the data (usually filters and downsamples).
+    windower : pipeline.Windower object
+        Holds data for overlapping windows.
     feature_extractor : features.FeatureExtractor object
         Extracts features from waveform data.
     rest_bounds : 2-tuple of ints
         Specifies (start, end) sample indices for the rest class.
     gesture_bounds : 2-tuple of ints
         Specifies (start, end) smaple indices for the gesture class.
-    window_length : int
-        Length of segment used for feature extraction (samples).
-    window_overlap : int
-        Amount of overlap between adjacent windows (samples).
     """
 
-    def __init__(self, conditioner, feature_extractor, rest_bounds,
-            gesture_bounds, window_length, window_overlap):
+    def __init__(self, conditioner, windower, feature_extractor, rest_bounds,
+            gesture_bounds):
         self.conditioner = conditioner
+        self.windower = windower
         self.feature_extractor = feature_extractor
         self.rest_bounds = rest_bounds
         self.gesture_bounds = gesture_bounds
-        self.window_length = window_length
-        self.window_overlap = window_overlap
 
 
 def batch_process(rootdir, pid, processor, sid_list='all', pool=1):
@@ -152,8 +151,9 @@ class Recording:
     def __init__(self, wavfile, processor, loc='leg'):
         self.conditioner = processor.conditioner
         self.feature_extractor = processor.feature_extractor
+        self.windower = processor.windower
+
         self.n_features = self.feature_extractor.n_features
-        self.window_length = processor.window_length
 
         fs_raw, data = siowav.read(wavfile)
         self.fs_raw = fs_raw
@@ -164,10 +164,10 @@ class Recording:
 
         self.rest_ind = range(
             processor.rest_bounds[0], processor.rest_bounds[1],
-            processor.window_length-processor.window_overlap)
+            self.windower.length-self.windower.overlap)
         self.gest_ind = range(
             processor.gesture_bounds[0], processor.gesture_bounds[1],
-            processor.window_length-processor.window_overlap)
+            self.windower.length-self.windower.overlap)
 
     def parse_details(self, filename):
         trial_number = filestruct.parse_trial_number(filename)
@@ -182,14 +182,14 @@ class Recording:
         fd = np.zeros((num_gestures, self.n_features+1))
         for i, n in enumerate(self.rest_ind):
             label = 0
-            x = cd[n:n+self.window_length, :]
+            x = cd[n:n+self.windower.length, :]
             fd[i, 0] = label
             fd[i, 1:] = self.feature_extractor.process(x)
 
         rl = len(self.rest_ind)
         for i, n in enumerate(self.gest_ind):
             label = int(self.label_id[1:])
-            x = cd[n:n+self.window_length, :]
+            x = cd[n:n+self.windower.length, :]
             fd[rl+i, 0] = label
             fd[rl+i, 1:] = self.feature_extractor.process(x)
 

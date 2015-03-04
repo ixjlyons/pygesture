@@ -145,6 +145,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         pl = pipeline.Pipeline(
             [
                 self.cfg.conditioner,
+                self.cfg.windower,
                 self.cfg.feature_extractor,
                 classifier
             ]

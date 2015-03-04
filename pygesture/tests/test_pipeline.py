@@ -30,3 +30,23 @@ class TestConditioner(object):
         out = conditioner.process(data)
 
         assert_equal(int(data.shape[0]/2), out.shape[0])
+
+class TestWindower(object):
+
+    def test_no_overlap(self):
+        data = rand_data_2d
+        windower = pipeline.Windower(10, 0)
+
+        for i in range(data.shape[0]//10):
+            new_data = windower.process(data[i*10:(i+1)*10, :])
+
+        assert_array_equal(new_data, data[-10:, :])
+
+    def test_overlap(self):
+        data = rand_data_2d
+        windower = pipeline.Windower(13, 3)
+
+        for i in range(data.shape[0]//10):
+            new_data = windower.process(data[i*10:(i+1)*10, :])
+
+        assert_array_equal(new_data, data[-13:, :])
