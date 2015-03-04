@@ -5,7 +5,7 @@ import os
 from PyQt4 import QtGui, QtCore
 
 from pygesture import config
-from pygesture.ui import signals, results, clfbuilder
+from pygesture.ui import signals, results
 from pygesture import daq
 from pygesture import filestruct
 from pygesture import recorder
@@ -243,12 +243,6 @@ class MainWindow(QtGui.QWidget):
 
         dialog = results.SessionResultsDialog(pid, self.cfg)
         dialog.exec_()
-
-    def train_classifier(self):
-        dialog = clfbuilder.ClassifierBuilderDialog()
-        if dialog.exec_():
-            (pid, sid_list) = dialog.get_training_ids()
-            self.clf = clfbuilder.train_classifier(pid, sid_list)
 
     def closeEvent(self, event):
         self.record_thread.kill()
