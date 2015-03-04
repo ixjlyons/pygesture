@@ -31,12 +31,14 @@ except ImportError:
     import pickle
 
 try:
-    from pygesture import classification
-    from pygesture import settings as st
+    from pygesture import config
 except:
     sys.path.insert(0, '..')
-    from pygesture import classification
-    from pygesture import settings as st
+    from pygesture import config
+
+from pygesture import classification
+from pygesture import filestruct
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -44,12 +46,12 @@ def main():
     parser.add_argument('rootdir',
             help="Root data directory")
     parser.add_argument('-p', dest='pids', nargs='+',
-            help="Participant identifier(s)")
+            help="Participant identifier(s) (or 'all' to process all pids).")
     parser.add_argument('-i', dest='ids', nargs=2,
             help="Participant ID, training IDs, and testing IDs.")
     parser.add_argument('-j', dest='jsonfile', action='store',
             help="Batch process classifiers according to input JSON file.")
-    parser.add_argument('-c', dest='lpo', action='store', nargs=2,
+    parser.add_argument('-l', dest='lpo', action='store', nargs=2,
             help="Run leave-p-out with n_train first, then sid list.")
     parser.add_argument('-s', dest='savepath', action='store',
             help="Save generated plots to the specified path.")
@@ -61,9 +63,12 @@ def main():
             help="Specify a file to save confusion matrices to.")
     parser.add_argument('-w', dest='show', action='store_true',
             help="Show confusion matrices that are generated.")
+    parser.add_argument('-c', dest='config', default='config.py',
+            help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 
     rootdir = os.path.normpath(args.rootdir)
+    cfg = config.Config(args.config)
 
     if args.exclude57:
         xindices = [5, 7]
@@ -72,6 +77,11 @@ def main():
 
     if not args.pids:
         parser.error("Must provide at least one particpant ID with -p flat")
+
+    if args.pids == ['all']:
+        pids = filestruct.get_participant_list(rootdir)
+    else:
+        pids = args.pids
 
     if args.jsonfile:
         json_data = json.load(open(args.jsonfile))
@@ -83,20 +93,20 @@ def main():
         cm_list = []
 
         for cv_group in cv_groups:
-            cm = classification.run_cv(rootdir, args.pids, cv_group,
-                label_dict=get_labels(cv_group['name']),
+            cm = classification.run_cv(rootdir, pids, cv_group,
+                label_dict=get_labels(cfg, cv_group['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
 
         for avg_group in avg_groups:
-            cm = classification.run_avg(rootdir, args.pids, avg_group,
-                label_dict=get_labels(avg_group['name']),
+            cm = classification.run_avg(rootdir, pids, avg_group,
+                label_dict=get_labels(cfg, avg_group['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
 
         for single_clf in single_clfs:
-            cm = classification.run_single(rootdir, args.pids, single_clf,
-                label_dict=get_labels(single_clf['name']),
+            cm = classification.run_single(rootdir, pids, single_clf,
+                label_dict=get_labels(cfg, single_clf['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
 
@@ -113,8 +123,8 @@ def main():
                 'name': args.name, 
                 'n_train': int(n_train), 
                 'sid_list': sid_list.split(',')}
-        cm = classification.run_cv(rootdir, args.pids, cv_group,
-            label_dict=get_labels(args.name),
+        cm = classification.run_cv(rootdir, pids, cv_group,
+            label_dict=get_labels(cfg, args.name),
             exclude_indices=xindices)
         cm.show()
 
@@ -125,8 +135,8 @@ def main():
                 'sid_list_train': sid_list_train.split(','),
                 'sid_list_test': sid_list_test.split(',')}
 
-        cm = classification.run_single(rootdir, args.pids, single_clf,
-            label_dict=get_labels(args.name),
+        cm = classification.run_single(rootdir, pids, single_clf,
+            label_dict=get_labels(cfg, args.name),
             exclude_indices=xindices)
         cm.show()
 
@@ -134,11 +144,11 @@ def main():
         parser.error("Must use one option: -i, -j, or -p")
 
 
-def get_labels(name):
+def get_labels(cfg, name):
     if 'leg' in name:
-        return st.leg_label_dict
+        return cfg.leg_gestures
     else:
-        return st.arm_label_dict
+        return cfg.arm_gestures
 
 
 if __name__ == '__main__':

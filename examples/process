@@ -13,11 +13,13 @@ import sys
 import argparse
 
 try:
-    from pygesture import settings as st
+    from pygesture import config
 except ImportError:
     sys.path.insert(0, '..')
-    from pygesture import settings as st
-from pygesture import processing, filestruct, pipeline, features
+    from pygesture import config
+
+from pygesture import filestruct
+from pygesture import processing
 
 
 if __name__ == '__main__':
@@ -33,25 +35,12 @@ if __name__ == '__main__':
             help="process all sessions for the specified pid")
     parser.add_argument('-p', '--pool', default=1, type=int,
             help="number of processes to start (multiprocessing), default=1")
+    parser.add_argument('-c', '--config', default='config.py',
+            help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 
     rootdir = os.path.normpath(args.rootdir)
-
-    conditioner = pipeline.Conditioner(st.FILTER_ORDER, st.FC,
-        st.SAMPLE_RATE, st.FS_PROC)
-    feature_ext = features.FeatureExtractor(
-        [
-            features.MAV(),
-            features.WL(),
-            features.ZC(thresh=0.001),
-            features.SSC(thresh=0.001)
-        ],
-        st.NUM_CHANNELS)
-    processor = processing.Processor(conditioner, feature_ext,
-        (st.REST_START_SAMP, st.REST_END_SAMP),
-        (st.GESTURE_START_SAMP, st.GESTURE_END_SAMP),
-        st.WINDOW_LENGTH_SAMP,
-        st.WINDOW_OVERLAP_SAMP)
+    cfg = config.Config(args.config)
 
     all_pids = filestruct.get_participant_list(rootdir)
     if args.pid == 'all':
@@ -63,12 +52,13 @@ if __name__ == '__main__':
     
     if args.proc_all:
         for pid in pids:
-            processing.batch_process(rootdir, pid, processor, pool=args.pool) 
+            processing.batch_process(rootdir, pid, cfg.post_processor,
+                                     pool=args.pool)
     
     else:
         if args.sid_list is None:
             parser.error("Must specify SID list if '-a' option isn't given.")
 
         for pid in pids:
-            processing.batch_process(
-                rootdir, pid, processor, sid_list=args.sid_list, pool=args.pool)
+            processing.batch_process(rootdir, pid, cfg.post_processor,
+                                     sid_list=args.sid_list, pool=args.pool)
