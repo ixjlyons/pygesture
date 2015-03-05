@@ -117,15 +117,15 @@ arm_gestures = {
 }
 leg_gestures = {
     'l0': ('NC', 'no-contraction'),
-    'l1': ('TF', 'closed-fist'),
-    'l2': ('FE', 'forearm-pronation'),
-    'l3': ('FI', 'forearm-supination'),
-    'l4': ('TE', 'open-hand'),
-    'l5': ('AD', 'radial-deviation'),
-    'l6': ('HE', 'thumb-extension'),
-    'l7': ('AB', 'ulnar-deviation'),
-    'l8': ('Df', 'wrist-extension'),
-    'l9': ('PF', 'wrist-flexion')
+    'l1': ('TF', 'toe-flexion'),
+    'l2': ('FE', 'foot-eversion'),
+    'l3': ('FI', 'foot-inversion'),
+    'l4': ('TE', 'toe-extension'),
+    'l5': ('AD', 'foot-adduction'),
+    'l6': ('HE', 'hallux-extension'),
+    'l7': ('AB', 'foot-abduction'),
+    'l8': ('DF', 'dorsiflexion'),
+    'l9': ('PF', 'plantarflexion')
 }
 
 results_sid_arm = ['arm1', 'arm2', 'arm3', 'arm4']
