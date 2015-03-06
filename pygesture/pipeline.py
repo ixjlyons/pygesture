@@ -174,4 +174,4 @@ class Classifier(PipelineBlock):
         self.clf.fit(data)
 
     def process(self, data):
-        return self.clf.predict(data)
+        return self.clf.predict(data)[0]

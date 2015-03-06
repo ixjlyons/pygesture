@@ -28,7 +28,7 @@ def set_path(path):
     vrep = importlib.import_module('pygesture.simulation.vrep')
 
 
-class VrepSimulation:
+class VrepSimulation(object):
 
     def __init__(self, port=19997):
         """
@@ -73,11 +73,22 @@ class VrepSimulation:
         vrep.simxFinish(self.clientId)
 
 
-class Robot:
+class IRB140Arm(object):
+    """
+    IRB140 industrial arm with Barrett Hand attachment.
+    """
 
-    def __init__(self, clientId, actions):
+    joint_map = {
+        'elbow-flexion' : {'IRB140_elbow' : 5},
+        'elbow-extension' : {'IRB140_elbow': -5},
+        'forearm-supination' : {'IRB140_forearm' : 20},
+        'forearm-pronation' : {'IRB140_forearm' : -20},
+        'wrist-extension' : {'IRB140_wrist' : 10},
+        'wrist-flexion' : {'IRB140_wrist' : -10}
+    }
+
+    def __init__(self, clientId):
         self.clientId = clientId
-        self.actions = actions
         self.joints = None
 
         self.initialize_joints()
@@ -97,23 +108,28 @@ class Robot:
         
         self.joints = joints
 
-    def do_action(self, action_name):
-        action = self.actions[action_name]
+    def do_action(self, action):
+        if action == 'no-contraction':
+            res = vrep.simxSetIntegerSignal(
+                self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
+            for name, joint in self.joints.items():
+                vrep.simxSetJointTargetVelocity(
+                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
 
-        if action_name == 'closed-fist':
-            res = vrep.simxSetIntegerSignal(self.clientId, 'request', 1, vrep.simx_opmode_oneshot)
-        elif action_name == 'open-hand':
-            res = vrep.simxSetIntegerSignal(self.clientId, 'request', 2, vrep.simx_opmode_oneshot)
+        elif action == 'closed-fist':
+            res = vrep.simxSetIntegerSignal(
+                self.clientId, 'request', 1, vrep.simx_opmode_oneshot)
+
+        elif action == 'open-hand':
+            res = vrep.simxSetIntegerSignal(
+                self.clientId, 'request', 2, vrep.simx_opmode_oneshot)
+
         else:
-            # TODO pause comm, send all commands, then resume comm
-            if action_name == 'rest':
-                res = vrep.simxSetIntegerSignal(self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
-
-            for joint_name, vel_deg in action:
+            for joint_name, vel in IRB140Arm.joint_map[action].items():
+                vel_rad = math.radians(vel)
                 j = self.joints[joint_name]
-                vel_rad = math.radians(vel_deg)
-                vrep.simxSetJointTargetVelocity(self.clientId, j.handle, vel_rad,
-                    vrep.simx_opmode_oneshot)
+                vrep.simxSetJointTargetVelocity(
+                    self.clientId, j.handle, vel_rad, vrep.simx_opmode_oneshot)
 
 
 class Joint(object):
@@ -124,10 +140,6 @@ class Joint(object):
         self.handle = handle
         self.position = None
         self.force = None
-
-    def __repr__(self):
-        return "(name={0}, handle={1}, position={2:2.5f}, force={3:.5f})".format(
-            self.name, self.handle, self.position, self.force)
 
     def initialize(self):
         self.getPosition()
@@ -155,6 +167,10 @@ class Joint(object):
         validate(res)
         self.getForce()
 
+    def __repr__(self):
+        return "(name=%s, handle=%s, position=%2.5f, force=%3.5f)" % (
+            self.name, self.handle, self.position, self.force
+        )
 
 def validate(res):
     if res != vrep.simx_error_noerror:

@@ -3,6 +3,7 @@ from pygesture import pipeline
 from pygesture import features
 from pygesture import processing
 from pygesture import daq
+from pygesture import control
 
 """
 some things for local use
@@ -40,6 +41,8 @@ inter_trial_timeout = 3
 data_path = os.path.expanduser('~/pygesture-data')
 # path to v-rep (needed for simulation package)
 vrep_path = os.path.expanduser('~/usr/v-rep/v-rep-3.2.0')
+# port that the v-rep is listening on (in remoteApiConnections.txt)
+vrep_port = 20013
 
 # sensor mappings
 # channel_number: ('abbrv', 'description')
@@ -113,7 +116,7 @@ arm_gestures = {
     'l6': ('TE', 'thumb-extension'),
     'l7': ('UD', 'ulnar-deviation'),
     'l8': ('WE', 'wrist-extension'),
-    'l9': ('UD', 'wrist-flexion')
+    'l9': ('WF', 'wrist-flexion')
 }
 leg_gestures = {
     'l0': ('NC', 'no-contraction'),
@@ -127,6 +130,22 @@ leg_gestures = {
     'l8': ('DF', 'dorsiflexion'),
     'l9': ('PF', 'plantarflexion')
 }
+
+# v-rep simulation mapping
+# label : 'capability'
+vrep_actions = {
+    0 : 'no-contraction',
+    1 : 'closed-fist',
+    2 : 'forearm-pronation',
+    3 : 'forearm-supination',
+    4 : 'open-hand',
+    5 : 'elbow-flexion',
+    7 : 'elbow-extension',
+    8 : 'wrist-extension',
+    9 : 'wrist-flexion'
+}
+
+controller = control.Controller(vrep_actions)
 
 results_sid_arm = ['arm1', 'arm2', 'arm3', 'arm4']
 results_sid_leg = ['leg1', 'leg2', 'leg3', 'leg4']

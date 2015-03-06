@@ -9,6 +9,7 @@ config_options = [
     "inter_trial_timeout",
     "data_path",
     "vrep_path",
+    "vrep_port",
     "conditioner",
     "windower",
     "feature_extractor",
@@ -19,7 +20,9 @@ config_options = [
     "probe_channel",
     "daq",
     "arm_gestures",
-    "leg_gestures"
+    "leg_gestures",
+    "vrep_actions",
+    "controller",
     "results_sid_arm",
     "results_sid_leg"
 ]

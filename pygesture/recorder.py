@@ -43,7 +43,7 @@ class RecordThread(QtCore.QThread):
         robot = None
         if self.simulation:
             self.simulation.start()
-            robot = vrepsim.Robot(self.simulation.clientId, config.actions)
+            robot = vrepsim.IRB140Arm(self.simulation.clientId)
 
         self.daq.start()
 
