@@ -24,6 +24,85 @@ window_length = 0.125
 # amount of overlap between adjacent windows [ms]
 window_overlap = window_length/2
 
+# sensor mappings
+# channel_number : (
+#     ('arm_abbrv', 'arm_description')
+#     ('leg_abbrv', 'leg_description')
+# )
+sensors = {
+    0 : (
+        ('ECR', 'extensor carpi radialis brevis'),
+        ('TA', 'tibialis anterior')
+    ),
+    1 : (
+        ('ED', 'extensor digitorum'),
+        ('PL', 'peroneus longus')
+    ),
+    2 : (
+        ('EPL', 'extensor pollicis longus'),
+        ('GL', 'gastrocnemius lateralis')
+    ),
+    3 : (
+        ('FDS', 'flexor digitorum superficialis'),
+        ('EHL', 'extensor hallucis longus')
+    ),
+    4 : (
+        ('FCR', 'flexor carpi radialis'),
+        ('EDL', 'extensor digitorum longus')
+    ),
+    5 : (
+        ('PT', 'pronator teres'),
+        ('FDL', 'flexor digitorum longus')
+    )
+}
+
+# gesture mappings
+# label : (
+#     ('arm_abbrv', 'arm_description'),
+#     ('leg_abbrv', 'leg_description'),
+#     'simulation_action' )
+gestures = {
+    0 : (
+        ('NC', 'no-contraction'),
+        ('NC', 'no-contraction'),
+        'no-contraction'),
+    1 : (
+        ('CF', 'closed-fist'),
+        ('TF', 'toe-flexion'),
+        'closed-fist'),
+    2 : (
+        ('FP', 'forearm-pronation'),
+        ('FE', 'foot-eversion'),
+        'forearm-pronation'),
+    3 : (
+        ('FS', 'forearm-supination'),
+        ('FI', 'foot-inversion'),
+        'forearm-supination'),
+    4 : (
+        ('OH', 'open-hand'),
+        ('TE', 'toe-extension'),
+        'open-hand'),
+    5 : (
+        ('RD', 'radial-deviation'),
+        ('AD', 'foot-adduction'),
+        'elbow-flexion'),
+#    6 : (
+#        ('TE', 'thumb-extension'),
+#        ('HE', 'hallux-extension'),
+#        ''),
+    7 : (
+        ('UD', 'ulnar-deviation'),
+        ('AB', 'foot-abduction'),
+        'elbow-extension'),
+    8 : (
+        ('WE', 'wrist-extension'),
+        ('DF', 'dorsiflexion'),
+        'wrist-extension'),
+    9 : (
+        ('WF', 'wrist-flexion'),
+        ('PF', 'plantarflexion'),
+        'wrist-flexion')
+}
 
 """
 attributes picked up by pygesture.config
@@ -45,23 +124,9 @@ vrep_path = os.path.expanduser('~/usr/v-rep/v-rep-3.2.0')
 vrep_port = 20013
 
 # sensor mappings
-# channel_number: ('abbrv', 'description')
-arm_sensors = {
-    0: ('ECR', 'extensor carpi radialis brevis'),
-    1: ('ED', 'extensor digitorum'),
-    2: ('EPL', 'extensor pollicis longus'),
-    3: ('FDS', 'flexor digitorum superficialis'),
-    4: ('FCR', 'flexor carpi radialis'),
-    5: ('PT', 'pronator teres')
-}
-leg_sensors = {
-    0: ('TA', 'tibialis anterior'),
-    1: ('PL', 'peroneus longus'),
-    2: ('GL', 'gastrocnemius lateralis'),
-    3: ('EHL', 'extensor hallucis longus'),
-    4: ('EDL', 'extensor digitorum longus'),
-    5: ('FDL', 'flexor digitorum longus')
-}
+# channel_number : ('abbrv', 'muscle')
+arm_sensors = {key : val[0] for (key, val) in sensors.items()}
+leg_sensors = {key : val[1] for (key, val) in sensors.items()}
 
 channels = sorted(list(arm_sensors))
 
@@ -105,45 +170,13 @@ post_processor = processing.Processor(
 )
 
 # gesture mappings
-# 'label': ('abbrv', 'description')
-arm_gestures = {
-    'l0': ('NC', 'no-contraction'),
-    'l1': ('CF', 'closed-fist'),
-    'l2': ('FP', 'forearm-pronation'),
-    'l3': ('FS', 'forearm-supination'),
-    'l4': ('OH', 'open-hand'),
-    'l5': ('RD', 'radial-deviation'),
-    'l6': ('TE', 'thumb-extension'),
-    'l7': ('UD', 'ulnar-deviation'),
-    'l8': ('WE', 'wrist-extension'),
-    'l9': ('WF', 'wrist-flexion')
-}
-leg_gestures = {
-    'l0': ('NC', 'no-contraction'),
-    'l1': ('TF', 'toe-flexion'),
-    'l2': ('FE', 'foot-eversion'),
-    'l3': ('FI', 'foot-inversion'),
-    'l4': ('TE', 'toe-extension'),
-    'l5': ('AD', 'foot-adduction'),
-    'l6': ('HE', 'hallux-extension'),
-    'l7': ('AB', 'foot-abduction'),
-    'l8': ('DF', 'dorsiflexion'),
-    'l9': ('PF', 'plantarflexion')
-}
+# label: ('abbrv', 'description')
+arm_gestures = {key : val[0] for (key, val) in gestures.items()}
+leg_gestures = {key : val[1] for (key, val) in gestures.items()}
 
-# v-rep simulation mapping
-# label : 'capability'
-vrep_actions = {
-    0 : 'no-contraction',
-    1 : 'closed-fist',
-    2 : 'forearm-pronation',
-    3 : 'forearm-supination',
-    4 : 'open-hand',
-    5 : 'elbow-flexion',
-    7 : 'elbow-extension',
-    8 : 'wrist-extension',
-    9 : 'wrist-flexion'
-}
+# simulation mapping
+# label : 'action'
+vrep_actions = {key : val[2] for (key, val) in gestures.items()}
 
 controller = control.Controller(vrep_actions)
 

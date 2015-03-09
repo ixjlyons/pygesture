@@ -7,7 +7,6 @@ import numpy as np
 import scipy.io.wavfile as siowav
 
 from pygesture import filestruct
-from pygesture.simulation import config, vrepsim
 
 
 class RecordThread(QtCore.QThread):
@@ -16,20 +15,15 @@ class RecordThread(QtCore.QThread):
     finished_sig = QtCore.pyqtSignal(np.ndarray)
     prediction_sig = QtCore.pyqtSignal(int)
 
-    def __init__(self, daq, run_sim=False):
+    def __init__(self, daq):
         QtCore.QThread.__init__(self, parent=None)
         self.daq = daq
-        self.run_sim = run_sim
 
         self.continuous = True
         self.triggers_per_record = 0
         self.running = False
         self.simulation = None
         self.pipeline = None
-
-        if self.run_sim:
-            vrepsim.set_path(config.path)
-            self.simulation = vrepsim.VrepSimulation(config.vrep_port)
 
     def run(self):
         self.running = True
@@ -41,9 +35,6 @@ class RecordThread(QtCore.QThread):
 
     def run_continuous(self):
         robot = None
-        if self.simulation:
-            self.simulation.start()
-            robot = vrepsim.IRB140Arm(self.simulation.clientId)
 
         self.daq.start()
 
@@ -53,16 +44,7 @@ class RecordThread(QtCore.QThread):
                 y = self.pipeline.process(d.T)
                 self.prediction_sig.emit(y)
 
-                if robot is not None:
-                    robot.do_action("rest")
-                    #robot.do_action(st.gesture_dict['l'+str(int(y[0]))][1])
-
             self.update_sig.emit(d)
-
-        if self.simulation is not None:
-            if robot is not None:
-                robot.do_action("rest")
-            self.simulation.stop()
 
     def run_fixed(self):
         spr = self.daq.samples_per_read
@@ -104,8 +86,8 @@ def generate_trial_order(labels, n_repeat):
 
     Parameters
     ----------
-    labels : list
-        List of trial labels (e.g. 'l0', 'l5', etc.).
+    labels : list (int)
+        List of trial labels.
     n_repeat : int
         Number of times to repeat each gesture.
     """

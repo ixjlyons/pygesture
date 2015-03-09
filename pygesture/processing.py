@@ -81,15 +81,32 @@ def _process_session(args):
     sess.process()
 
 
-def read_feature_file_list(file_list):
+def read_feature_file_list(file_list, labels='all'):
     """
     Reads all of the feature files specified and concatenates all of their data
     into a (vector, label) tuple.
+
+    Parameters
+    ----------
+    file_list : list (str)
+        List of paths to feature files.
+    labels : list (int)
+        List of labels to include in the data. Default is 'all', meaning all
+        labels in the files are included.
     """
     data = np.concatenate([np.genfromtxt(f, delimiter=',') for f in file_list])
     X = data[:, 1:]
     y = data[:, 0]
-    return (X, y)
+
+    if labels == 'all':
+        return (X, y)
+
+    else:
+        mask = np.zeros(y.shape, dtype=bool)
+        for label in labels:
+            mask |= (y == label)
+
+        return (X[mask], y[mask])
 
 
 def get_session_data(pid, sid_list):
@@ -170,10 +187,8 @@ class Recording:
             self.windower.length-self.windower.overlap)
 
     def parse_details(self, filename):
-        trial_number = filestruct.parse_trial_number(filename)
-        self.label_id = filestruct.parse_label(filename)
-
-        self.trial_number = trial_number
+        self.trial_number = filestruct.parse_trial_number(filename)
+        self.label = filestruct.parse_label(filename)
 
     def process(self):
         cd = self.conditioner.process(self.raw_data)
@@ -188,9 +203,8 @@ class Recording:
 
         rl = len(self.rest_ind)
         for i, n in enumerate(self.gest_ind):
-            label = int(self.label_id[1:])
             x = cd[n:n+self.windower.length, :]
-            fd[rl+i, 0] = label
+            fd[rl+i, 0] = self.label
             fd[rl+i, 1:] = self.feature_extractor.process(x)
 
         self.conditioned_data = cd
@@ -200,7 +214,7 @@ class Recording:
 
     def get_dict(self):
         data_dict = {
-            'label_id': self.label_id,
+            'label': self.label,
             'trial_number': self.trial_number,
             'data': self.feature_data.tolist()}
 

@@ -47,7 +47,7 @@ def get_recording_file(recording_dir, pid, sid, date_str, trial_num, label):
     recording_file = os.path.join(
         recording_dir,
         'rec_' + date_str + '_' + pid + '_' + 't' + ('%02d' % trial_num) +
-        '_' + label + '.wav')
+        '_' + 'l' + ('%d' % label) + '.wav')
     return recording_file
 
 
@@ -140,8 +140,7 @@ def parse_trial_number(name):
 
 def parse_label(name):
     """
-    Returns the label ID (e.g. 'l2') from the given recording file name (raw or
-    proc).
+    Returns the label from the given recording file name (raw or proc).
     """
-    label = re.search('l\d+', name).group(0)
+    label = int(re.search('l\d+', name).group(0)[1:])
     return label

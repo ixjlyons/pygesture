@@ -98,7 +98,7 @@ class MainWindow(QtGui.QWidget):
             img = QtGui.QPixmap(filepath).scaled(
                 800, 600, QtCore.Qt.KeepAspectRatio)
             self.gesture_images[key] = img
-        self.gesture_view.setPixmap(self.gesture_images['l0'])
+        self.gesture_view.setPixmap(self.gesture_images[0])
 
     def create_gesture_prompt(self):
         self.gesture_prompt = PromptWidget(
@@ -180,7 +180,7 @@ class MainWindow(QtGui.QWidget):
     def record_finished(self, data):
         self.session.write_recording(data, self.daq.rate)
 
-        self.gesture_view.setPixmap(self.gesture_images['l0'])
+        self.gesture_view.setPixmap(self.gesture_images[0])
         self.pause_button.setEnabled(True)
 
         if self.session.current_trial == self.session.num_trials:

@@ -9,6 +9,7 @@ from pygesture import features
 from pygesture import pipeline
 from pygesture import daq
 from pygesture import recorder
+from pygesture.simulation import vrepsim
 
 import numpy as np
 from sklearn.lda import LDA
@@ -34,6 +35,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.calibration = np.zeros((1, len(self.cfg.channels)))
 
         self.init_recorder()
+        self.init_simulation()
         self.init_pid_list()
         self.init_gesture_view()
 
@@ -57,8 +59,13 @@ class RealTimeGUI(QtGui.QMainWindow):
                 "Falling back to emulated DAQ.",
                 QtGui.QMessageBox.Ok)
 
-        self.recorder = recorder.RecordThread(self.daq, run_sim=False)
+        self.recorder = recorder.RecordThread(self.daq)
         self.recorder.prediction_sig.connect(self.prediction_callback)
+
+    def init_simulation(self):
+        vrepsim.set_path(self.cfg.vrep_path)
+        self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
+        self.robot = None
 
     def init_pid_list(self):
         pid_list = filestruct.get_participant_list(self.cfg.data_path)
@@ -86,9 +93,9 @@ class RealTimeGUI(QtGui.QMainWindow):
         h = self.ui.gestureDisplayLabel.height()
 
         if self.running:
-            imgkey = 'l' + str(self.prediction)
+            imgkey = self.prediction
         else:
-            imgkey = 'l0'
+            imgkey = 0
 
         self.ui.gestureDisplayLabel.setPixmap(
             self.gesture_images[imgkey].scaled(
@@ -128,7 +135,8 @@ class RealTimeGUI(QtGui.QMainWindow):
 
         file_list = filestruct.get_feature_file_list(
             self.cfg.data_path, self.pid, train_list)
-        training_data = processing.read_feature_file_list(file_list)
+        training_data = processing.read_feature_file_list(
+            file_list, labels=list(self.cfg.arm_gestures))
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -139,6 +147,10 @@ class RealTimeGUI(QtGui.QMainWindow):
             clf = LDA()
 
         clf.fit(*training_data)
+
+        if self.simulation is not None:
+            self.simulation.start()
+            self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
 
         classifier = pipeline.Classifier(clf)
 
@@ -164,9 +176,14 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.running = False
         self.prediction = 0
         self.update_gesture_view()
+        if self.robot is not None:
+            self.robot.do_action('no-contraction')
+            self.simulation.stop()
 
     def prediction_callback(self, prediction):
         self.prediction = prediction
+        if self.robot is not None:
+            self.robot.do_action(self.cfg.controller.update(prediction))
         self.update_gesture_view()
 
     def calibrate(self):

@@ -82,12 +82,18 @@ def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
             y_test = y_test[mask_test]
 
         location = clf_dict['sid_list_test'][0][:3]
-        lid = ['l' + str(i) for i in np.unique(y_train.astype(int))]
+        lid = np.unique(y_train.astype(int))
         if label_dict is None:
             labels = lid
         else:
-            labels = [label_dict[l][0] for l in lid]
+            labels = []
+            for l in lid:
+                try:
+                    labels.append(label_dict[l][0])
+                except KeyError:
+                    pass
 
+        print(labels)
         (X_train, X_test) = condition_data(X_train, X_test)
 
         clf = LDA()
@@ -303,24 +309,3 @@ class ConfusionMatrix():
             print(self.data_norm)
         else:
             print(self.data)
-
-
-def read_feature_file_list(file_list):
-    """
-    Reads all of the feature files specified and concatenates all of their data
-    into a (vector, label) tuple.
-    """
-    data = np.concatenate([np.genfromtxt(f, delimiter=',') for f in file_list])
-    X = data[:, 1:]
-    y = data[:, 0]
-    return (X, y)
-
-
-def get_session_data(rootdir, pid, sid_list):
-    """
-    Convenience function to retrieve the data for the specified particpiant and
-    session ID list in a (vector, label) tuple.
-    """
-    file_list = filestruct.get_feature_file_list(rootdir, pid, sid_list)
-    (X, y) = read_feature_file_list(file_list)
-    return (X, y)
