@@ -41,11 +41,11 @@ def do(action, length):
     time.sleep(length)
     robot.do_action('no-contraction')
 
-do("forearm-supination", 1.4)
+do("forearm-supination", 1.5)
 do("elbow-flexion", 0.5)
 do("open-hand", 0.3)
 do("wrist-flexion", 1.4)
-do("elbow-flexion", 0.8)
+do("elbow-flexion", 0.9)
 do("closed-fist", 0.6)
 
 time.sleep(1)
