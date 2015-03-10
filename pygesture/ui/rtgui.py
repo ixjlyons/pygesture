@@ -14,6 +14,8 @@ from pygesture.simulation import vrepsim
 import numpy as np
 from sklearn.lda import LDA
 from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 from PyQt4 import QtGui, QtCore
 
@@ -146,13 +148,16 @@ class RealTimeGUI(QtGui.QMainWindow):
         else:
             clf = LDA()
 
-        clf.fit(*training_data)
+        preproc = StandardScaler()
+        skpipeline = Pipeline([('preproc', preproc), ('clf', clf)])
+
+        classifier = pipeline.Classifier(skpipeline)
+        classifier.fit(*training_data)
 
         if self.simulation is not None:
             self.simulation.start()
             self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
 
-        classifier = pipeline.Classifier(clf)
 
         pl = pipeline.Pipeline(
             [

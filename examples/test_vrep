@@ -41,22 +41,25 @@ def do(action, length):
     time.sleep(length)
     robot.do_action('no-contraction')
 
-do("closed-fist", 0.3)
-do("no-contraction", 0.2)
-do("open-hand", 1.0)
-do("forearm-supination", 1.5)
-do("elbow-extension", 1.6)
-do("closed-fist", 2.0)
-do("elbow-flexion", 1.3)
-do("forearm-pronation", 1.8)
+do("forearm-supination", 1.4)
+do("elbow-flexion", 0.5)
+do("open-hand", 0.3)
+do("wrist-flexion", 1.4)
+do("elbow-flexion", 0.8)
+do("closed-fist", 0.6)
 
 time.sleep(1)
 
-do("forearm-supination", 1.8)
-do("elbow-extension", 1.2)
+do("wrist-extension", 1.0)
+do("elbow-extension", 1.8)
+do("forearm-pronation", 1.6)
+time.sleep(2)
+do("forearm-supination", 1.6)
+do("elbow-flexion", 2.0)
 do("open-hand", 1.0)
-do("elbow-flexion", 1.9)
 
 time.sleep(1)
+
+do("elbow-extension", 1.5)
 
 sim.finish()

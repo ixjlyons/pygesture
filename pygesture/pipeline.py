@@ -170,8 +170,8 @@ class Classifier(PipelineBlock):
         super(Classifier, self).__init__()
         self.clf = clf
 
-    def fit(self, data):
-        self.clf.fit(data)
+    def fit(self, X, y):
+        self.clf.fit(X, y)
 
     def process(self, data):
         return self.clf.predict(data)[0]

@@ -79,12 +79,14 @@ class IRB140Arm(object):
     """
 
     joint_map = {
-        'elbow-flexion' : {'IRB140_elbow' : 5},
-        'elbow-extension' : {'IRB140_elbow': -5},
-        'forearm-supination' : {'IRB140_forearm' : 20},
-        'forearm-pronation' : {'IRB140_forearm' : -20},
-        'wrist-extension' : {'IRB140_wrist' : 10},
-        'wrist-flexion' : {'IRB140_wrist' : -10}
+        'shoulder-horizontal-abduction': {'IRB140_joint2': 5},
+        'shoulder-horizontal-adduction': {'IRB140_joint2': -5},
+        'elbow-extension' : {'IRB140_joint3': 5},
+        'elbow-flexion' : {'IRB140_joint3' : -5},
+        'forearm-supination' : {'IRB140_joint4' : 20},
+        'forearm-pronation' : {'IRB140_joint4' : -20},
+        'wrist-extension' : {'IRB140_joint5' : 10},
+        'wrist-flexion' : {'IRB140_joint5' : -10}
     }
 
     def __init__(self, clientId):
