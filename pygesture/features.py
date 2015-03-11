@@ -50,7 +50,7 @@ class WL(object):
         self.dim_per_channel = 1
 
     def compute(self, x):
-        y = np.sum(np.diff(x, axis=0), axis=0)
+        y = np.sum(np.absolute(np.diff(x, axis=0)), axis=0)
         return y
 
 

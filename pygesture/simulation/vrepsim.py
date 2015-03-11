@@ -121,17 +121,29 @@ class IRB140Arm(object):
         elif action == 'closed-fist':
             res = vrep.simxSetIntegerSignal(
                 self.clientId, 'request', 1, vrep.simx_opmode_oneshot)
+            for name, joint in self.joints.items():
+                vrep.simxSetJointTargetVelocity(
+                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
 
         elif action == 'open-hand':
             res = vrep.simxSetIntegerSignal(
                 self.clientId, 'request', 2, vrep.simx_opmode_oneshot)
+            for name, joint in self.joints.items():
+                vrep.simxSetJointTargetVelocity(
+                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
 
         else:
-            for joint_name, vel in IRB140Arm.joint_map[action].items():
-                vel_rad = math.radians(vel)
-                j = self.joints[joint_name]
-                vrep.simxSetJointTargetVelocity(
-                    self.clientId, j.handle, vel_rad, vrep.simx_opmode_oneshot)
+            for name, joint in self.joints.items():
+                active_map = IRB140Arm.joint_map[action]
+                if name in active_map:
+                    vel = active_map[name]
+                    vel_rad = math.radians(vel)
+                    j = self.joints[name]
+                    vrep.simxSetJointTargetVelocity(
+                        self.clientId, j.handle, vel_rad, vrep.simx_opmode_oneshot)
+                else:
+                    vrep.simxSetJointTargetVelocity(
+                        self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
 
 
 class Joint(object):

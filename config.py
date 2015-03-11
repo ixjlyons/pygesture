@@ -20,9 +20,9 @@ filt_order = 4
 input_range = 2
 
 # length of sliding window [ms]
-window_length = 0.125
+window_length = 0.250
 # amount of overlap between adjacent windows [ms]
-window_overlap = window_length/2
+window_overlap = 0#window_length/2
 
 # sensor mappings
 # channel_number : (
