@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 plt.rc('font', family='serif')
 
 from pygesture import filestruct
+from pygesture import processing
 
 
 def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
@@ -64,9 +65,9 @@ def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
     """
     cm_list = []
     for pid in pids:
-        (X_train, y_train) = get_session_data(
+        (X_train, y_train) = processing.get_session_data(
             rootdir, pid, clf_dict['sid_list_train'])
-        (X_test, y_test) = get_session_data(
+        (X_test, y_test) = processing.get_session_data(
             rootdir, pid, clf_dict['sid_list_test'])
 
         if exclude_indices is not None:

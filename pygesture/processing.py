@@ -109,12 +109,12 @@ def read_feature_file_list(file_list, labels='all'):
         return (X[mask], y[mask])
 
 
-def get_session_data(pid, sid_list):
+def get_session_data(rootdir, pid, sid_list):
     """
     Convenience function to retrieve the data for the specified particpiant and
     session ID list in a (vector, label) tuple.
     """
-    file_list = filestruct.get_feature_file_list(pid, sid_list)
+    file_list = filestruct.get_feature_file_list(rootdir, pid, sid_list)
     (X, y) = read_feature_file_list(file_list)
     return (X, y)
 
