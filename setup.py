@@ -55,8 +55,8 @@ setup(
 
     entry_points={
         'gui_scripts': [
-            'pygesture=pygesture.ui.gui:main',
-            'pygesture-rt=pygesture.ui.rtgui:main'
+            'pygesture-train=pygesture.ui.train:main',
+            'pygesture-test=pygesture.ui.test:main'
          ],
     },
 )

@@ -19,7 +19,7 @@ from sklearn.pipeline import Pipeline
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.rtgui_template import *
+from pygesture.ui.test_template import *
 from pygesture.ui.calibrationdialog_template import *
 
 
@@ -65,9 +65,15 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.recorder.prediction_sig.connect(self.prediction_callback)
 
     def init_simulation(self):
-        vrepsim.set_path(self.cfg.vrep_path)
-        self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
         self.robot = None
+        vrepsim.set_path(self.cfg.vrep_path)
+        try:
+            self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
+        except:
+            ret = QtGui.QMessageBox().warning(
+                self, "Warning",
+                "Running without v-rep simulation.",
+                QtGui.QMessageBox.Ok)
 
     def init_pid_list(self):
         pid_list = filestruct.get_participant_list(self.cfg.data_path)
