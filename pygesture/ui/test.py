@@ -70,6 +70,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         try:
             self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
         except:
+            self.simulation = None
             ret = QtGui.QMessageBox().warning(
                 self, "Warning",
                 "Running without v-rep simulation.",
@@ -163,7 +164,6 @@ class RealTimeGUI(QtGui.QMainWindow):
         if self.simulation is not None:
             self.simulation.start()
             self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
-
 
         pl = pipeline.Pipeline(
             [
