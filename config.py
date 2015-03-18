@@ -136,7 +136,7 @@ daq = daq.MccDaq(
     rate=f_samp,
     input_range=input_range, 
     channel_range=(min(channels), max(channels)),
-    samples_per_read=f_samp*(window_length-window_overlap)
+    samples_per_read=int(f_samp*(window_length-window_overlap))
 )
 
 conditioner = pipeline.Conditioner(

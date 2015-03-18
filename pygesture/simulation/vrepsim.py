@@ -133,6 +133,8 @@ class IRB140Arm(object):
                     self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
 
         else:
+            res = vrep.simxSetIntegerSignal(
+                self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
             for name, joint in self.joints.items():
                 active_map = IRB140Arm.joint_map[action]
                 if name in active_map:
