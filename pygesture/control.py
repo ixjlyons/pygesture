@@ -116,14 +116,27 @@ class DBVRController(Controller):
         super(DBVRController, self).__init__(mapping)
         self.ramp_length = ramp_length
 
-        self.boosts = {key : 0.5 for key in mapping}
-        self._counts = {key : 0 for key in mapping}
-        self._gains = {key : 0 for key in mapping}
-        self._vin = {key : 0 for key in mapping}
-        self._vout = {self.mapping[key] : 0 for key in mapping}
+        self.restless_mapping = {}
+        for key, val in mapping.items():
+            if val != 'no-contraction':
+                self.restless_mapping[key] = val
+
+        self._reset_values()
+
+    def _reset_values(self):
+        self.boosts = {key : 0.5 for key in self.restless_mapping}
+        self._counts = {key : 0 for key in self.restless_mapping}
+        self._gains = {key : 0 for key in self.restless_mapping}
+        self._vin = {key : 0 for key in self.restless_mapping}
+        self._vout = {self.mapping[key] : 0 for key in self.restless_mapping}
 
     def process(self, data):
         mav, label = data
+
+        if self.mapping[label] == 'no-contraction':
+            self._reset_values()
+            return 'no-contraction'
+
         self._update_gains(label)
 
         mav_avg = np.mean(mav)
@@ -132,19 +145,19 @@ class DBVRController(Controller):
             self._vin[i] = self.boosts[i] * mav_avg
             self._vout[self.mapping[i]] = self._gains[i] * self._vin[i]
 
-        return self._vout
+        return list(self._vout.items())
 
     def _update_gains(self, label):
-        for l in self.counts:
+        for l in self._counts:
             if l == label:
-                self.counts[l] += 1
+                self._counts[l] += 1
             else:
-                self.counts[l] -= 2
+                self._counts[l] -= 2
 
-            if self.counts[l] > self.ramp_length:
-                self.counts[l] = self.ramp_length
+            if self._counts[l] > self.ramp_length:
+                self._counts[l] = self.ramp_length
 
-            if self.counts[l] < 0:
-                self.counts[l] = 0
+            if self._counts[l] < 0:
+                self._counts[l] = 0
 
-            self.gains[l] = self.counts[l] / self.ramp_length
+            self._gains[l] = self._counts[l] / self.ramp_length

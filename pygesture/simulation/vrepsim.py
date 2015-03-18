@@ -111,6 +111,31 @@ class IRB140Arm(object):
         self.joints = joints
 
     def do_action(self, action):
+        """
+        Commands the arm to perform an action. The action can be a number of
+        different things.
+
+        The simplest is a string from the `pygesture.control.CAPABILITIES`
+        list. This will make the arm perform that action with a nominal
+        velocity (see `IRB140Arm.joint_map`).
+
+        Next you can specify a capability and a velocity in a 2-tuple
+        (str, float), which makes the arm perform that action with a velocity
+        that is the specified multiplier times the maximum velocity of the
+        joint.
+
+        Finally, you can specify a list of tuples, where each tuple is as
+        above. This allows you to control multiple joints at once.
+        """
+        if type(action) is str:
+            self._do_single_action(action)
+        elif type(action) is tuple:
+            self._do_single_action(action[0], v_mult=action[1])
+        else:
+            for a in action:
+                self._do_single_action(a[0], v_mult=a[1])
+
+    def _do_single_action(self, action, v_mult=None):
         if action == 'no-contraction':
             res = vrep.simxSetIntegerSignal(
                 self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
