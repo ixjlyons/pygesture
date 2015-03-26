@@ -19,10 +19,10 @@ filt_order = 4
 # voltage input range for the DAQ
 input_range = 2
 
-# length of sliding window [ms]
+# length of sliding window [s]
 window_length = 0.250
-# amount of overlap between adjacent windows [ms]
-window_overlap = 0#window_length/2
+# amount of overlap between adjacent windows [s]
+window_overlap = 0
 
 # sensor mappings
 # channel_number : (
@@ -30,27 +30,27 @@ window_overlap = 0#window_length/2
 #     ('leg_abbrv', 'leg_description')
 # )
 sensors = {
-    0 : (
+    0: (
         ('ECR', 'extensor carpi radialis brevis'),
         ('TA', 'tibialis anterior')
     ),
-    1 : (
+    1: (
         ('ED', 'extensor digitorum'),
         ('PL', 'peroneus longus')
     ),
-    2 : (
+    2: (
         ('EPL', 'extensor pollicis longus'),
         ('GL', 'gastrocnemius lateralis')
     ),
-    3 : (
+    3: (
         ('FDS', 'flexor digitorum superficialis'),
         ('EHL', 'extensor hallucis longus')
     ),
-    4 : (
+    4: (
         ('FCR', 'flexor carpi radialis'),
         ('EDL', 'extensor digitorum longus')
     ),
-    5 : (
+    5: (
         ('PT', 'pronator teres'),
         ('FDL', 'flexor digitorum longus')
     )
@@ -62,43 +62,39 @@ sensors = {
 #     ('leg_abbrv', 'leg_description'),
 #     'simulation_action' )
 gestures = {
-    0 : (
+    0: (
         ('NC', 'no-contraction'),
         ('NC', 'no-contraction'),
         'no-contraction'),
-    1 : (
+    1: (
         ('CF', 'closed-fist'),
         ('TF', 'toe-flexion'),
         'closed-fist'),
-    2 : (
+    2: (
         ('FP', 'forearm-pronation'),
         ('FE', 'foot-eversion'),
         'forearm-pronation'),
-    3 : (
+    3: (
         ('FS', 'forearm-supination'),
         ('FI', 'foot-inversion'),
         'forearm-supination'),
-    4 : (
+    4: (
         ('OH', 'open-hand'),
         ('TE', 'toe-extension'),
         'open-hand'),
-    5 : (
+    5: (
         ('RD', 'radial-deviation'),
         ('AD', 'foot-adduction'),
         'elbow-flexion'),
-#    6 : (
-#        ('TE', 'thumb-extension'),
-#        ('HE', 'hallux-extension'),
-#        ''),
-    7 : (
+    7: (
         ('UD', 'ulnar-deviation'),
         ('AB', 'foot-abduction'),
         'elbow-extension'),
-    8 : (
+    8: (
         ('WE', 'wrist-extension'),
         ('DF', 'dorsiflexion'),
         'wrist-extension'),
-    9 : (
+    9: (
         ('WF', 'wrist-flexion'),
         ('PF', 'plantarflexion'),
         'wrist-flexion')
@@ -125,8 +121,8 @@ vrep_port = 20013
 
 # sensor mappings
 # channel_number : ('abbrv', 'muscle')
-arm_sensors = {key : val[0] for (key, val) in sensors.items()}
-leg_sensors = {key : val[1] for (key, val) in sensors.items()}
+arm_sensors = {key: val[0] for (key, val) in sensors.items()}
+leg_sensors = {key: val[1] for (key, val) in sensors.items()}
 
 channels = sorted(list(arm_sensors))
 
@@ -134,7 +130,7 @@ probe_channel = 6
 
 daq = daq.MccDaq(
     rate=f_samp,
-    input_range=input_range, 
+    input_range=input_range,
     channel_range=(min(channels), max(channels)),
     samples_per_read=int(f_samp*(window_length-window_overlap))
 )
@@ -171,12 +167,12 @@ post_processor = processing.Processor(
 
 # gesture mappings
 # label: ('abbrv', 'description')
-arm_gestures = {key : val[0] for (key, val) in gestures.items()}
-leg_gestures = {key : val[1] for (key, val) in gestures.items()}
+arm_gestures = {key: val[0] for (key, val) in gestures.items()}
+leg_gestures = {key: val[1] for (key, val) in gestures.items()}
 
 # simulation mapping
 # label : 'action'
-vrep_actions = {key : val[2] for (key, val) in gestures.items()}
+vrep_actions = {key: val[2] for (key, val) in gestures.items()}
 
 controller = control.Controller(vrep_actions)
 

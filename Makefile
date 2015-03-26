@@ -9,6 +9,7 @@ check:
 .PHONY: lint
 lint:
 	flake8 --config=tools/flake8.cfg \
-		pygesture \
+		pygesture/ \
+		config.py \
 		examples/analyze \
 		examples/process
