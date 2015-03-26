@@ -11,6 +11,7 @@ CAPABILITIES = [
     'closed-fist'
 ]
 
+
 class Controller(object):
     """
     Takes gesture class predictions and outputs commands to the simulation.
@@ -45,13 +46,13 @@ class LatchController(object):
         latching occurs.
     num_required : int, default=1
         Number of consecutive instances of a label for it to be latched.
-        Deafult is 1, meaning no latching.
+        Default is 1, meaning no latching.
     """
 
     def __init__(self, mapping, latch_labels=[], num_required=1):
         self.mapping = mapping
         self.latch_labels = latch_labels
-        self.history = [0]*num_required
+        self.history = [0] * num_required
 
     def update(self, label):
         self._update_history(label)
@@ -66,10 +67,9 @@ class LatchController(object):
 
         return self.mapping[out_label]
 
-
     def _update_history(self, label):
         if len(self.history) > 1:
-            self.history = self.history[1:]
+            self.history = self.history[1:] + [label]
         else:
             self.history = [label]
 

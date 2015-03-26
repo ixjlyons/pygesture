@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 # plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-from pygesture import filestruct
 from pygesture import processing
 
 
@@ -82,7 +81,6 @@ def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
             X_test = X_test[mask_test]
             y_test = y_test[mask_test]
 
-        location = clf_dict['sid_list_test'][0][:3]
         lid = np.unique(y_train.astype(int))
         if label_dict is None:
             labels = lid
@@ -94,7 +92,6 @@ def run_single(rootdir, pids, clf_dict, label_dict=None, exclude_indices=[]):
                 except KeyError:
                     pass
 
-        print(labels)
         (X_train, X_test) = condition_data(X_train, X_test)
 
         clf = LDA()
@@ -220,6 +217,7 @@ def average_confusion_matrix(cm_list):
     cm = ConfusionMatrix(mat, cm_list[0].labels, cm_list[0].name)
     return cm
 
+
 def accuracy_std(cm_list):
     diags = np.array([cm.data_norm.diagonal(0) for cm in cm_list])
     std = np.std(diags, axis=0)
@@ -289,8 +287,7 @@ class ConfusionMatrix():
 
     def get_normalized(self):
         row_sums = np.sum(self.data, 1)
-        return self.data / row_sums[:,None]
-        #return np.true_divide(self.data, np.sum(self.data, 1))
+        return self.data / row_sums[:, None]
 
     def get_avg_accuracy(self):
         num_instances = np.sum(self.data, (0, 1))

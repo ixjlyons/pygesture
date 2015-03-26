@@ -1,6 +1,7 @@
 from pygesture import control
 
-mapping = {0 : 0, 1 : 1, 2 : 2}
+mapping = {0: 0, 1: 1, 2: 2}
+
 
 class TestController(object):
 
@@ -28,7 +29,4 @@ class TestLatchController(object):
         for l in data:
             out.append(controller.update(l))
 
-        assert out == data
-
-
-        
+        assert out == latch_data

@@ -1,11 +1,10 @@
+import argparse
 import sys
-import os
 import pkg_resources
 
 from pygesture import config
 from pygesture import filestruct
 from pygesture import processing
-from pygesture import features
 from pygesture import pipeline
 from pygesture import daq
 from pygesture import recorder
@@ -19,8 +18,7 @@ from sklearn.pipeline import Pipeline
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.test_template import *
-from pygesture.ui.calibrationdialog_template import *
+from pygesture.ui.test_template import Ui_MainWindow
 
 
 class RealTimeGUI(QtGui.QMainWindow):
@@ -47,7 +45,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.setWindowTitle('pygesture-rt')
 
     def init_recorder(self):
-        try: 
+        try:
             self.daq = self.cfg.daq
             self.daq.initialize()
         except ValueError:
@@ -56,8 +54,9 @@ class RealTimeGUI(QtGui.QMainWindow):
                 self.daq.rate, self.daq.input_range, self.daq.channel_range,
                 self.daq.samples_per_read)
 
-            ret = QtGui.QMessageBox().warning(
-                self, "Warning",
+            QtGui.QMessageBox().warning(
+                self,
+                "Warning",
                 "Falling back to emulated DAQ.",
                 QtGui.QMessageBox.Ok)
 
@@ -70,8 +69,9 @@ class RealTimeGUI(QtGui.QMainWindow):
         try:
             self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
         except:
-            ret = QtGui.QMessageBox().warning(
-                self, "Warning",
+            QtGui.QMessageBox().warning(
+                self,
+                "Warning",
                 "Running without v-rep simulation.",
                 QtGui.QMessageBox.Ok)
 
@@ -131,7 +131,7 @@ class RealTimeGUI(QtGui.QMainWindow):
             item = self.ui.trainingList.item(i)
             if item.checkState():
                 train_list.append(item.text())
-        
+
         if not train_list:
             QtGui.QMessageBox().critical(
                 self, "Error",
@@ -163,7 +163,6 @@ class RealTimeGUI(QtGui.QMainWindow):
         if self.simulation is not None:
             self.simulation.start()
             self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
-
 
         pl = pipeline.Pipeline(
             [
@@ -198,70 +197,23 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.update_gesture_view()
 
     def calibrate(self):
-        ret = QtGui.QMessageBox().warning(
-            self, "Warning",
+        QtGui.QMessageBox().warning(
+            self,
+            "Warning",
             "Calibration disabled.",
             QtGui.QMessageBox.Ok)
-
-        #caldialog = CalibrateDialog(self.recorder)
-        #caldialog.save_signal.connect(self.set_calibration)
-        #caldialog.exec_()
-        #self.init_recorder()
 
     def set_calibration(self, calibration):
         self.calibration = calibration
 
 
-#class CalibrateDialog(QtGui.QDialog):
-#
-#    save_signal = QtCore.pyqtSignal(np.ndarray)
-#
-#    def __init__(self, recorder, parent=None):
-#        super(CalibrateDialog, self).__init__()
-#        self.ui = Ui_CalibrationDialog()
-#        self.ui.setupUi(self)
-#
-#        self.progress = 0
-#
-#        self.recorder = recorder
-#        self.recorder.set_fixed(st.TRIGGERS_PER_RECORD)
-#        self.recorder.finished_sig.connect(self.record_finished_callback)
-#        self.recorder.update_sig.connect(self.record_update_callback)
-#        self.calibration_data = np.zeros((1, st.NUM_CHANNELS))
-#
-#        self.ui.startButton.clicked.connect(self.start_calibration)
-#        self.ui.buttonBox.accepted.connect(self.save_callback)
-#
-#    def start_calibration(self):
-#        self.ui.buttonBox.setEnabled(False)
-#        self.ui.startButton.setEnabled(False)
-#        self.recorder.start()
-#
-#    def record_update_callback(self):
-#        self.progress += 1/float(st.TRIGGERS_PER_RECORD)*100
-#        self.ui.progressBar.setValue(self.progress)
-#
-#    def record_finished_callback(self, data):
-#        self.ui.progressBar.setValue(100)
-#        self.ui.buttonBox.setEnabled(True)
-#        self.ui.startButton.setEnabled(True)
-#
-#        self.calibration_data = np.mean(data, 1)
-#
-#    def save_callback(self):
-#        self.save_signal.emit(self.calibration_data)
-#
-#    def closeEvent(self, event):
-#        recorder.cleanup()
-#        recorder.set_continuous()
-#        QMainWindow.closeEvent(self, event)
-
-
-import argparse
 def main():
     parser = argparse.ArgumentParser(
         description="EMG gesture recognition with real-time feedback.")
-    parser.add_argument('-c', dest='config', default='config.py',
+    parser.add_argument(
+        '-c', '--config',
+        dest='config',
+        default='config.py',
         help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 
@@ -273,4 +225,3 @@ def main():
     app.exec_()
     app.deleteLater()
     sys.exit(0)
-    

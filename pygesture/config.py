@@ -29,7 +29,7 @@ config_options = [
 
 
 class Config(object):
-    
+
     def __init__(self, filepath):
         sys.path.insert(0, os.path.dirname(filepath))
         config = __import__(os.path.basename(filepath)[:-3])
@@ -37,4 +37,3 @@ class Config(object):
         for option in config_options:
             c = getattr(config, option, None)
             setattr(self, option, c)
-

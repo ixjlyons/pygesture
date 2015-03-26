@@ -3,9 +3,7 @@ from multiprocessing import Pool
 
 import numpy as np
 import scipy.io.wavfile as siowav
-from scipy import signal
 
-from pygesture import features
 from pygesture import filestruct
 
 
@@ -31,7 +29,7 @@ class Processor(object):
     """
 
     def __init__(self, conditioner, windower, feature_extractor, rest_bounds,
-            gesture_bounds):
+                 gesture_bounds):
         self.conditioner = conditioner
         self.windower = windower
         self.feature_extractor = feature_extractor

@@ -193,8 +193,8 @@ class KhushabaSet(object):
 
     def compute(self, x):
         xrows, xcols = x.shape
-        y = np.zeros(self.dim_per_channel*xcols)
         # TODO fill this instead of using hstack
+        # y = np.zeros(self.dim_per_channel*xcols)
 
         m0 = SpectralMoment(0).compute(x)
         m2 = SpectralMoment(2).compute(x)

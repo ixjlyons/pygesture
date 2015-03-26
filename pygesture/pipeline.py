@@ -9,7 +9,7 @@ class Pipeline(object):
     def process(self, data):
         out = data
         for block in self.block_list:
-            out = block.process(out) 
+            out = block.process(out)
 
         return out
 
@@ -17,7 +17,7 @@ class Pipeline(object):
 class PipelineBlock(object):
     """
     A generic processing block in the pipeline.
-    
+
     The pipeline is implemented as
     a tree structure, which is completely determined by this class,
     representing a node in the tree. This base class takes care of propogating
@@ -39,7 +39,7 @@ class PipelineBlock(object):
 
     def process(self, data):
         out = data  # usually some function
-        #self.propogate(out)
+        return out
 
     def propogate(self, data):
         for hook in self.hooks:
@@ -116,7 +116,7 @@ class Conditioner(PipelineBlock):
     ----------
     n : int
         Filter order.
-    fc : tuple or list of ints (len=2) 
+    fc : tuple or list of ints (len=2)
         Cutoff frequencies for the filter, specified in Hz.
     fs : int
         Signal sampling rate.
@@ -128,8 +128,8 @@ class Conditioner(PipelineBlock):
     def __init__(self, order, f_cut, f_samp, f_down=None):
         super(Conditioner, self).__init__()
         self.n = order
-        self.fc = f_cut 
-        self.fs = f_samp 
+        self.fc = f_cut
+        self.fs = f_samp
 
         if f_down is None:
             f_down = self.fs

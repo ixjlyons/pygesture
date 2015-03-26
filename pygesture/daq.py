@@ -27,7 +27,7 @@ class Daq(object):
 
     def stop(self):
         pass
-        
+
     def set_channel_range(self, channel_range):
         self.num_channels = channel_range[1] - channel_range[0] + 1
 
@@ -69,7 +69,7 @@ class MccDaq(Daq):
 
     def initialize(self):
         self.device = daqflex.USB_1608G()
-            
+
         self.device.send_message("AISCAN:XFRMODE=BLOCKIO")
         self.device.send_message("AISCAN:SAMPLES=0")
         self.device.send_message("AISCAN:BURSTMODE=ENABLE")
@@ -100,8 +100,10 @@ class MccDaq(Daq):
         data = np.array(data, dtype=np.float)
         data = np.reshape(data, (-1, self.num_channels)).T
         for i in range(self.num_channels):
-            data[i, :] = self.device.scale_and_calibrate_data(data[i, :],
-                -self.input_range, self.input_range,
+            data[i, :] = self.device.scale_and_calibrate_data(
+                data[i, :],
+                -self.input_range,
+                self.input_range,
                 self.calibration_data[i])
         data = data / float(self.input_range)
 
@@ -122,5 +124,7 @@ class MccDaq(Daq):
 
         self.num_channels = len(self.calibration_data)
 
-        self.device.send_message("AISCAN:LOWCHAN={0}".format(channel_range[0]))
-        self.device.send_message("AISCAN:HIGHCHAN={0}".format(channel_range[1]))
+        self.device.send_message(
+            "AISCAN:LOWCHAN={0}".format(channel_range[0]))
+        self.device.send_message(
+            "AISCAN:HIGHCHAN={0}".format(channel_range[1]))

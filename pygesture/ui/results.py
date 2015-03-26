@@ -1,17 +1,13 @@
-#from PySide import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
-qtbackend = 'PyQt4'
 
 import matplotlib
-matplotlib.rcParams['backend.qt4'] = qtbackend
+matplotlib.rcParams['backend.qt4'] = 'PyQt4'
 from matplotlib.backends.backend_qt4agg \
     import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from pygesture import processing
 from pygesture import classification
-from pygesture import features
-from pygesture import pipeline
 
 
 class SessionResultsDialog(QtGui.QDialog):
@@ -39,9 +35,11 @@ class SessionResultsDialog(QtGui.QDialog):
         self.setLayout(self.progress_layout)
         self.setWindowTitle("session results")
 
+        res = config.results_sid_arm + config.results_sid_leg
         self.processor = SessionProcessor(
-            config.data_path, self.pid, 
-            config.results_sid_arm+config.results_sid_leg,
+            config.data_path,
+            self.pid,
+            res,
             config.post_processor)
         self.processor.finished_sig.connect(self._show_plots)
         self.processor.start()
@@ -59,10 +57,16 @@ class SessionResultsDialog(QtGui.QDialog):
             'n_train': 2,
             'sid_list': self.config.results_sid_leg}
 
-        cm_arm = classification.run_cv(self.config.data_path, [self.pid],
-                clf_dict_arm, label_dict=self.config.arm_gestures)
-        cm_leg = classification.run_cv(self.config.data_path, [self.pid],
-                clf_dict_leg, label_dict=self.config.leg_gestures)
+        cm_arm = classification.run_cv(
+            self.config.data_path,
+            [self.pid],
+            clf_dict_arm,
+            label_dict=self.config.arm_gestures)
+        cm_leg = classification.run_cv(
+            self.config.data_path,
+            [self.pid],
+            clf_dict_leg,
+            label_dict=self.config.leg_gestures)
         self.arm_plot.plot(cm_arm)
         self.leg_plot.plot(cm_leg)
 

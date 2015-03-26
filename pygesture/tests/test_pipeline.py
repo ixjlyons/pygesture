@@ -8,6 +8,7 @@ np.random.seed(12345)
 rand_data_1d = np.random.rand(100, 1)
 rand_data_2d = np.random.rand(100, 5)
 
+
 class TestConditioner(object):
 
     def test_1d(self):
@@ -30,6 +31,7 @@ class TestConditioner(object):
         out = conditioner.process(data)
 
         assert_equal(int(data.shape[0]/2), out.shape[0])
+
 
 class TestWindower(object):
 

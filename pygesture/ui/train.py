@@ -1,7 +1,7 @@
 import sys
 import os
+import argparse
 
-#from PySide import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
 
 from pygesture import config
@@ -60,8 +60,9 @@ class MainWindow(QtGui.QWidget):
                 self.daq.rate, self.daq.input_range, self.daq.channel_range,
                 self.daq.samples_per_read)
 
-            ret = QtGui.QMessageBox().warning(
-                self, "Warning",
+            QtGui.QMessageBox().warning(
+                self,
+                "Warning",
                 "Couldn't find the specified DAQ. Falling back to emulator.",
                 QtGui.QMessageBox.Ok)
 
@@ -214,7 +215,8 @@ class MainWindow(QtGui.QWidget):
         self.signal_window.exec_()
         self.record_thread.kill()
         self.record_thread.set_fixed()
-        self.record_thread.update_sig.disconnect(self.signal_window.update_plot)
+        self.record_thread.update_sig.disconnect(
+            self.signal_window.update_plot)
 
     def probe_signal(self):
         self.probe_window = signals.SignalProbeWindow()
@@ -327,10 +329,12 @@ class PromptWidget(QtGui.QWidget):
     value_prop = QtCore.Property(float, getProgress, setProgress)
 
 
-import argparse
 def main():
     parser = argparse.ArgumentParser(description="Gesture recording system.")
-    parser.add_argument('-c', dest='config', default='config.py',
+    parser.add_argument(
+        '-c', '--config',
+        dest='config',
+        default='config.py',
         help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 

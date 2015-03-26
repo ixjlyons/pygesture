@@ -12,8 +12,8 @@ classifiers based on a leave-p-out scheme. Here, every combination of
 train/test pairs is generated, a classifier is built and tested for each, and
 the result is averaged.
 
-Finally, the most flexible way to analyze the data is to write a JSON file 
-describing all of the desired classifiers to create. Both single and 
+Finally, the most flexible way to analyze the data is to write a JSON file
+describing all of the desired classifiers to create. Both single and
 leave-p-out classifiers can be built with this method, as well as arbitrary
 groups of classifiers that should be averaged. The last case can be useful if,
 for instance, you have a limited test data set that you want to train for using
@@ -42,29 +42,62 @@ from pygesture import filestruct
 
 def main():
     parser = argparse.ArgumentParser(
-            description="Run a classifier on single participant data.")
-    parser.add_argument('rootdir',
-            help="Root data directory")
-    parser.add_argument('-p', dest='pids', nargs='+',
-            help="Participant identifier(s) (or 'all' to process all pids).")
-    parser.add_argument('-i', dest='ids', nargs=2,
-            help="Participant ID, training IDs, and testing IDs.")
-    parser.add_argument('-j', dest='jsonfile', action='store',
-            help="Batch process classifiers according to input JSON file.")
-    parser.add_argument('-l', dest='lpo', action='store', nargs=2,
-            help="Run leave-p-out with n_train first, then sid list.")
-    parser.add_argument('-s', dest='savepath', action='store',
-            help="Save generated plots to the specified path.")
-    parser.add_argument('-n', dest='name', action='store', default='LDA',
-            help="Name of the classifier (used with -i option).")
-    parser.add_argument('-x', dest='exclude57', action='store_true',
-            help="Exclude gestures l5 and l7 from consideration.")
-    parser.add_argument('-o', dest='outfile', action='store',
-            help="Specify a file to save confusion matrices to.")
-    parser.add_argument('-w', dest='show', action='store_true',
-            help="Show confusion matrices that are generated.")
-    parser.add_argument('-c', dest='config', default='config.py',
-            help="Config file. Default is `config.py` (current directory).")
+        description="Run a classifier on single participant data.")
+    parser.add_argument(
+        'rootdir',
+        help="Root data directory")
+    parser.add_argument(
+        '-p', '--pids',
+        dest='pids',
+        nargs='+',
+        help="Participant identifier(s) (or 'all' to process all pids).")
+    parser.add_argument(
+        '-i', '--ids',
+        dest='ids',
+        nargs=2,
+        help="Participant ID, training IDs, and testing IDs.")
+    parser.add_argument(
+        '-j', '--json',
+        dest='jsonfile',
+        action='store',
+        help="Batch process classifiers according to input JSON file.")
+    parser.add_argument(
+        '-l', '--lpo',
+        dest='lpo',
+        action='store',
+        nargs=2,
+        help="Run leave-p-out with n_train first, then sid list.")
+    parser.add_argument(
+        '-s', '--savepath',
+        dest='savepath',
+        action='store',
+        help="Save generated plots to the specified path.")
+    parser.add_argument(
+        '-n', '--name',
+        dest='name',
+        action='store',
+        default='LDA',
+        help="Name of the classifier (used with -i option).")
+    parser.add_argument(
+        '-x', '--exclude57',
+        dest='exclude57',
+        action='store_true',
+        help="Exclude gestures l5 and l7 from consideration.")
+    parser.add_argument(
+        '-o', '--output',
+        dest='outfile',
+        action='store',
+        help="Specify a file to save confusion matrices to.")
+    parser.add_argument(
+        '-w', '--show',
+        dest='show',
+        action='store_true',
+        help="Show confusion matrices that are generated.")
+    parser.add_argument(
+        '-c', '--config',
+        dest='config',
+        default='config.py',
+        help="Config file. Default is `config.py` (current directory).")
     args = parser.parse_args()
 
     rootdir = os.path.normpath(args.rootdir)
@@ -93,19 +126,22 @@ def main():
         cm_list = []
 
         for cv_group in cv_groups:
-            cm = classification.run_cv(rootdir, pids, cv_group,
+            cm = classification.run_cv(
+                rootdir, pids, cv_group,
                 label_dict=get_labels(cfg, cv_group['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
 
         for avg_group in avg_groups:
-            cm = classification.run_avg(rootdir, pids, avg_group,
+            cm = classification.run_avg(
+                rootdir, pids, avg_group,
                 label_dict=get_labels(cfg, avg_group['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
 
         for single_clf in single_clfs:
-            cm = classification.run_single(rootdir, pids, single_clf,
+            cm = classification.run_single(
+                rootdir, pids, single_clf,
                 label_dict=get_labels(cfg, single_clf['name']),
                 exclude_indices=xindices)
             cm_list.append(cm)
@@ -116,26 +152,30 @@ def main():
         if args.show:
             for cm in cm_list:
                 cm.show()
-        
+
     elif args.lpo:
         n_train, sid_list = args.lpo
         cv_group = {
-                'name': args.name, 
-                'n_train': int(n_train), 
-                'sid_list': sid_list.split(',')}
-        cm = classification.run_cv(rootdir, pids, cv_group,
+            'name': args.name,
+            'n_train': int(n_train),
+            'sid_list': sid_list.split(',')
+        }
+        cm = classification.run_cv(
+            rootdir, pids, cv_group,
             label_dict=get_labels(cfg, args.name),
             exclude_indices=xindices)
         cm.show()
 
     elif args.ids:
-        sid_list_train, sid_list_test = args.ids 
+        sid_list_train, sid_list_test = args.ids
         single_clf = {
-                'name': args.name,
-                'sid_list_train': sid_list_train.split(','),
-                'sid_list_test': sid_list_test.split(',')}
+            'name': args.name,
+            'sid_list_train': sid_list_train.split(','),
+            'sid_list_test': sid_list_test.split(',')
+        }
 
-        cm = classification.run_single(rootdir, pids, single_clf,
+        cm = classification.run_single(
+            rootdir, pids, single_clf,
             label_dict=get_labels(cfg, args.name),
             exclude_indices=xindices)
         cm.show()

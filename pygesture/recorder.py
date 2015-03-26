@@ -34,8 +34,6 @@ class RecordThread(QtCore.QThread):
             self.run_fixed()
 
     def run_continuous(self):
-        robot = None
-
         self.daq.start()
 
         while self.running:
@@ -115,8 +113,10 @@ class Session:
 
     def init_file_structure(self, force=False):
         session_dir, date_str = \
-            filestruct.new_session_dir(self.data_root,
-                self.participant_id, self.session_id)
+            filestruct.new_session_dir(
+                self.data_root,
+                self.participant_id,
+                self.session_id)
         recording_dir = filestruct.get_recording_dir(session_dir)
 
         if os.path.isdir(session_dir):
