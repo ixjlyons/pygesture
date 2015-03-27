@@ -79,14 +79,14 @@ class IRB140Arm(object):
     """
 
     joint_map = {
-        'shoulder-horizontal-abduction': {'IRB140_joint2': 5},
-        'shoulder-horizontal-adduction': {'IRB140_joint2': -5},
-        'elbow-extension' : {'IRB140_joint3': 5},
-        'elbow-flexion' : {'IRB140_joint3' : -5},
-        'forearm-supination' : {'IRB140_joint4' : 20},
-        'forearm-pronation' : {'IRB140_joint4' : -20},
-        'wrist-extension' : {'IRB140_joint5' : 10},
-        'wrist-flexion' : {'IRB140_joint5' : -10}
+        'shoulder-horizontal-abduction': ('IRB140_joint2', 5),
+        'shoulder-horizontal-adduction': ('IRB140_joint2', -5),
+        'elbow-extension' : ('IRB140_joint3', 5),
+        'elbow-flexion' : ('IRB140_joint3' , -5),
+        'forearm-supination' : ('IRB140_joint4' , 20),
+        'forearm-pronation' : ('IRB140_joint4' , -20),
+        'wrist-extension' : ('IRB140_joint5' , 10),
+        'wrist-flexion' : ('IRB140_joint5' , -10)
     }
 
     def __init__(self, clientId):
@@ -99,7 +99,6 @@ class IRB140Arm(object):
         objectType = vrep.sim_object_joint_type
         res, handles, intData, floatData, names = vrep.simxGetObjectGroupData(
             self.clientId, objectType, 0, vrep.simx_opmode_oneshot_wait)
-        #validate(res)
         joints = dict()
         for i in range(len(names)): 
             if query not in names[i]:
@@ -117,25 +116,20 @@ class IRB140Arm(object):
 
         The simplest is a string from the `pygesture.control.CAPABILITIES`
         list. This will make the arm perform that action with a nominal
-        velocity (see `IRB140Arm.joint_map`).
+        velocity (see `IRB140Arm.joint_map`). All other actions will be turned
+        off.
 
-        Next you can specify a capability and a velocity in a 2-tuple
-        (str, float), which makes the arm perform that action with a velocity
-        that is the specified multiplier times the maximum velocity of the
-        joint.
-
-        Finally, you can specify a list of tuples, where each tuple is as
-        above. This allows you to control multiple joints at once.
+        Ohterwise, you can specify a dictionary with action names (str) as
+        keys and velocity multipliers as values. If contradictory actions (e.g.
+        elbow flexion and elbow extension) are specified, the velocities will
+        be summed.
         """
         if type(action) is str:
             self._do_single_action(action)
-        elif type(action) is tuple:
-            self._do_single_action(action[0], v_mult=action[1])
         else:
-            for a in action:
-                self._do_single_action(a[0], v_mult=a[1])
+            self._do_complex_action(action)
 
-    def _do_single_action(self, action, v_mult=None):
+    def _do_single_action(self, action):
         if action == 'no-contraction':
             res = vrep.simxSetIntegerSignal(
                 self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
@@ -169,6 +163,10 @@ class IRB140Arm(object):
                 else:
                     vrep.simxSetJointTargetVelocity(
                         self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
+
+    def _do_complex_action(self, action):
+        action = defaultdict(lambda: 0, action)
+
 
 
 class Joint(object):

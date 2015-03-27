@@ -99,10 +99,9 @@ class DBVRController(Controller):
     ramp_length : int
         Length of the ramp -- the number of consecutive inputs of the same
         class label before full velocity is achieved.
-    majority_vote : int, default=0
-        Number of past examples to include in majority vote. Default is zero,
-        meaning no majority vote is taken and the current label is used
-        directly.
+    boosts : float or dict
+        Boost value for each class (e.g. {0: 0.2, 1: 0.5,...}) or a single
+        value (boosts equal for all classes). Default is 1.
 
     References
     ----------
@@ -112,9 +111,14 @@ class DBVRController(Controller):
         Transactions on Biomedical Engineering, vol. 58, no. 8, 2011.
     """
 
-    def __init__(self, mapping, ramp_length=10, majority_vote=0):
+    def __init__(self, mapping, ramp_length=10, boosts=1):
         super(DBVRController, self).__init__(mapping)
         self.ramp_length = ramp_length
+
+        if type(boosts) == dict:
+            self.boosts = boosts
+        else:
+            self.boosts = dict.fromkeys(mapping.keys(), boosts)
 
         self.restless_mapping = {}
         for key, val in mapping.items():
@@ -124,11 +128,11 @@ class DBVRController(Controller):
         self._reset_values()
 
     def _reset_values(self):
-        self.boosts = {key : 0.5 for key in self.restless_mapping}
-        self._counts = {key : 0 for key in self.restless_mapping}
-        self._gains = {key : 0 for key in self.restless_mapping}
-        self._vin = {key : 0 for key in self.restless_mapping}
-        self._vout = {self.mapping[key] : 0 for key in self.restless_mapping}
+        k = self.restless_mapping.keys()
+        self._counts = dict.fromkeys(k, 0)
+        self._gains = dict.fromkeys(k, 0)
+        self._vin = dict.fromkeys(k, 0)
+        self._vout = {self.mapping[key]: 0 for key in self.restless_mapping}
 
     def process(self, data):
         mav, label = data
@@ -145,7 +149,7 @@ class DBVRController(Controller):
             self._vin[i] = self.boosts[i] * mav_avg
             self._vout[self.mapping[i]] = self._gains[i] * self._vin[i]
 
-        return list(self._vout.items())
+        return self._vout.copy()
 
     def _update_gains(self, label):
         for l in self._counts:
@@ -160,4 +164,4 @@ class DBVRController(Controller):
             if self._counts[l] < 0:
                 self._counts[l] = 0
 
-            self._gains[l] = self._counts[l] / self.ramp_length
+            self._gains[l] = self._counts[l] / float(self.ramp_length)
