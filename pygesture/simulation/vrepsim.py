@@ -87,8 +87,8 @@ class IRB140Arm(object):
         'forearm-pronation': ('IRB140_joint4', -20),
         'wrist-extension': ('IRB140_joint5', 10),
         'wrist-flexion': ('IRB140_joint5', -10),
-        'closed-fist': ('BarrettHand', 30),
-        'open-hand': ('BarrettHand', -30)
+        'closed-fist': ('BarrettHand', 60),
+        'open-hand': ('BarrettHand', -60)
     }
 
     def __init__(self, clientId):
@@ -130,15 +130,16 @@ class IRB140Arm(object):
         be summed.
         """
         if type(action) is str:
-            action = {action, 1}
+            action = {action: 1}
 
         default_actions = dict.fromkeys(IRB140Arm.joint_map.keys(), 0)
 
+        for j in self.joints.values():
+            j.velocity = 0
+
         for motion, v_mult in action.items():
-            try:
+            if motion in default_actions:
                 default_actions[motion] = v_mult
-            except KeyError:
-                pass
 
         for motion, v_mult in default_actions.items():
             joint_name, v_norm = self.joint_map[motion]
@@ -158,24 +159,53 @@ class Joint(object):
         self.handle = handle
         self.velocity = 0
 
-    def update(self, opmode=vrep.simx_opmode_oneshot):
+    def update(self, opmode=None):
+        if opmode is None:
+            opmode = vrep.simx_opmode_oneshot
+
         res = vrep.simxSetJointTargetVelocity(
-            self.clientId, self.handle, 0, opmode)
-        _validate(res)
+            self.clientId, self.handle, self.velocity, opmode)
+
+        if opmode == vrep.simx_opmode_oneshot_wait:
+            _validate(res)
 
 
 class BarrettHand(object):
 
     def __init__(self, clientId):
         self.clientId = clientId
+        self.name = 'BarrettHand'
         self.velocity = 0
 
-    def update(self, opmode=vrep.simx_opmode_oneshot):
+    def update(self, opmode=None):
+        if opmode is None:
+            opmode = vrep.simx_opmode_oneshot
+
         res = vrep.simxSetFloatSignal(
-            self.clientId, 'velocity', self.velocity, vrep.simx_opmode_oneshot)
-        _validate(res)
+            self.clientId, 'velocity', self.velocity, opmode)
+
+        if opmode == vrep.simx_opmode_oneshot_wait:
+            _validate(res)
 
 
 def _validate(res):
     if res != vrep.simx_error_noerror:
-        raise ValueError("Error code returned")
+        err = ""
+        if res == vrep.simx_error_novalue_flag:
+            err = "Input buffer doesn't contain the specified command"
+        elif res == vrep.simx_error_timeout_flag:
+            err = "Command reply not received in time for wait opmode"
+        elif res == vrep.simx_error_illegal_opmode_flag:
+            err = "Command odesn't support specified opmode"
+        elif res == vrep.simx_error_remote_error_flag:
+            err = "Command caused an error on the server side"
+        elif res == vrep.simx_error_split_progress_flag:
+            err = "Previous similar command not processed yet"
+        elif res == vrep.simx_local_error_flag:
+            err = "Command caused an error on the client side"
+        elif res == vrep.simx_error_initialize_error_flag:
+            err = "simxStart not yet called"
+        else:
+            err = "Unknown v-rep error code: %s" % hex(res)
+
+        raise ValueError(err)
