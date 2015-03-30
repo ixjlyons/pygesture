@@ -3,50 +3,93 @@ import numpy as np
 
 
 class Pipeline(object):
-    def __init__(self, block_list):
-        self.block_list = block_list
+    """
+    Container for processing a set of PipelineBlock objects arranged in a
+    block diagram structure.
+
+    To create a pipeline, the following two rules are needed: a list of blocks
+    are processed in series, and a tuple of blocks are processed in parallel.
+
+    For example, the following feeds incoming data first to block `a`, and the
+    output of block `a` is passed to both blocks `b` and `c`. The output of
+    blocks `b` and `c` are then both passed to block `d`.
+
+    >>> from pygesture import pipeline
+    >>> a = pipeline.PipelineBlock()
+    >>> b = pipeline.PipelineBlock()
+    >>> c = pipeline.PipelineBlock()
+    >>> d = pipeline.PipelineBlock()
+    >>> p = pipeline.Pipeline([a, (b, c), d])
+
+    Blocks that are arranged to take multiple inputs (such as block `d` in the
+    above example) should expect to take the corresponding number of inputs in
+    the order they are given. It is up to the user to make sure that the
+    arrangement of blocks makes sense.
+
+    Parameters
+    ----------
+    blocks : nested lists/tuples of objects derived from PiplineBlock
+        The blocks in the pipline, with lists processed in series and tuples
+        processed in parallel.
+    """
+
+    def __init__(self, blocks):
+        self.blocks = blocks
+
+    def add_block(self, block):
+        """
+        Adds a block to the end of the pipeline in series.
+        """
+        self.blocks.append(block)
 
     def process(self, data):
-        out = data
-        for block in self.block_list:
-            out = block.process(out)
-
+        out = _process_block(self.blocks, data)
         return out
+
+
+def _process_block(block, data):
+    if type(block) is list:
+        out = _process_list(block, data)
+    elif type(block) is tuple:
+        out = _process_tuple(block, data)
+    else:
+        out = block.process(data)
+
+    return out
+
+
+def _process_list(block, data):
+    out = data
+    for b in block:
+        out = _process_block(b, out)
+
+    return out
+
+
+def _process_tuple(block, data):
+    out = []
+    for b in block:
+        out.append(_process_block(b, data))
+
+    return out
 
 
 class PipelineBlock(object):
     """
     A generic processing block in the pipeline.
 
-    The pipeline is implemented as
-    a tree structure, which is completely determined by this class,
-    representing a node in the tree. This base class takes care of propogating
-    its processed data to its children, so subclasses just need to implement
-    the `process()` method, which should take in data and return data. They
-    *should* also implement `__repr__`, as this is useful for generating
-    visualizations of the pipeline.
+    The pipeline is implemented as a network of series and parallel blocks. Any
+    extension of this class just needs to implement the `process` method, which
+    takes a single argument (data). It is up to the designer of the pipeline to
+    ensure compatibility between simple series connections and convergent
+    connections (i.e. output of multiple blocks converges to a single block).
+    In any case, the documentation for a `PiplineBlock` implementation should
+    very clearly state what the expected input and output should be.
     """
-
-    def __init__(self):
-        self.children = []
-        self.hooks = []
-
-    def add_child(self, node):
-        self.children.append(node)
-
-    def add_hook(self, hook):
-        self.hooks.append(hook)
 
     def process(self, data):
         out = data  # usually some function
         return out
-
-    def propogate(self, data):
-        for hook in self.hooks:
-            hook(data)
-
-        for child in self.children:
-            child.process(data)
 
     def __repr__(self):
         return "%s.%s()" % (

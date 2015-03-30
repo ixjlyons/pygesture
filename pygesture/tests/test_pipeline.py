@@ -9,6 +9,57 @@ rand_data_1d = np.random.rand(100, 1)
 rand_data_2d = np.random.rand(100, 5)
 
 
+class _AddOneBlock(pipeline.PipelineBlock):
+
+    def process(self, data):
+        return data + 1
+
+
+class _TwoInputBlock(pipeline.PipelineBlock):
+
+    def process(self, data):
+        x, y = data
+        return x + y
+
+
+class TestPipeline(object):
+
+    def setUp(self):
+        self.data = 10
+        self.a = _AddOneBlock()
+        self.b = _AddOneBlock()
+
+    def test_series_simple(self):
+        p = pipeline.Pipeline([self.a, self.b])
+        out = p.process(self.data)
+        assert out == self.data + 2
+
+    def test_parallel_simple(self):
+        p = pipeline.Pipeline((self.a, self.b))
+        out = p.process(self.data)
+        assert out == [self.data+1, self.data+1]
+
+    def test_series_to_parallel(self):
+        c = _AddOneBlock()
+        p = pipeline.Pipeline([self.a, (self.b, c)])
+        out = p.process(self.data)
+        assert out == [self.data+2, self.data+2]
+
+    def test_parallel_to_series(self):
+        c = _TwoInputBlock()
+        p = pipeline.Pipeline([(self.a, self.b), c])
+        out = p.process(self.data)
+        assert out == self.data+1 + self.data+1
+
+    def test_complex(self):
+        c = _AddOneBlock()
+        d = _AddOneBlock()
+        e = _TwoInputBlock()
+        p = pipeline.Pipeline([self.a, (self.b, [c, d]), e])
+        out = p.process(self.data)
+        assert out == self.data+2 + self.data+3
+
+
 class TestConditioner(object):
 
     def test_1d(self):
