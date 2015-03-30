@@ -144,6 +144,8 @@ class IRB140Arm(object):
             joint_name, v_norm = self.joint_map[motion]
             self.joints[joint_name].velocity += v_mult*math.radians(v_norm)
 
+        # TODO: investigate if wrapping this loop in simxPauseCommunication
+        # calls would be useful here
         for j in self.joints.values():
             j.update()
 
@@ -168,7 +170,7 @@ class BarrettHand(object):
         self.clientId = clientId
         self.velocity = 0
 
-    def update(self):
+    def update(self, opmode=vrep.simx_opmode_oneshot):
         res = vrep.simxSetFloatSignal(
             self.clientId, 'velocity', self.velocity, vrep.simx_opmode_oneshot)
         _validate(res)
