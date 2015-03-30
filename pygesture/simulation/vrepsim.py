@@ -5,6 +5,7 @@ import importlib
 
 vrep = None
 
+
 def set_path(path):
     """
     Sets an environment variable for loading v-rep's remote API dynamic linked
@@ -17,7 +18,6 @@ def set_path(path):
     remote_path = os.path.join(
         path, "programming", "remoteApiBindings", "lib", "lib")
 
-    system = platform.system()
     if platform.architecture()[0] == '64bit':
         remote_lib = os.path.join(remote_path, "64Bit", "remoteApi.so")
     else:
@@ -36,7 +36,7 @@ class VrepSimulation(object):
         running and it should be configured to run in continuous remote API
         mode.
         """
-        self.clientId = -1 
+        self.clientId = -1
         self.port = port
         self._connect()
 
@@ -81,35 +81,40 @@ class IRB140Arm(object):
     joint_map = {
         'shoulder-horizontal-abduction': ('IRB140_joint2', 5),
         'shoulder-horizontal-adduction': ('IRB140_joint2', -5),
-        'elbow-extension' : ('IRB140_joint3', 5),
-        'elbow-flexion' : ('IRB140_joint3' , -5),
-        'forearm-supination' : ('IRB140_joint4' , 20),
-        'forearm-pronation' : ('IRB140_joint4' , -20),
-        'wrist-extension' : ('IRB140_joint5' , 10),
-        'wrist-flexion' : ('IRB140_joint5' , -10)
+        'elbow-extension': ('IRB140_joint3', 5),
+        'elbow-flexion': ('IRB140_joint3', -5),
+        'forearm-supination': ('IRB140_joint4', 20),
+        'forearm-pronation': ('IRB140_joint4', -20),
+        'wrist-extension': ('IRB140_joint5', 10),
+        'wrist-flexion': ('IRB140_joint5', -10),
+        'closed-fist': ('BarrettHand', 30),
+        'open-hand': ('BarrettHand', -30)
     }
 
     def __init__(self, clientId):
         self.clientId = clientId
         self.joints = None
 
-        self.initialize_joints()
+        self._initialize_joints()
 
-    def initialize_joints(self, query=""):
-        objectType = vrep.sim_object_joint_type
+    def _initialize_joints(self):
         res, handles, intData, floatData, names = vrep.simxGetObjectGroupData(
-            self.clientId, objectType, 0, vrep.simx_opmode_oneshot_wait)
-        joints = dict()
-        for i in range(len(names)): 
-            if query not in names[i]:
-                continue
-            joint = Joint(self.clientId, names[i], handles[i])
-            joint.initialize()
-            joints[names[i]] = joint
-        
-        self.joints = joints
+            self.clientId, vrep.sim_object_joint_type, 0,
+            vrep.simx_opmode_oneshot_wait)
 
-    def do_action(self, action):
+        self.joints = dict()
+        hand_attached = False
+        for name, handle in zip(names, handles):
+            if 'IRB140' in name:
+                joint = Joint(self.clientId, name, handle)
+                self.joints[name] = joint
+            elif 'BarrettHand' in name:
+                hand_attached = True
+
+        if hand_attached:
+            self.joints['BarrettHand'] = BarrettHand(self.clientId)
+
+    def command(self, action):
         """
         Commands the arm to perform an action. The action can be a number of
         different things.
@@ -125,48 +130,22 @@ class IRB140Arm(object):
         be summed.
         """
         if type(action) is str:
-            self._do_single_action(action)
-        else:
-            self._do_complex_action(action)
+            action = {action, 1}
 
-    def _do_single_action(self, action):
-        if action == 'no-contraction':
-            res = vrep.simxSetIntegerSignal(
-                self.clientId, 'request', 0, vrep.simx_opmode_oneshot)
-            for name, joint in self.joints.items():
-                vrep.simxSetJointTargetVelocity(
-                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
+        default_actions = dict.fromkeys(IRB140Arm.joint_map.keys(), 0)
 
-        elif action == 'closed-fist':
-            res = vrep.simxSetIntegerSignal(
-                self.clientId, 'request', 1, vrep.simx_opmode_oneshot)
-            for name, joint in self.joints.items():
-                vrep.simxSetJointTargetVelocity(
-                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
+        for motion, v_mult in action.items():
+            try:
+                default_actions[motion] = v_mult
+            except KeyError:
+                pass
 
-        elif action == 'open-hand':
-            res = vrep.simxSetIntegerSignal(
-                self.clientId, 'request', 2, vrep.simx_opmode_oneshot)
-            for name, joint in self.joints.items():
-                vrep.simxSetJointTargetVelocity(
-                    self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
+        for motion, v_mult in default_actions.items():
+            joint_name, v_norm = self.joint_map[motion]
+            self.joints[joint_name].velocity += v_mult*math.radians(v_norm)
 
-        else:
-            for name, joint in self.joints.items():
-                active_map = IRB140Arm.joint_map[action]
-                if name in active_map:
-                    vel = active_map[name]
-                    vel_rad = math.radians(vel)
-                    j = self.joints[name]
-                    vrep.simxSetJointTargetVelocity(
-                        self.clientId, j.handle, vel_rad, vrep.simx_opmode_oneshot)
-                else:
-                    vrep.simxSetJointTargetVelocity(
-                        self.clientId, joint.handle, 0, vrep.simx_opmode_oneshot)
-
-    def _do_complex_action(self, action):
-        action = defaultdict(lambda: 0, action)
-
+        for j in self.joints.values():
+            j.update()
 
 
 class Joint(object):
@@ -175,40 +154,26 @@ class Joint(object):
         self.clientId = clientId
         self.name = name
         self.handle = handle
-        self.position = None
-        self.force = None
+        self.velocity = 0
 
-    def initialize(self):
-        self.getPosition()
-        self.getForce()
+    def update(self, opmode=vrep.simx_opmode_oneshot):
+        res = vrep.simxSetJointTargetVelocity(
+            self.clientId, self.handle, 0, opmode)
+        _validate(res)
 
-    def getPosition(self):
-        res, self.position = vrep.simxGetJointPosition(self.clientId,
-            self.handle, vrep.simx_opmode_oneshot_wait)
-        validate(res)
 
-    def setPosition(self, position):
-        res = vrep.simxSetJointPosition(self.clientId, self.handle, position,
-            vrep.simx_opmode_oneshot)
-        validate(res)
-        self.getPosition()
+class BarrettHand(object):
 
-    def getForce(self):
-        res, self.force = vrep.simxGetJointForce(self.clientId, self.handle,
-            vrep.simx_opmode_oneshot_wait)
-        validate(res)
+    def __init__(self, clientId):
+        self.clientId = clientId
+        self.velocity = 0
 
-    def setForce(self, force):
-        res = vrep.simxSetJointForce(self.clientId, self.handle, force,
-            vrep.simx_opmode_oneshot)
-        validate(res)
-        self.getForce()
+    def update(self):
+        res = vrep.simxSetFloatSignal(
+            self.clientId, 'velocity', self.velocity, vrep.simx_opmode_oneshot)
+        _validate(res)
 
-    def __repr__(self):
-        return "(name=%s, handle=%s, position=%2.5f, force=%3.5f)" % (
-            self.name, self.handle, self.position, self.force
-        )
 
-def validate(res):
+def _validate(res):
     if res != vrep.simx_error_noerror:
         raise ValueError("Error code returned")
