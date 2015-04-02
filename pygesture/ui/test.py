@@ -23,8 +23,8 @@ from pygesture.ui.test_template import Ui_MainWindow
 
 class RealTimeGUI(QtGui.QMainWindow):
 
-    def __init__(self, config):
-        super(RealTimeGUI, self).__init__()
+    def __init__(self, config, parent=None):
+        super(RealTimeGUI, self).__init__(parent)
         self.cfg = config
 
         self.ui = Ui_MainWindow()
@@ -41,8 +41,6 @@ class RealTimeGUI(QtGui.QMainWindow):
 
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
         self.ui.actionCalibrate.triggered.connect(self.calibrate)
-
-        self.setWindowTitle('pygesture-rt')
 
     def init_recorder(self):
         try:

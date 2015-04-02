@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/rtgui_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/test_template.ui'
 #
-# Created: Tue Dec 30 18:28:39 2014
+# Created: Wed Apr  1 17:10:51 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,7 +44,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.gestureDisplayLabel, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 843, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 843, 19))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.mainDockContents)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.mainDockScrollArea = QtGui.QScrollArea(self.mainDockContents)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mainDockScrollArea.sizePolicy().hasHeightForWidth())
@@ -79,7 +79,7 @@ class Ui_MainWindow(object):
         self.mainDockScrollArea.setWidgetResizable(True)
         self.mainDockScrollArea.setObjectName(_fromUtf8("mainDockScrollArea"))
         self.mainDockScrollContents = QtGui.QWidget()
-        self.mainDockScrollContents.setGeometry(QtCore.QRect(0, 0, 302, 427))
+        self.mainDockScrollContents.setGeometry(QtCore.QRect(0, 0, 300, 436))
         self.mainDockScrollContents.setObjectName(_fromUtf8("mainDockScrollContents"))
         self.gridLayout_3 = QtGui.QGridLayout(self.mainDockScrollContents)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
@@ -136,7 +136,6 @@ class Ui_MainWindow(object):
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        MainWindow.insertToolBarBreak(self.toolBar)
         self.action_Quit = QtGui.QAction(MainWindow)
         icon = QtGui.QIcon.fromTheme(_fromUtf8("application-exit"))
         self.action_Quit.setIcon(icon)
@@ -166,7 +165,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "pygesture-test", None))
         self.menu_File.setTitle(_translate("MainWindow", "&File", None))
         self.menu_Edit.setTitle(_translate("MainWindow", "&Edit", None))
         self.mainDock.setWindowTitle(_translate("MainWindow", "Controls", None))

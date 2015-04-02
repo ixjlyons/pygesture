@@ -17,11 +17,13 @@ ui_dir = os.path.join('pygesture', 'ui')
 # list of ui files (no extension) to generate code for
 ui_files = [
     os.path.join(ui_dir, 'calibrationdialog_template'),
-    os.path.join(ui_dir, 'rtgui_template'),
+    os.path.join(ui_dir, 'train_template'),
+    os.path.join(ui_dir, 'test_template'),
     os.path.join(ui_dir, 'settings_template'),
+    os.path.join(ui_dir, 'main_template')
 ]
 # either '4' or '5'
-pyuic_version = '4' 
+pyuic_version = '4'
 
 for f in ui_files:
     infile = f + '.ui'
