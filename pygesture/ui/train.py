@@ -165,7 +165,8 @@ class TrainGUI(QtGui.QMainWindow):
         self.ui.sessionInfoBox.setEnabled(True)
 
     def check_signals(self):
-        signal_window = signals.SignalCheckWindow(len(self.cfg.channels))
+        signal_window = signals.SignalDialog(len(self.cfg.channels))
+        signal_window.setWindowTitle("check signals")
         self.record_thread.set_continuous()
         self.record_thread.update_sig.connect(signal_window.update_plot)
         self.record_thread.start()
@@ -175,7 +176,8 @@ class TrainGUI(QtGui.QMainWindow):
         self.record_thread.update_sig.disconnect(signal_window.update_plot)
 
     def probe_signal(self):
-        probe_window = signals.SignalProbeWindow()
+        probe_window = signals.SignalDialog(1)
+        probe_window.setWindowTitle("probe")
         self.record_thread.set_continuous()
         self.daq.set_channel_range(
             (self.cfg.probe_channel, self.cfg.probe_channel))

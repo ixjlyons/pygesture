@@ -3,10 +3,11 @@ import argparse
 
 from pygesture import config
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from pygesture.ui.main_template import Ui_PygestureMainWindow
 from pygesture.ui import train2
 from pygesture.ui import test
+
 
 class MainGUI(QtGui.QMainWindow):
 
@@ -33,7 +34,6 @@ class MainGUI(QtGui.QMainWindow):
     def launch_test(self):
         testGUI = test.RealTimeGUI(self.cfg, parent=self)
         testGUI.show()
-        #testGUI.destroyed.connect(self.window_closed_callback)
 
     def window_closed_callback(self):
         print('hello')
