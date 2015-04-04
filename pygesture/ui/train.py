@@ -76,7 +76,8 @@ class TrainGUI(QtGui.QMainWindow):
             w, h, QtCore.Qt.KeepAspectRatio))
 
     def init_gesture_prompt(self):
-        # TODO set transitions and length (or deal with in Designer somehow)
+        self.ui.promptWidget.ticks = self.cfg.trial_duration
+        self.ui.promptWidget.transitions = self.cfg.prompt_times
         self.prompt_anim = QtCore.QPropertyAnimation(
             self.ui.promptWidget, 'value_prop')
         self.prompt_anim.setDuration(1000*self.cfg.trial_duration)

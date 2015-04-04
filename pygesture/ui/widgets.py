@@ -21,19 +21,35 @@ class PromptWidget(QtGui.QWidget):
     REST_COLOR = QtGui.QColor(90, 90, 90)
     CONTRACT_COLOR = QtGui.QColor(150, 80, 80, 150)
 
-    def __init__(self, parent=None, length=6, transitions=(2, 5)):
+    def __init__(self, parent=None):
         super(PromptWidget, self).__init__()
         self.setFixedHeight(PromptWidget.HEIGHT)
         self.value = 0
-        self.tick_labels = [str(i) for i in range(1, int(length))]
-        self.maximum = length*1000
-        self.length = length
-        self.trans1 = transitions[0]*1000
-        self.trans2 = transitions[1]*1000
-        self.transitions = transitions
+        self._ticks = 1
+        self.update_tick_labels()
+        self._transitions = (0, 1)
 
         self.tick_font = QtGui.QFont('Serif', 7, QtGui.QFont.Light)
         self.prompt_font = QtGui.QFont('Serif', 10, QtGui.QFont.Light)
+
+    @property
+    def ticks(self):
+        return self._ticks
+
+    @ticks.setter
+    def ticks(self, value):
+        self._ticks = value
+        self.update_tick_labels()
+        self.repaint()
+
+    @property
+    def transitions(self):
+        return self._transitions
+
+    @transitions.setter
+    def transitions(self, value):
+        self._transitions = value
+        self.repaint()
 
     def setProgress(self, value):
         self.value = value
@@ -41,6 +57,9 @@ class PromptWidget(QtGui.QWidget):
 
     def getProgress(self):
         return self.value
+
+    def update_tick_labels(self):
+        self.tick_labels = [str(i) for i in range(1, int(self._ticks))]
 
     def paintEvent(self, e):
         qp = QtGui.QPainter()
@@ -53,11 +72,11 @@ class PromptWidget(QtGui.QWidget):
         w = self.size().width()
         h = self.size().height()
 
-        tick_step = int(round(w / self.length))
+        tick_step = int(round(w / self._ticks))
 
-        till = int(((w / float(self.maximum)) * self.value))
-        full1 = int(((w / float(self.maximum)) * self.trans1))
-        full2 = int(((w / float(self.maximum)) * self.trans2))
+        till = int(((w / float(self._ticks*1000)) * self.value))
+        f1 = int(((w / float(self._ticks*1000)) * self._transitions[0]*1000))
+        f2 = int(((w / float(self._ticks*1000)) * self._transitions[1]*1000))
 
         qp.setPen(PromptWidget.REST_COLOR)
         qp.setBrush(PromptWidget.REST_COLOR)
@@ -65,7 +84,7 @@ class PromptWidget(QtGui.QWidget):
 
         qp.setPen(PromptWidget.CONTRACT_COLOR)
         qp.setBrush(PromptWidget.CONTRACT_COLOR)
-        qp.drawRect(full1, 0, full2-full1, h)
+        qp.drawRect(f1, 0, f2-f1, h)
 
         pen = QtGui.QPen(QtGui.QColor(20, 20, 20), 1, QtCore.Qt.SolidLine)
 
@@ -74,15 +93,15 @@ class PromptWidget(QtGui.QWidget):
         qp.drawRect(0, 0, w-1, h-1)
 
         qp.setFont(self.prompt_font)
-        for t, l in zip(self.transitions, ['contract', 'rest']):
-            x = int(((w / float(self.maximum)) * (t*1000.)))
+        for t, l in zip(self._transitions, ['contract', 'rest']):
+            x = int(((w / float(self._ticks*1000)) * (t*1000.)))
             metrics = qp.fontMetrics()
             fw = metrics.width(l)
             qp.drawText(x-fw/2, h/2, l)
 
         qp.setFont(self.tick_font)
         j = 0
-        for i in range(tick_step, self.length*tick_step, tick_step):
+        for i in range(tick_step, self._ticks*tick_step, tick_step):
             qp.drawLine(i, h-5, i, h)
             metrics = qp.fontMetrics()
             fw = metrics.width(self.tick_labels[j])
