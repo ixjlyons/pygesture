@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/test_template.ui'
 #
-# Created: Sun Apr  5 17:11:07 2015
+# Created: Mon Apr  6 14:02:34 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -146,7 +146,7 @@ class Ui_MainWindow(object):
         self.gridLayout_5 = QtGui.QGridLayout(self.dockWidgetContents)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
         self.scrollArea = QtGui.QScrollArea(self.dockWidgetContents)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
@@ -178,21 +178,22 @@ class Ui_MainWindow(object):
         self.actionSettings.setObjectName(_fromUtf8("actionSettings"))
         self.actionProbe = QtGui.QAction(MainWindow)
         self.actionProbe.setObjectName(_fromUtf8("actionProbe"))
-        self.actionCheck_Signals = QtGui.QAction(MainWindow)
-        self.actionCheck_Signals.setObjectName(_fromUtf8("actionCheck_Signals"))
+        self.actionCheckSignals = QtGui.QAction(MainWindow)
+        self.actionCheckSignals.setObjectName(_fromUtf8("actionCheckSignals"))
         self.actionBoosts = QtGui.QAction(MainWindow)
+        self.actionBoosts.setCheckable(True)
         self.actionBoosts.setObjectName(_fromUtf8("actionBoosts"))
         self.menu_File.addAction(self.action_Quit)
         self.menu_Edit.addAction(self.actionSettings)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menu_Edit.menuAction())
         self.toolBar.addAction(self.actionProbe)
-        self.toolBar.addAction(self.actionCheck_Signals)
+        self.toolBar.addAction(self.actionCheckSignals)
         self.toolBar.addAction(self.actionBoosts)
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.action_Quit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.close)
-        QtCore.QObject.connect(self.actionBoosts, QtCore.SIGNAL(_fromUtf8("triggered()")), self.boostsDock.show)
+        QtCore.QObject.connect(self.actionBoosts, QtCore.SIGNAL(_fromUtf8("triggered(bool)")), self.boostsDock.setVisible)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -215,7 +216,7 @@ class Ui_MainWindow(object):
         self.actionNew.setShortcut(_translate("MainWindow", "Ctrl+N", None))
         self.actionSettings.setText(_translate("MainWindow", "Settings...", None))
         self.actionProbe.setText(_translate("MainWindow", "Probe...", None))
-        self.actionCheck_Signals.setText(_translate("MainWindow", "Check Signals", None))
+        self.actionCheckSignals.setText(_translate("MainWindow", "Check Signals", None))
         self.actionBoosts.setText(_translate("MainWindow", "Boosts", None))
 
-from pygesture.ui.widgets import BoostsWidget, GestureView
+from pygesture.ui.widgets import GestureView, BoostsWidget

@@ -20,6 +20,7 @@ from sklearn.pipeline import Pipeline
 from PyQt4 import QtGui, QtCore
 
 from pygesture.ui.test_template import Ui_MainWindow
+from pygesture.ui import signals
 
 
 class RealTimeGUI(QtGui.QMainWindow):
@@ -40,6 +41,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.init_pid_list()
         self.init_gesture_view()
         self.init_boosts_dock()
+        self.init_actions()
 
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
 
@@ -105,8 +107,37 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.ui.boostsWidget.set_mapping(labels, limits=(0, 5), init=1)
         self.ui.boostsWidget.updated.connect(self.boosts_callback)
 
+    def init_actions(self):
+        self.ui.actionProbe.triggered.connect(self.probe_callback)
+        self.ui.actionCheckSignals.triggered.connect(
+            self.check_signals_callback)
+
     def boosts_callback(self, boosts):
         self.cfg.controller.boosts = boosts
+
+    def probe_callback(self):
+        self._show_signal_window("probe")
+
+    def check_signals_callback(self):
+        self._show_signal_window("check signals")
+
+    def _show_signal_window(self, title):
+        if title == "probe":
+            signal_window = signals.SignalDialog(1)
+            self.daq.set_channel_range(
+                (self.cfg.probe_channel, self.cfg.probe_channel))
+        else:
+            signal_window = signals.SignalDialog(len(self.cfg.channels))
+
+        signal_window.setWindowTitle(title)
+        self.recorder.set_continuous()
+        self.recorder.update_sig.connect(signal_window.update_plot)
+        self.recorder.start()
+        signal_window.exec_()
+        self.recorder.kill()
+        self.daq.set_channel_range(
+            (min(self.cfg.channels), max(self.cfg.channels)))
+        self.recorder.update_sig.disconnect(signal_window.update_plot)
 
     def update_gesture_view(self, event=None):
         w = self.ui.gestureDisplayLabel.width()
@@ -136,6 +167,8 @@ class RealTimeGUI(QtGui.QMainWindow):
             self.start_running()
         else:
             self.stop_running()
+        self.ui.actionProbe.setEnabled((not self.running))
+        self.ui.actionCheckSignals.setEnabled((not self.running))
 
     def start_running(self):
         train_list = []

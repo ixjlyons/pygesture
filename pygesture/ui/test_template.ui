@@ -218,7 +218,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionProbe"/>
-   <addaction name="actionCheck_Signals"/>
+   <addaction name="actionCheckSignals"/>
    <addaction name="actionBoosts"/>
   </widget>
   <widget class="QDockWidget" name="boostsDock">
@@ -242,7 +242,7 @@
      <item row="0" column="0">
       <widget class="QScrollArea" name="scrollArea">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -309,12 +309,15 @@
     <string>Probe...</string>
    </property>
   </action>
-  <action name="actionCheck_Signals">
+  <action name="actionCheckSignals">
    <property name="text">
     <string>Check Signals</string>
    </property>
   </action>
   <action name="actionBoosts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Boosts</string>
    </property>
@@ -353,9 +356,9 @@
   </connection>
   <connection>
    <sender>actionBoosts</sender>
-   <signal>triggered()</signal>
+   <signal>triggered(bool)</signal>
    <receiver>boostsDock</receiver>
-   <slot>show()</slot>
+   <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

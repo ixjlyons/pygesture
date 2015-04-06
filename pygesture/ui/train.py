@@ -54,7 +54,6 @@ class TrainGUI(QtGui.QMainWindow):
         self.record_thread.finished_sig.connect(self.record_finished)
 
     def init_menu(self):
-        self.ui.actionExit.triggered.connect(self.close)
         self.ui.actionCheckSignals.triggered.connect(self.check_signals)
         self.ui.actionProbe.triggered.connect(self.probe_signal)
 
