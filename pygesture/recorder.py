@@ -13,7 +13,7 @@ class RecordThread(QtCore.QThread):
 
     update_sig = QtCore.pyqtSignal(np.ndarray)
     finished_sig = QtCore.pyqtSignal(np.ndarray)
-    prediction_sig = QtCore.pyqtSignal(int)
+    prediction_sig = QtCore.pyqtSignal(object)
 
     def __init__(self, daq):
         QtCore.QThread.__init__(self, parent=None)

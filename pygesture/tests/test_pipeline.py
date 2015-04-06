@@ -18,6 +18,7 @@ class _AddOneBlock(pipeline.PipelineBlock):
 class _TwoInputBlock(pipeline.PipelineBlock):
 
     def process(self, data):
+        print(data)
         x, y = data
         return x + y
 

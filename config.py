@@ -181,7 +181,5 @@ controller = control.DBVRController(
     boosts=0.5
 )
 
-controller = control.Controller(vrep_actions)
-
 results_sid_arm = ['arm1', 'arm2', 'arm3', 'arm4']
 results_sid_leg = ['leg1', 'leg2', 'leg3', 'leg4']

@@ -114,6 +114,7 @@ class DBVRController(Controller):
     def __init__(self, mapping, ramp_length=10, boosts=1):
         super(DBVRController, self).__init__(mapping)
         self.ramp_length = ramp_length
+        self.mapping = mapping
 
         if type(boosts) == dict:
             self.boosts = boosts

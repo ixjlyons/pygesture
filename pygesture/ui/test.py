@@ -97,6 +97,8 @@ class RealTimeGUI(QtGui.QMainWindow):
 
     def init_boosts_dock(self):
         self.ui.boostsDock.hide()
+        # sorry for the hackage, need a list of (label, 'abbrv') tuples sorted
+        # by label to easily change the controller {label: boost} dict
         d = self.cfg.arm_gestures
         labels = [(l, d[l][0]) for l in sorted(d)]
         self.ui.boostsWidget.set_mapping(labels)
@@ -178,13 +180,14 @@ class RealTimeGUI(QtGui.QMainWindow):
                 self.cfg.conditioner,
                 self.cfg.windower,
                 (
-                    features.MAV(),
+                    features.FeatureExtractor(
+                        [features.MAV()],
+                        len(self.cfg.channels)),
                     [
                         self.cfg.feature_extractor,
                         classifier
                     ],
-                ),
-                self.cfg.controller
+                )
             ]
         )
 
@@ -202,13 +205,14 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.prediction = 0
         self.update_gesture_view()
         if self.robot is not None:
-            self.robot.do_action('no-contraction')
+            self.robot.command('no-contraction')
             self.simulation.stop()
 
     def prediction_callback(self, prediction):
-        self.prediction = prediction
+        self.prediction = prediction[1]
         if self.robot is not None:
-            self.robot.do_action(self.cfg.controller.update(prediction))
+            commands = self.cfg.controller.process(prediction)
+            self.robot.command(commands)
         self.update_gesture_view()
 
 
