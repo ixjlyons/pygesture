@@ -108,7 +108,7 @@
           <x>0</x>
           <y>0</y>
           <width>300</width>
-          <height>436</height>
+          <height>323</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
@@ -217,9 +217,61 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionCalibrate"/>
    <addaction name="actionProbe"/>
    <addaction name="actionCheck_Signals"/>
+   <addaction name="actionBoosts"/>
+  </widget>
+  <widget class="QDockWidget" name="boostsDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Boosts</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="0" column="0">
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>300</width>
+          <height>68</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="BoostsWidget" name="boostsWidget" native="true"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="action_Quit">
    <property name="icon">
@@ -247,14 +299,6 @@
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionCalibrate">
-   <property name="text">
-    <string>Calibrate</string>
-   </property>
-   <property name="toolTip">
-    <string>Calibrate input signals</string>
-   </property>
-  </action>
   <action name="actionSettings">
    <property name="text">
     <string>Settings...</string>
@@ -270,12 +314,23 @@
     <string>Check Signals</string>
    </property>
   </action>
+  <action name="actionBoosts">
+   <property name="text">
+    <string>Boosts</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>GestureView</class>
    <extends>QLabel</extends>
    <header>pygesture.ui.widgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BoostsWidget</class>
+   <extends>QWidget</extends>
+   <header>pygesture.ui.widgets</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -293,6 +348,22 @@
     <hint type="destinationlabel">
      <x>421</x>
      <y>272</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionBoosts</sender>
+   <signal>triggered()</signal>
+   <receiver>boostsDock</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>682</x>
+     <y>469</y>
     </hint>
    </hints>
   </connection>

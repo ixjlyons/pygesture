@@ -115,7 +115,7 @@ inter_trial_timeout = 3
 # path to save/load recordings and feature CSVs
 data_path = os.path.expanduser('~/pygesture-data')
 # path to v-rep (needed for simulation package)
-vrep_path = os.path.expanduser('~/usr/v-rep/v-rep-3.2.0')
+vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.0')
 # port that the v-rep is listening on (in remoteApiConnections.txt)
 vrep_port = 20013
 
@@ -165,6 +165,7 @@ post_processor = processing.Processor(
     gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
 )
 
+
 # gesture mappings
 # label: ('abbrv', 'description')
 arm_gestures = {key: val[0] for (key, val) in gestures.items()}
@@ -173,6 +174,12 @@ leg_gestures = {key: val[1] for (key, val) in gestures.items()}
 # simulation mapping
 # label : 'action'
 vrep_actions = {key: val[2] for (key, val) in gestures.items()}
+
+controller = control.DBVRController(
+    mapping=vrep_actions,
+    ramp_length=5,
+    boosts=0.5
+)
 
 controller = control.Controller(vrep_actions)
 

@@ -8,6 +8,7 @@ from pygesture import processing
 from pygesture import pipeline
 from pygesture import daq
 from pygesture import recorder
+from pygesture import features
 from pygesture.simulation import vrepsim
 
 import numpy as np
@@ -38,9 +39,9 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.init_simulation()
         self.init_pid_list()
         self.init_gesture_view()
+        self.init_boosts_dock()
 
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
-        self.ui.actionCalibrate.triggered.connect(self.calibrate)
 
     def init_recorder(self):
         try:
@@ -93,6 +94,16 @@ class RealTimeGUI(QtGui.QMainWindow):
 
         self.ui.gestureDisplayLabel.resize_signal.connect(
             self.update_gesture_view)
+
+    def init_boosts_dock(self):
+        self.ui.boostsDock.hide()
+        d = self.cfg.arm_gestures
+        labels = [(l, d[l][0]) for l in sorted(d)]
+        self.ui.boostsWidget.set_mapping(labels)
+        self.ui.boostsWidget.updated.connect(self.boosts_callback)
+
+    def boosts_callback(self, boosts):
+        self.cfg.controller.boosts = boosts
 
     def update_gesture_view(self, event=None):
         w = self.ui.gestureDisplayLabel.width()
@@ -166,8 +177,14 @@ class RealTimeGUI(QtGui.QMainWindow):
             [
                 self.cfg.conditioner,
                 self.cfg.windower,
-                self.cfg.feature_extractor,
-                classifier
+                (
+                    features.MAV(),
+                    [
+                        self.cfg.feature_extractor,
+                        classifier
+                    ],
+                ),
+                self.cfg.controller
             ]
         )
 
@@ -193,16 +210,6 @@ class RealTimeGUI(QtGui.QMainWindow):
         if self.robot is not None:
             self.robot.do_action(self.cfg.controller.update(prediction))
         self.update_gesture_view()
-
-    def calibrate(self):
-        QtGui.QMessageBox().warning(
-            self,
-            "Warning",
-            "Calibration disabled.",
-            QtGui.QMessageBox.Ok)
-
-    def set_calibration(self, calibration):
-        self.calibration = calibration
 
 
 def main():

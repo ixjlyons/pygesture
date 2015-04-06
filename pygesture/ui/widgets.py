@@ -109,3 +109,36 @@ class PromptWidget(QtGui.QWidget):
             j += 1
 
     value_prop = QtCore.pyqtProperty(float, getProgress, setProgress)
+
+
+class BoostsWidget(QtGui.QWidget):
+
+    updated = QtCore.pyqtSignal(dict)
+
+    def __init__(self, parent=None):
+        super(BoostsWidget, self).__init__(parent)
+
+        self.spinboxes = dict()
+        self.values = dict()
+        self.form = QtGui.QFormLayout()
+        self.setLayout(self.form)
+
+    def set_mapping(self, labels, limits=(0, 1), init=0.5, step=0.1):
+        # labels is a list of tuples [(int, str), (int, str)...]
+        for num, text in labels:
+            spinbox = QtGui.QDoubleSpinBox()
+            spinbox.setRange(*limits)
+            spinbox.setValue(init)
+            spinbox.setSingleStep(step)
+            spinbox.valueChanged.connect(self.spinbox_callback)
+
+            self.spinboxes[num] = spinbox
+            self.values[num] = init
+
+            self.form.addRow(text, spinbox)
+
+    def spinbox_callback(self, value):
+        for label, box in self.spinboxes.items():
+            self.values[label] = box.value()
+
+        self.updated.emit(self.values)
