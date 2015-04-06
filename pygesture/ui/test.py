@@ -101,7 +101,8 @@ class RealTimeGUI(QtGui.QMainWindow):
         # by label to easily change the controller {label: boost} dict
         d = self.cfg.arm_gestures
         labels = [(l, d[l][0]) for l in sorted(d)]
-        self.ui.boostsWidget.set_mapping(labels)
+
+        self.ui.boostsWidget.set_mapping(labels, limits=(0, 5), init=1)
         self.ui.boostsWidget.updated.connect(self.boosts_callback)
 
     def boosts_callback(self, boosts):
@@ -205,7 +206,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.prediction = 0
         self.update_gesture_view()
         if self.robot is not None:
-            self.robot.command('no-contraction')
+            self.robot.stop()
             self.simulation.stop()
 
     def prediction_callback(self, prediction):

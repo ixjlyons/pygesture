@@ -150,6 +150,12 @@ class IRB140Arm(object):
         for j in self.joints.values():
             j.update()
 
+    def stop(self):
+        """
+        Stops the robot from executing any current commands.
+        """
+        self.command('no-contraction')
+
 
 class Joint(object):
 
