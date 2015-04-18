@@ -63,7 +63,7 @@ class VrepSimulation(object):
 
     def _connect(self):
         vrep.simxFinish(-1)
-        cid = vrep.simxStart("127.0.0.1", self.port, True, True, 5000, 5)
+        cid = vrep.simxStart("127.0.0.1", self.port, True, True, 1000, 5)
         if cid == -1:
             raise Exception('Failed to connect V-REP remote API server.')
 
@@ -79,16 +79,16 @@ class IRB140Arm(object):
     """
 
     joint_map = {
-        'shoulder-horizontal-abduction': ('IRB140_joint2', 5),
-        'shoulder-horizontal-adduction': ('IRB140_joint2', -5),
-        'elbow-extension': ('IRB140_joint3', 5),
-        'elbow-flexion': ('IRB140_joint3', -5),
-        'forearm-supination': ('IRB140_joint4', 20),
-        'forearm-pronation': ('IRB140_joint4', -20),
-        'wrist-extension': ('IRB140_joint5', 10),
-        'wrist-flexion': ('IRB140_joint5', -10),
-        'closed-fist': ('BarrettHand', 60),
-        'open-hand': ('BarrettHand', -60)
+        'shoulder-horizontal-abduction': ('IRB140_joint2', 100),
+        'shoulder-horizontal-adduction': ('IRB140_joint2', -100),
+        'elbow-extension': ('IRB140_joint3', 100),
+        'elbow-flexion': ('IRB140_joint3', -100),
+        'forearm-supination': ('IRB140_joint4', 100),
+        'forearm-pronation': ('IRB140_joint4', -100),
+        'wrist-extension': ('IRB140_joint5', 100),
+        'wrist-flexion': ('IRB140_joint5', -100),
+        'closed-fist': ('BarrettHand', 100),
+        'open-hand': ('BarrettHand', -100)
     }
 
     def __init__(self, clientId):

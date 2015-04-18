@@ -142,3 +142,7 @@ class BoostsWidget(QtGui.QWidget):
             self.values[label] = box.value()
 
         self.updated.emit(self.values)
+
+    def set_values(self, values):
+        for label, box in self.spinboxes.items():
+            box.setValue(values[label])

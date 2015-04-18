@@ -70,6 +70,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         try:
             self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
         except:
+            self.simulation = None
             QtGui.QMessageBox().warning(
                 self,
                 "Warning",
@@ -104,7 +105,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         d = self.cfg.arm_gestures
         labels = [(l, d[l][0]) for l in sorted(d)]
 
-        self.ui.boostsWidget.set_mapping(labels, limits=(0, 5), init=1)
+        self.ui.boostsWidget.set_mapping(labels, limits=(0, 1000), init=1)
         self.ui.boostsWidget.updated.connect(self.boosts_callback)
 
     def init_actions(self):
@@ -190,6 +191,26 @@ class RealTimeGUI(QtGui.QMainWindow):
             self.cfg.data_path, self.pid, train_list)
         training_data = processing.read_feature_file_list(
             file_list, labels=list(self.cfg.arm_gestures))
+
+        # get average MAV for each gesture label to auto-set boosts
+        # warning: super hacky
+        j = 0
+        start = 0
+        for i, feature in enumerate(self.cfg.feature_extractor.features):
+            if 'MAV' in str(feature):
+                start = j
+                break
+            else:
+                j += feature.dim_per_channel*len(self.cfg.channels)
+        X, y = training_data
+        X = X[:, start:len(self.cfg.channels)]
+        boosts = dict()
+        for label, names in self.cfg.arm_gestures.items():
+            mav_avg = np.mean(X[y == label, :], axis=1)
+            # -np.partition(-data, N) gets N largest elements of data
+            boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
+        self.ui.boostsWidget.set_values(boosts)
+        print(boosts)
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':

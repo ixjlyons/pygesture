@@ -19,14 +19,23 @@ class FeatureExtractor(PipelineBlock):
         return np.hstack([f.compute(data) for f in self.features])
 
     def __repr__(self):
-        return "%s.%s()" % (
+        return "%s.%s(%s)" % (
             self.__class__.__module__,
             self.__class__.__name__,
-            self.features
+            str([str(f) for f in self.features])
         )
 
 
-class MAV(object):
+class Feature(object):
+
+    def __repr__(self):
+        return "%s.%s()" % (
+            self.__class__.__module__,
+            self.__class__.__name__
+        )
+
+
+class MAV(Feature):
     """
     Calculates the mean absolute value of a signal.
     """
@@ -39,7 +48,7 @@ class MAV(object):
         return y
 
 
-class WL(object):
+class WL(Feature):
     """
     Calculates the waveform length of a signal. Waveform length is just the
     sum of the absolute value of all deltas (between adjacent taps) of a
@@ -54,7 +63,7 @@ class WL(object):
         return y
 
 
-class ZC(object):
+class ZC(Feature):
     """
     Calculates the number of zero crossings in a signal, subject to a threshold
     for discarding noisy fluctuations above and below zero.
@@ -93,7 +102,7 @@ class ZC(object):
         return y
 
 
-class SSC(object):
+class SSC(Feature):
     """
     Calculates the number of slope sign changes in a signal, subject to a
     threshold for discarding noisy fluctuations.
@@ -132,7 +141,7 @@ class SSC(object):
         return y
 
 
-class SpectralMoment(object):
+class SpectralMoment(Feature):
     """
     Calculates the nth-order spectral moment.
 
@@ -164,7 +173,7 @@ class SpectralMoment(object):
         return y
 
 
-class KhushabaSet(object):
+class KhushabaSet(Feature):
     """
     Calcuates a set of 5 features introduced by Khushaba et al. at ISCIT 2012.
     (see reference [1]). They are:
@@ -210,7 +219,7 @@ class KhushabaSet(object):
             np.log(IF / WL().compute(x))))
 
 
-class SampEn(object):
+class SampEn(Feature):
     """
     Calculates the sample entropy of time series data. See reference [1].
 
