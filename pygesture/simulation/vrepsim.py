@@ -75,7 +75,9 @@ class VrepSimulation(object):
 
 class IRB140Arm(object):
     """
-    IRB140 industrial arm with Barrett Hand attachment.
+    IRB140 industrial arm with optional Barrett Hand attachment. If multiple
+    copies are in the scene, a suffix should be supplied. If the Barrett Hand
+    attachment is used, it should have the same suffix as the parent IRB140.
     """
 
     joint_map = {
@@ -91,9 +93,10 @@ class IRB140Arm(object):
         'open-hand': ('BarrettHand', -100)
     }
 
-    def __init__(self, clientId):
+    def __init__(self, clientId, suffix=''):
         self.clientId = clientId
         self.joints = None
+        self.suffix = suffix
 
         self._initialize_joints()
 
@@ -103,16 +106,13 @@ class IRB140Arm(object):
             vrep.simx_opmode_oneshot_wait)
 
         self.joints = dict()
-        hand_attached = False
         for name, handle in zip(names, handles):
-            if 'IRB140' in name:
-                joint = Joint(self.clientId, name, handle)
-                self.joints[name] = joint
-            elif 'BarrettHand' in name:
-                hand_attached = True
-
-        if hand_attached:
-            self.joints['BarrettHand'] = BarrettHand(self.clientId)
+            if 'IRB140' in name and self.suffix in name:
+                self.joints[name.strip(self.suffix)] = Joint(
+                    self.clientId, name, handle)
+            elif 'BarrettHand' in name and self.suffix in name:
+                self.joints['BarrettHand'] = BarrettHand(
+                    self.clientId, suffix=self.suffix)
 
     def command(self, action):
         """
@@ -132,7 +132,7 @@ class IRB140Arm(object):
         if type(action) is str:
             action = {action: 1}
 
-        default_actions = dict.fromkeys(IRB140Arm.joint_map.keys(), 0)
+        default_actions = dict.fromkeys(self.joint_map.keys(), 0)
 
         for j in self.joints.values():
             j.velocity = 0
@@ -178,17 +178,19 @@ class Joint(object):
 
 class BarrettHand(object):
 
-    def __init__(self, clientId):
+    def __init__(self, clientId, suffix=''):
         self.clientId = clientId
-        self.name = 'BarrettHand'
+        self.suffix = suffix
         self.velocity = 0
+
+        self.signal_name = 'BarrettHand' + self.suffix + '_velocity'
 
     def update(self, opmode=None):
         if opmode is None:
             opmode = vrep.simx_opmode_oneshot
 
         res = vrep.simxSetFloatSignal(
-            self.clientId, 'velocity', self.velocity, opmode)
+            self.clientId, self.signal_name, self.velocity, opmode)
 
         if opmode == vrep.simx_opmode_oneshot_wait:
             _validate(res)
