@@ -93,10 +93,11 @@ class IRB140Arm(object):
         'open-hand': ('BarrettHand', -100)
     }
 
-    def __init__(self, clientId, suffix=''):
+    def __init__(self, clientId, suffix='', position_controlled=False):
         self.clientId = clientId
         self.joints = None
         self.suffix = suffix
+        self.position_controlled = position_controlled
 
         self._initialize_joints()
 
@@ -106,13 +107,22 @@ class IRB140Arm(object):
             vrep.simx_opmode_oneshot_wait)
 
         self.joints = dict()
+        self.pose = dict()
         for name, handle in zip(names, handles):
-            if 'IRB140' in name and self.suffix in name:
-                self.joints[name.strip(self.suffix)] = Joint(
-                    self.clientId, name, handle)
-            elif 'BarrettHand' in name and self.suffix in name:
-                self.joints['BarrettHand'] = BarrettHand(
-                    self.clientId, suffix=self.suffix)
+            if _check_suffix(name, self.suffix):
+                if 'IRB140' in name:
+                    basename = name.strip(self.suffix)
+                    j = Joint(
+                        self.clientId,
+                        name,
+                        handle,
+                        position_controlled=self.position_controlled)
+                    self.joints[basename] = j
+                    self.pose[basename] = j.initial_position
+
+                elif 'BarrettHand' in name:
+                    self.joints['BarrettHand'] = BarrettHand(
+                        self.clientId, suffix=self.suffix)
 
     def command(self, action):
         """
@@ -135,20 +145,30 @@ class IRB140Arm(object):
         default_actions = dict.fromkeys(self.joint_map.keys(), 0)
 
         for j in self.joints.values():
-            j.velocity = 0
+            if j.position_controlled:
+                j.position = j.initial_position
+            else:
+                j.velocity = 0
 
-        for motion, v_mult in action.items():
+        for motion, param in action.items():
             if motion in default_actions:
-                default_actions[motion] = v_mult
+                default_actions[motion] = param
 
-        for motion, v_mult in default_actions.items():
+        for motion, param in default_actions.items():
             joint_name, v_norm = self.joint_map[motion]
-            self.joints[joint_name].velocity += v_mult*math.radians(v_norm)
+            joint = self.joints[joint_name]
+
+            if joint.position_controlled:
+                joint.position += math.radians(param)
+            else:
+                joint.velocity += param*math.radians(v_norm)
 
         # TODO: investigate if wrapping this loop in simxPauseCommunication
         # calls would be useful here
-        for j in self.joints.values():
-            j.update()
+        for name in self.joints.keys():
+            self.joints[name].update()
+            if 'IRB140' in name:
+                self.pose[name] = self.joints[name].position
 
     def stop(self):
         """
@@ -159,29 +179,60 @@ class IRB140Arm(object):
 
 class Joint(object):
 
-    def __init__(self, clientId, name, handle):
+    def __init__(self, clientId, name, handle, position_controlled=False):
         self.clientId = clientId
         self.name = name
         self.handle = handle
         self.velocity = 0
+        self.position = 0
+        self.position_controlled = position_controlled
+
+        self.initial_position = self._get_position(
+            opmode=vrep.simx_opmode_oneshot_wait)
+
+        # set up streaming position input
+        if not self.position_controlled:
+            self._get_position(opmode=vrep.simx_opmode_streaming)
 
     def update(self, opmode=None):
         if opmode is None:
             opmode = vrep.simx_opmode_oneshot
 
-        res = vrep.simxSetJointTargetVelocity(
-            self.clientId, self.handle, self.velocity, opmode)
+        if self.position_controlled:
+            res = vrep.simxSetJointTargetPosition(
+                self.clientId, self.handle, self.position, opmode)
+        else:
+            res = vrep.simxSetJointTargetVelocity(
+                self.clientId, self.handle, self.velocity, opmode)
 
         if opmode == vrep.simx_opmode_oneshot_wait:
             _validate(res)
 
+        if not self.position_controlled:
+            self.position = self._get_position(
+                opmode=vrep.simx_opmode_buffer)
+
+    def _get_position(self, opmode=None):
+        if opmode is None:
+            opmode = vrep.simx_opmode_oneshot
+
+        res, pos = vrep.simxGetJointPosition(
+            self.clientId, self.handle, opmode)
+
+        if opmode == vrep.simx_opmode_oneshot_wait:
+            _validate(res)
+
+        return pos
+
 
 class BarrettHand(object):
 
-    def __init__(self, clientId, suffix=''):
+    def __init__(self, clientId, suffix='', position_controlled=False):
         self.clientId = clientId
         self.suffix = suffix
+        self.position_controlled = position_controlled
         self.velocity = 0
+        self.position = 0
 
         self.signal_name = 'BarrettHand' + self.suffix + '_velocity'
 
@@ -217,3 +268,16 @@ def _validate(res):
             err = "Unknown v-rep error code: %s" % hex(res)
 
         raise ValueError(err)
+
+
+def _check_suffix(name, suffix):
+    if suffix == '':
+        if len(name.split('#')) == 1:
+            return True
+        else:
+            return False
+    else:
+        if suffix in name:
+            return True
+        else:
+            return False

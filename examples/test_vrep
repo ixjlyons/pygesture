@@ -6,9 +6,9 @@ This is a script for testing the example v-rep simulation
 works, not necessarily to test the vrepsim module.
 """
 
-import time
 import sys
 import argparse
+import time
 
 try:
     from pygesture import config
@@ -26,40 +26,44 @@ parser.add_argument('-c', '--config', default='config.py',
 args = parser.parse_args()
 
 cfg = config.Config(args.config)
-
-
 vrepsim.set_path(cfg.vrep_path)
+from pygesture.simulation import vrep
+
 sim = vrepsim.VrepSimulation(cfg.vrep_port)
 sim.start()
+
+def check_signal(opmode=None):
+    if opmode is None:
+        opmode = vrep.simx_opmode_buffer
+    res, sig = vrep.simxGetIntegerSignal(
+        sim.clientId, 'target_acquired', opmode)
+    if res == 0:
+        print("target acquired: %d" % (sig))
+        vrep.simxClearIntegerSignal(
+            sim.clientId, 'target_acquired', vrep.simx_opmode_oneshot)
+
+target_action = {
+    'elbow-extension': 75,
+    'forearm-supination': 75,
+    'wrist-extension': 75
+}
+
+input_sequence = \
+    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [0]*10 + [5]*3 + [0]*10
+
 robot = vrepsim.IRB140Arm(sim.clientId)
+ref_robot = vrepsim.IRB140Arm(
+        sim.clientId, suffix='#0', position_controlled=True)
 
-def do(action, length):
-    """
-    Shorthand for doing an action for some time, then resting.
-    """
-    robot.command(action)
-    time.sleep(length)
-    robot.command('no-contraction')
-
-do("forearm-supination", 1.5)
-do("elbow-flexion", 0.5)
-do("open-hand", 0.3)
-do("wrist-flexion", 1.4)
-do("elbow-flexion", 0.9)
-do("closed-fist", 0.6)
-
+ref_robot.command(target_action)
 time.sleep(1)
 
-do("wrist-extension", 1.0)
-do("elbow-extension", 1.8)
-do("forearm-pronation", 1.6)
-time.sleep(2)
-do("forearm-supination", 1.6)
-do("elbow-flexion", 2.0)
-do("open-hand", 1.0)
-
-time.sleep(1)
-
-do("elbow-extension", 1.5)
+check_signal(opmode=vrep.simx_opmode_streaming)
+controller = cfg.controller
+update_ms = cfg.daq.samples_per_read / cfg.daq.rate
+for label in input_sequence:
+    robot.command(controller.process((1, label)))
+    check_signal()
+    time.sleep(update_ms)
 
 sim.finish()
