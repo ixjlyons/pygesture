@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>843</width>
-    <height>545</height>
+    <width>845</width>
+    <height>635</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,8 +41,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>843</width>
-     <height>19</height>
+     <width>845</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -107,15 +107,27 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>300</width>
-          <height>323</height>
+          <width>302</width>
+          <height>381</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="1" column="0">
-          <widget class="QPushButton" name="startButton">
+          <widget class="QPushButton" name="connectButton">
            <property name="text">
-            <string>Start</string>
+            <string>Connect</string>
+           </property>
+           <property name="icon">
+            <iconset theme="insert-link"/>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -197,7 +209,24 @@
               </item>
              </layout>
             </item>
+            <item row="3" column="0">
+             <widget class="QPushButton" name="trainButton">
+              <property name="text">
+               <string>Train</string>
+              </property>
+             </widget>
+            </item>
            </layout>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="startButton">
+           <property name="text">
+            <string>Start</string>
+           </property>
+           <property name="icon">
+            <iconset theme="media-playback-start"/>
+           </property>
           </widget>
          </item>
         </layout>
@@ -258,8 +287,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>300</width>
-          <height>68</height>
+          <width>302</width>
+          <height>84</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_6">

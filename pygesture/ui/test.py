@@ -43,7 +43,9 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.init_boosts_dock()
         self.init_actions()
 
+        self.ui.connectButton.clicked.connect(self.toggle_connect_callback)
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
+        self.ui.startButton.setEnabled(False)
 
     def init_recorder(self):
         try:
@@ -71,6 +73,7 @@ class RealTimeGUI(QtGui.QMainWindow):
             self.simulation = vrepsim.VrepSimulation(self.cfg.vrep_port)
         except:
             self.simulation = None
+            self.ui.connectButton.setEnabled(False)
             QtGui.QMessageBox().warning(
                 self,
                 "Warning",
@@ -163,11 +166,28 @@ class RealTimeGUI(QtGui.QMainWindow):
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
 
+    def toggle_connect_callback(self):
+        starting = self.ui.connectButton.isChecked()
+
+        if starting:
+            self.simulation.start()
+            self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
+        else:
+            self.robot.stop()
+            self.simulation.stop()
+            self.robot = None
+
+        self.ui.startButton.setEnabled(starting)
+
     def toggle_running_callback(self):
-        if not self.running:
+        starting = (not self.running)
+
+        if starting:
             self.start_running()
         else:
             self.stop_running()
+
+        self.ui.connectButton.setEnabled((not starting))
         self.ui.actionProbe.setEnabled((not self.running))
         self.ui.actionCheckSignals.setEnabled((not self.running))
 
@@ -210,7 +230,6 @@ class RealTimeGUI(QtGui.QMainWindow):
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
         self.ui.boostsWidget.set_values(boosts)
-        print(boosts)
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -225,10 +244,6 @@ class RealTimeGUI(QtGui.QMainWindow):
 
         classifier = pipeline.Classifier(skpipeline)
         classifier.fit(*training_data)
-
-        if self.simulation is not None:
-            self.simulation.start()
-            self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
 
         pl = pipeline.Pipeline(
             [
@@ -253,17 +268,18 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.running = True
 
     def stop_running(self):
+        self.robot.stop()
         self.recorder.kill()
         self.ui.sessionInfoBox.setEnabled(True)
         self.ui.startButton.setText('Start')
         self.running = False
         self.prediction = 0
         self.update_gesture_view()
-        if self.robot is not None:
-            self.robot.stop()
-            self.simulation.stop()
 
     def prediction_callback(self, prediction):
+        if not self.running:
+            return
+
         self.prediction = prediction[1]
         if self.robot is not None:
             commands = self.cfg.controller.process(prediction)

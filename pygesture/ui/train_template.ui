@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>827</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -65,8 +65,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>250</width>
-     <height>107</height>
+     <width>273</width>
+     <height>115</height>
     </size>
    </property>
    <property name="features">
@@ -108,8 +108,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>248</width>
-          <height>467</height>
+          <width>253</width>
+          <height>457</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">

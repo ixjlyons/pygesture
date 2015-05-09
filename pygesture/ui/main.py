@@ -5,7 +5,7 @@ from pygesture import config
 
 from PyQt4 import QtGui
 from pygesture.ui.main_template import Ui_PygestureMainWindow
-from pygesture.ui import train2
+from pygesture.ui import train
 from pygesture.ui import test
 
 
@@ -18,29 +18,6 @@ class MainGUI(QtGui.QMainWindow):
 
         self.ui = Ui_PygestureMainWindow()
         self.ui.setupUi(self)
-
-        self.ui.trainButton.clicked.connect(self.launch_train)
-        self.ui.processButton.clicked.connect(self.launch_process)
-        self.ui.testButton.clicked.connect(self.launch_test)
-
-    def launch_train(self):
-        trainGUI = train2.TrainGUI(self.cfg, parent=self)
-        trainGUI.show()
-        trainGUI.destroyed.connect(self.window_closed_callback)
-
-    def launch_process(self):
-        pass
-
-    def launch_test(self):
-        testGUI = test.RealTimeGUI(self.cfg, parent=self)
-        testGUI.show()
-
-    def window_closed_callback(self):
-        print('hello')
-
-    def closeEvent(self, event):
-        print('hellothere')
-        QtGui.QMainWindow.closeEvent(self, event)
 
 
 def main():

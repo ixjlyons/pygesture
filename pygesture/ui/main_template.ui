@@ -6,25 +6,63 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>724</width>
-    <height>640</height>
+    <width>1045</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>pygesture</string>
+   <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout"/>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="trainTab">
+       <attribute name="title">
+        <string>Train</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="processTab">
+       <attribute name="title">
+        <string>Process</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="testTab">
+       <attribute name="title">
+        <string>Test</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>724</width>
-     <height>19</height>
+     <width>1045</width>
+     <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_Quit"/>
+   </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionCheck_Signals"/>
+    <addaction name="actionProbe"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_View"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -32,37 +70,77 @@
     <string>toolBar</string>
    </property>
    <attribute name="toolBarArea">
-    <enum>LeftToolBarArea</enum>
+    <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionTrain"/>
-   <addaction name="actionProcess"/>
-   <addaction name="actionTest"/>
+   <addaction name="actionProbe"/>
+   <addaction name="actionCheck_Signals"/>
   </widget>
-  <action name="actionTrain">
-   <property name="text">
-    <string>Train</string>
+  <widget class="QDockWidget" name="mainDock">
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
-   <property name="toolTip">
-    <string>Generate training data</string>
+   <property name="windowTitle">
+    <string>Session</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="participantLabel">
+       <property name="text">
+        <string>Participant:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="participantLineEdit"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="sessionLabel">
+       <property name="text">
+        <string>Session:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="sessionLineEdit"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="action_Quit">
+   <property name="icon">
+    <iconset theme="application-exit">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Quit</string>
    </property>
   </action>
-  <action name="actionProcess">
-   <property name="text">
-    <string>Process</string>
+  <action name="actionCheck_Signals">
+   <property name="icon">
+    <iconset theme="audio-card">
+     <normaloff/>
+    </iconset>
    </property>
-   <property name="toolTip">
-    <string>Process data</string>
+   <property name="text">
+    <string>Check Signals</string>
    </property>
   </action>
-  <action name="actionTest">
-   <property name="text">
-    <string>Test</string>
+  <action name="actionProbe">
+   <property name="icon">
+    <iconset theme="audio-input-microphone">
+     <normaloff/>
+    </iconset>
    </property>
-   <property name="toolTip">
-    <string>Test control in a real-time task</string>
+   <property name="text">
+    <string>Probe</string>
    </property>
   </action>
  </widget>

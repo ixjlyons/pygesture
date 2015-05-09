@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/train_template.ui'
 #
-# Created: Wed Apr  1 17:10:51 2015
+# Created: Fri May  8 15:46:18 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.promptWidget, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 827, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 827, 23))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
@@ -57,7 +57,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.controlsDockWidget.sizePolicy().hasHeightForWidth())
         self.controlsDockWidget.setSizePolicy(sizePolicy)
-        self.controlsDockWidget.setMinimumSize(QtCore.QSize(250, 107))
+        self.controlsDockWidget.setMinimumSize(QtCore.QSize(273, 115))
         self.controlsDockWidget.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
         self.controlsDockWidget.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
         self.controlsDockWidget.setObjectName(_fromUtf8("controlsDockWidget"))
@@ -80,7 +80,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 248, 467))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 253, 457))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout_3 = QtGui.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
