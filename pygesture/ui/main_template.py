@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/main_template.ui'
 #
-# Created: Fri May  8 18:41:28 2015
+# Created: Mon May 11 11:02:15 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,15 +33,6 @@ class Ui_PygestureMainWindow(object):
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.tabWidget = QtGui.QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
-        self.trainTab = QtGui.QWidget()
-        self.trainTab.setObjectName(_fromUtf8("trainTab"))
-        self.tabWidget.addTab(self.trainTab, _fromUtf8(""))
-        self.processTab = QtGui.QWidget()
-        self.processTab.setObjectName(_fromUtf8("processTab"))
-        self.tabWidget.addTab(self.processTab, _fromUtf8(""))
-        self.testTab = QtGui.QWidget()
-        self.testTab.setObjectName(_fromUtf8("testTab"))
-        self.tabWidget.addTab(self.testTab, _fromUtf8(""))
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
         PygestureMainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(PygestureMainWindow)
@@ -100,14 +91,11 @@ class Ui_PygestureMainWindow(object):
         self.toolBar.addAction(self.actionCheck_Signals)
 
         self.retranslateUi(PygestureMainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(-1)
         QtCore.QMetaObject.connectSlotsByName(PygestureMainWindow)
 
     def retranslateUi(self, PygestureMainWindow):
         PygestureMainWindow.setWindowTitle(_translate("PygestureMainWindow", "MainWindow", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.trainTab), _translate("PygestureMainWindow", "Train", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.processTab), _translate("PygestureMainWindow", "Process", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.testTab), _translate("PygestureMainWindow", "Test", None))
         self.menu_File.setTitle(_translate("PygestureMainWindow", "&File", None))
         self.menu_View.setTitle(_translate("PygestureMainWindow", "&View", None))
         self.toolBar.setWindowTitle(_translate("PygestureMainWindow", "toolBar", None))
