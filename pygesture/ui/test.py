@@ -43,6 +43,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.init_boosts_dock()
         self.init_actions()
 
+        self.ui.trainButton.clicked.connect(self.build_pipeline)
         self.ui.connectButton.clicked.connect(self.toggle_connect_callback)
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
         self.ui.startButton.setEnabled(False)
@@ -191,7 +192,7 @@ class RealTimeGUI(QtGui.QMainWindow):
         self.ui.actionProbe.setEnabled((not self.running))
         self.ui.actionCheckSignals.setEnabled((not self.running))
 
-    def start_running(self):
+    def build_pipeline(self):
         train_list = []
         for i in range(self.ui.trainingList.count()):
             item = self.ui.trainingList.item(i)
@@ -262,6 +263,8 @@ class RealTimeGUI(QtGui.QMainWindow):
         )
 
         self.recorder.set_pipeline(pl)
+
+    def start_running(self):
         self.recorder.start()
 
         self.ui.startButton.setText('Pause')
