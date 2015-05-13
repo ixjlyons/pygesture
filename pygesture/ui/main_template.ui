@@ -6,17 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1045</width>
-    <height>714</height>
+    <width>1004</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>PyGesture</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
       <property name="currentIndex">
        <number>-1</number>
       </property>
@@ -29,41 +41,23 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1045</width>
-     <height>23</height>
+     <width>1004</width>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_Quit"/>
-   </widget>
-   <widget class="QMenu" name="menu_View">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
-    <addaction name="actionCheck_Signals"/>
-    <addaction name="actionProbe"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menu_File"/>
-   <addaction name="menu_View"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionProbe"/>
-   <addaction name="actionCheck_Signals"/>
-  </widget>
   <widget class="QDockWidget" name="mainDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
@@ -98,7 +92,7 @@
     </layout>
    </widget>
   </widget>
-  <action name="action_Quit">
+  <action name="actionQuit">
    <property name="icon">
     <iconset theme="application-exit">
      <normaloff/>
@@ -108,7 +102,7 @@
     <string>&amp;Quit</string>
    </property>
   </action>
-  <action name="actionCheck_Signals">
+  <action name="actionCheckSignals">
    <property name="icon">
     <iconset theme="audio-card">
      <normaloff/>
@@ -130,5 +124,22 @@
   </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>PygestureMainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>522</x>
+     <y>356</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

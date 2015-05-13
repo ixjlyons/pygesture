@@ -24,8 +24,11 @@ UI_TEMPLATES=$(UI_DIR)/calibrationdialog_template.ui \
 			 $(UI_DIR)/settings_template.ui          \
 			 $(UI_DIR)/main_template.ui              \
 			 $(UI_DIR)/train_template.ui             \
+			 $(UI_DIR)/train_widget.ui               \
+			 $(UI_DIR)/test_widget.ui                \
 			 $(UI_DIR)/test_template.ui              \
-			 $(UI_DIR)/signal_dialog_template.ui
+			 $(UI_DIR)/signal_dialog_template.ui     \
+			 $(UI_DIR)/signal_widget.ui
 
 .PHONY: ui
 ui: $(patsubst %.ui,%.py,$(UI_TEMPLATES))

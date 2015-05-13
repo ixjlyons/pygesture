@@ -2,26 +2,46 @@ import sys
 import argparse
 
 from pygesture import config
+from pygesture import recorder
 
 from PyQt4 import QtGui
+
 from pygesture.ui.main_template import Ui_PygestureMainWindow
 from pygesture.ui import train
 from pygesture.ui import test
+from pygesture.ui import signals
 
 
-class MainGUI(QtGui.QMainWindow):
+class PygestureMainWindow(QtGui.QMainWindow):
 
     def __init__(self, config, parent=None):
-        super(MainGUI, self).__init__(parent)
+        super(PygestureMainWindow, self).__init__(parent)
 
         self.cfg = config
 
         self.ui = Ui_PygestureMainWindow()
         self.ui.setupUi(self)
 
-        self.ui.tabWidget.addTab(train.TrainGUI(config), "Train")
-        self.ui.tabWidget.addTab(SomeWindow(), "SomeWindow")
-        self.ui.tabWidget.addTab(AnotherWindow(), "AnotherWindow")
+        self.record_thread = recorder.RecordThread(self.cfg.daq)
+        self._init_tabs()
+
+    def closeEvent(self, event):
+        if self.record_thread is not None:
+            self.record_thread.kill()
+
+    def _init_tabs(self):
+        self.ui.tabWidget.addTab(
+            signals.SignalWidget(self.cfg, self.record_thread, parent=self),
+            "Visualize")
+        self.ui.tabWidget.addTab(
+            train.TrainWidget(self.cfg, self.record_thread, parent=self),
+            "Train")
+        self.ui.tabWidget.addTab(
+            SomeWindow(parent=self),
+            "Process")
+        self.ui.tabWidget.addTab(
+            test.TestWidget(self.cfg, self.record_thread, parent=self),
+            "Test")
 
 
 class SomeWindow(QtGui.QMainWindow):
@@ -65,7 +85,7 @@ def main():
     cfg = config.Config(args.config)
 
     app = QtGui.QApplication([])
-    mw = MainGUI(cfg)
+    mw = PygestureMainWindow(cfg)
     mw.show()
     app.exec_()
     app.deleteLater()

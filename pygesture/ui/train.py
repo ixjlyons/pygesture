@@ -3,28 +3,26 @@ import sys
 import pkg_resources
 
 from pygesture import config
-from pygesture import daq
 from pygesture import recorder
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.train_template import Ui_MainWindow
-from pygesture.ui import signals
+from pygesture.ui.train_widget import Ui_TrainWidget
 
 
-class TrainGUI(QtGui.QMainWindow):
+class TrainWidget(QtGui.QWidget):
 
-    def __init__(self, config, parent=None):
-        super(TrainGUI, self).__init__(parent)
+    def __init__(self, config, record_thread, parent=None):
+        super(TrainWidget, self).__init__(parent)
         self.cfg = config
+        self.record_thread = record_thread
 
-        self.ui = Ui_MainWindow()
+        self.ui = Ui_TrainWidget()
         self.ui.setupUi(self)
 
         self.running = False
 
         self.init_record_thread()
-        self.init_menu()
         self.init_gesture_view()
         self.init_gesture_prompt()
         self.init_session_progressbar()
@@ -32,30 +30,10 @@ class TrainGUI(QtGui.QMainWindow):
         self.init_intertrial_timer()
 
     def init_record_thread(self):
-        try:
-            self.daq = self.cfg.daq
-            self.daq.initialize()
-        except ValueError:
-            # fall back on emulated DAQ
-            self.daq = daq.Daq(
-                self.daq.rate, self.daq.input_range, self.daq.channel_range,
-                self.daq.samples_per_read)
-
-            QtGui.QMessageBox().warning(
-                self,
-                "Warning",
-                "Couldn't find the specified DAQ. Falling back to emulator.",
-                QtGui.QMessageBox.Ok)
-
         tpr = self.cfg.trial_duration * \
-            int(self.daq.rate / self.daq.samples_per_read)
-        self.record_thread = recorder.RecordThread(self.daq)
+            int(self.cfg.daq.rate / self.cfg.daq.samples_per_read)
         self.record_thread.set_fixed(triggers_per_record=tpr)
         self.record_thread.finished_sig.connect(self.record_finished)
-
-    def init_menu(self):
-        self.ui.actionCheckSignals.triggered.connect(self.check_signals)
-        self.ui.actionProbe.triggered.connect(self.probe_signal)
 
     def init_gesture_view(self):
         self.gesture_images = dict()
@@ -136,7 +114,7 @@ class TrainGUI(QtGui.QMainWindow):
         self.prompt_anim.start()
 
     def record_finished(self, data):
-        self.session.write_recording(data, self.daq.rate)
+        self.session.write_recording(data, self.cfg.daq.rate)
 
         self.update_gesture_view()
         self.ui.pauseButton.setEnabled(True)
@@ -163,52 +141,3 @@ class TrainGUI(QtGui.QMainWindow):
         self.running = False
         self.ui.startButton.setEnabled(True)
         self.ui.sessionInfoBox.setEnabled(True)
-
-    def check_signals(self):
-        signal_window = signals.SignalDialog(len(self.cfg.channels))
-        signal_window.setWindowTitle("check signals")
-        self.record_thread.set_continuous()
-        self.record_thread.update_sig.connect(signal_window.update_plot)
-        self.record_thread.start()
-        signal_window.exec_()
-        self.record_thread.kill()
-        self.record_thread.set_fixed()
-        self.record_thread.update_sig.disconnect(signal_window.update_plot)
-
-    def probe_signal(self):
-        probe_window = signals.SignalDialog(1)
-        probe_window.setWindowTitle("probe")
-        self.record_thread.set_continuous()
-        self.daq.set_channel_range(
-            (self.cfg.probe_channel, self.cfg.probe_channel))
-        self.record_thread.update_sig.connect(probe_window.update_plot)
-        self.record_thread.start()
-        probe_window.exec_()
-        self.record_thread.kill()
-        self.record_thread.set_fixed()
-        self.daq.set_channel_range(
-            (min(self.cfg.channels), max(self.cfg.channels)))
-        self.record_thread.update_sig.disconnect(probe_window.update_plot)
-
-    def closeEvent(self, event):
-        self.record_thread.kill()
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="EMG gesture recognition with real-time feedback.")
-    parser.add_argument(
-        '-c', '--config',
-        dest='config',
-        default='config.py',
-        help="Config file. Default is `config.py` (current directory).")
-    args = parser.parse_args()
-
-    cfg = config.Config(args.config)
-
-    app = QtGui.QApplication([])
-    mw = TrainGUI(cfg)
-    mw.show()
-    app.exec_()
-    app.deleteLater()
-    sys.exit(0)

@@ -67,6 +67,8 @@ class MccDaq(Daq):
         self.channel_range = channel_range
         self.samples_per_read = samples_per_read
 
+        self.initialize()
+
     def initialize(self):
         self.device = daqflex.USB_1608G()
 

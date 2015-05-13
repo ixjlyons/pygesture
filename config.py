@@ -128,12 +128,20 @@ channels = sorted(list(arm_sensors))
 
 probe_channel = 6
 
-daq = daq.MccDaq(
-    rate=f_samp,
-    input_range=input_range,
-    channel_range=(min(channels), max(channels)),
-    samples_per_read=int(f_samp*(window_length-window_overlap))
-)
+try:
+    daq = daq.MccDaq(
+        rate=f_samp,
+        input_range=input_range,
+        channel_range=(min(channels), max(channels)),
+        samples_per_read=int(f_samp*(window_length-window_overlap))
+    )
+except ValueError:
+    daq = daq.Daq(
+        rate=f_samp,
+        input_range=input_range,
+        channel_range=(min(channels), max(channels)),
+        samples_per_rad=int(f_samp*(window_length-window_overlap))
+    )
 
 conditioner = pipeline.Conditioner(
     order=filt_order,

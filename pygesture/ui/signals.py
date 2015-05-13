@@ -1,9 +1,87 @@
 import numpy as np
-import pyqtgraph
-pyqtgraph.setConfigOption('background', '#282828')
 
 from PyQt4 import QtGui
 from pygesture.ui.signal_dialog_template import Ui_SignalDialog
+from pygesture.ui.signal_widget import Ui_SignalWidget
+
+
+class SignalWidget(QtGui.QWidget):
+
+    def __init__(self, config, record_thread, parent=None):
+        super(SignalWidget, self).__init__(parent)
+
+        self.cfg = config
+        self.record_thread = record_thread
+
+        self.samp_per_read = 1
+        self.spacer = 0.5
+
+        self.ui = Ui_SignalWidget()
+        self.ui.setupUi(self)
+
+        self.init_plot()
+        self.init_button_group()
+
+    def showEvent(self, event):
+        self.record_thread.set_continuous()
+        self.record_thread.update_sig.connect(self.update_plot)
+        self.set_mode_callback()
+
+    def hideEvent(self, event):
+        self.record_thread.update_sig.disconnect(self.update_plot)
+        self.record_thread.kill()
+
+    def init_button_group(self):
+        self.ui.probeButton.clicked.connect(self.set_mode_callback)
+        self.ui.signalButton.clicked.connect(self.set_mode_callback)
+        self.set_mode_callback()
+
+    def init_plot(self):
+        self.ui.plotWidget.setBackground(None)
+        self.ui.plotWidget.setMouseEnabled(x=False, y=False)
+        self.plotItem = self.ui.plotWidget.getPlotItem()
+        self.plotItem.showAxis('bottom', False)
+        self.plotItem.showAxis('left', False)
+
+    def set_mode_callback(self):
+        self.record_thread.kill()
+        probe_mode = self.ui.probeButton.isChecked()
+        if probe_mode:
+            self.n_channels = 1
+            self.cfg.daq.set_channel_range(
+                (self.cfg.probe_channel, self.cfg.probe_channel))
+        else:
+            self.n_channels = len(self.cfg.channels)
+            self.cfg.daq.set_channel_range(
+                (min(self.cfg.channels), max(self.cfg.channels)))
+
+        self.update_num_channels()
+        self.record_thread.start()
+
+    def update_num_channels(self):
+        self.line_list = [
+            self.ui.plotWidget.plot(
+                pen={'color': '555'}) for i in range(self.n_channels)
+        ]
+
+        self.plot_list = [
+            self.ui.plotWidget.plot(
+                pen=(i, self.n_channels)) for i in range(self.n_channels)
+        ]
+
+    def update_plot(self, data):
+        n_channels, spr = data.shape
+        if self.n_channels != n_channels:
+            return
+
+        if spr != self.samp_per_read:
+            self.samp_per_read = spr
+
+        for i in range(self.n_channels):
+            # "grid" line for each signal
+            self.line_list[i].setData(
+                [0, data.shape[1]-1], 2*[-i*self.spacer])
+            self.plot_list[i].setData(data[i, :] - i*self.spacer)
 
 
 class SignalDialog(QtGui.QDialog):
