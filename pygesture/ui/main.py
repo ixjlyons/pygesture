@@ -9,7 +9,6 @@ from PyQt4 import QtGui
 from pygesture.ui.main_template import Ui_PygestureMainWindow
 from pygesture.ui import train
 from pygesture.ui import test
-from pygesture.ui import signals
 from pygesture.ui import widgets
 
 
@@ -29,7 +28,7 @@ class PygestureMainWindow(QtGui.QMainWindow):
         self.ui.actionNew.triggered.connect(self.show_new_session_dialog)
 
     def showEvent(self, event):
-        #self.show_new_session_dialog()
+        # self.show_new_session_dialog()
         pass
 
     def closeEvent(self, event):
@@ -39,7 +38,7 @@ class PygestureMainWindow(QtGui.QMainWindow):
     def init_tabs(self):
         self.tabs = {
             "Signals":
-                signals.SignalWidget(
+                widgets.SignalWidget(
                     self.cfg, self.record_thread, parent=self),
             "Train":
                 train.TrainWidget(
@@ -66,11 +65,11 @@ class PygestureMainWindow(QtGui.QMainWindow):
 
     def create_session(self, pid, sid):
         if pid == '' or sid == '':
-           QtGui.QMessageBox.critical(
+            QtGui.QMessageBox.critical(
                 self,
                 "Error",
                 "Session info incomplete.")
-           return
+            return
 
         self.ui.statusbar.addWidget(
             QtGui.QLabel("pid: %s, sid: %s" % (pid, sid)))

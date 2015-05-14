@@ -1,13 +1,10 @@
-import argparse
-import sys
 import pkg_resources
 
-from pygesture import config
 from pygesture import recorder
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.train_widget import Ui_TrainWidget
+from pygesture.ui.train_widget_template import Ui_TrainWidget
 
 
 class TrainWidget(QtGui.QWidget):

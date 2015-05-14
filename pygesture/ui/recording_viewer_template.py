@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/recording_viewer_widget.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/recording_viewer_template.ui'
 #
-# Created: Wed May 13 19:42:00 2015
+# Created: Thu May 14 12:38:53 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!

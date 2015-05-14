@@ -20,18 +20,13 @@ lint:
 
 PYUIC=pyuic4
 UI_DIR=pygesture/ui
-UI_TEMPLATES=$(UI_DIR)/calibrationdialog_template.ui \
-			 $(UI_DIR)/settings_template.ui          \
-			 $(UI_DIR)/main_template.ui              \
-			 $(UI_DIR)/train_template.ui             \
-			 $(UI_DIR)/train_widget.ui               \
-			 $(UI_DIR)/test_widget.ui                \
-			 $(UI_DIR)/test_template.ui              \
-			 $(UI_DIR)/signal_dialog_template.ui     \
-			 $(UI_DIR)/signal_widget.ui              \
-			 $(UI_DIR)/recording_viewer_widget.ui    \
-			 $(UI_DIR)/process_widget.ui             \
-             $(UI_DIR)/new_session_dialog.ui
+UI_TEMPLATES=$(UI_DIR)/main_template.ui              \
+			 $(UI_DIR)/train_widget_template.ui      \
+			 $(UI_DIR)/test_widget_template.ui       \
+			 $(UI_DIR)/signal_widget_template.ui     \
+			 $(UI_DIR)/recording_viewer_template.ui  \
+			 $(UI_DIR)/process_widget_template.ui    \
+             $(UI_DIR)/new_session_template.ui
 
 .PHONY: ui
 ui: $(patsubst %.ui,%.py,$(UI_TEMPLATES))

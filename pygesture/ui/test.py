@@ -1,12 +1,8 @@
-import argparse
-import sys
 import pkg_resources
 
-from pygesture import config
 from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
-from pygesture import daq
 from pygesture import features
 from pygesture.simulation import vrepsim
 
@@ -18,7 +14,7 @@ from sklearn.pipeline import Pipeline
 
 from PyQt4 import QtGui, QtCore
 
-from pygesture.ui.test_widget import Ui_TestWidget
+from pygesture.ui.test_widget_template import Ui_TestWidget
 
 
 class TestWidget(QtGui.QWidget):
@@ -94,30 +90,6 @@ class TestWidget(QtGui.QWidget):
 
     def boosts_callback(self, boosts):
         self.cfg.controller.boosts = boosts
-
-    def probe_callback(self):
-        self._show_signal_window("probe")
-
-    def check_signals_callback(self):
-        self._show_signal_window("check signals")
-
-    def _show_signal_window(self, title):
-        if title == "probe":
-            signal_window = signals.SignalDialog(1)
-            self.daq.set_channel_range(
-                (self.cfg.probe_channel, self.cfg.probe_channel))
-        else:
-            signal_window = signals.SignalDialog(len(self.cfg.channels))
-
-        signal_window.setWindowTitle(title)
-        self.record_thread.set_continuous()
-        self.record_thread.update_sig.connect(signal_window.update_plot)
-        self.record_thread.start()
-        signal_window.exec_()
-        self.record_thread.kill()
-        self.daq.set_channel_range(
-            (min(self.cfg.channels), max(self.cfg.channels)))
-        self.record_thread.update_sig.disconnect(signal_window.update_plot)
 
     def update_gesture_view(self, event=None):
         w = self.ui.gestureDisplayLabel.width()
@@ -203,7 +175,7 @@ class TestWidget(QtGui.QWidget):
             mav_avg = np.mean(X[y == label, :], axis=1)
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
-        #self.ui.boostsWidget.set_values(boosts)
+        # self.ui.boostsWidget.set_values(boosts)
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -278,4 +250,3 @@ class SimulationConnectThread(QtCore.QThread):
             sim = None
 
         self.finished.emit(sim)
-
