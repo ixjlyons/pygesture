@@ -91,7 +91,8 @@ class TrainWidget(QtGui.QWidget):
             self.session.set_ids(pid, sid)
         except IOError:
             message = QtGui.QMessageBox().warning(
-                self, "Warning",
+                self,
+                "Warning",
                 "Session directory already exists.\nOverwrite?",
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.Cancel)
 

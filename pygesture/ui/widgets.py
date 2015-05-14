@@ -1,4 +1,12 @@
+import numpy as np
+
 from PyQt4 import QtGui, QtCore
+
+from pygesture import filestruct
+from pygesture import processing
+
+from pygesture.ui.new_session_dialog import Ui_NewSessionDialog
+from pygesture.ui.recording_viewer_widget import Ui_RecordingViewerWidget
 
 
 class GestureView(QtGui.QLabel):
@@ -146,3 +154,110 @@ class BoostsWidget(QtGui.QWidget):
     def set_values(self, values):
         for label, box in self.spinboxes.items():
             box.setValue(values[label])
+
+
+class NewSessionDialog(QtGui.QDialog):
+
+    def __init__(self, parent=None):
+        super(NewSessionDialog, self).__init__(parent)
+
+        self.ui = Ui_NewSessionDialog()
+        self.ui.setupUi(self)
+
+    def get_data(self):
+        data = {
+            'pid': self.ui.participantLineEdit.text(),
+            'sid': self.ui.sessionLineEdit.text()
+        }
+        return data
+
+
+class RecordingViewerWidget(QtGui.QWidget):
+
+    def __init__(self, config, parent=None):
+        super(RecordingViewerWidget, self).__init__(parent)
+
+        self.cfg = config
+
+        self.ui = Ui_RecordingViewerWidget()
+        self.ui.setupUi(self)
+
+        self.init_plot()
+        self.init_buttons()
+
+        self.ui.sessionList.currentTextChanged.connect(
+            self.sid_selection_callback)
+
+    def init_plot(self):
+        self.ui.plotWidget.setBackground(None)
+
+    def init_buttons(self):
+        self.ui.nextButton.clicked.connect(self.next_plot_callback)
+        self.ui.previousButton.clicked.connect(self.prev_plot_callback)
+
+    def set_pid(self, pid):
+        self.pid = pid
+        self.ui.sessionList.clear()
+        self.sid_list = filestruct.get_session_list(
+            self.cfg.data_path, self.pid)
+
+        for sid in self.sid_list:
+            item = QtGui.QListWidgetItem(sid, self.ui.sessionList)
+
+    def sid_selection_callback(self, sid):
+        session = processing.Session(self.cfg.data_path, self.pid, sid, None)
+        self.data_list = []
+        for f in session.recording_file_list:
+            rec = processing.Recording(f, self.cfg.post_processor)
+            n_samples, n_channels = rec.raw_data.shape
+            rate = rec.fs_raw
+            t = np.arange(0, n_samples/rate, 1/float(rate))
+            data = rec.raw_data
+            self.data_list.append(
+                (t, data, rec.trial_number, rec.label))
+
+        self.trial_index = 0
+        self.update_num_channels(self.data_list[0][1].shape[1])
+        self.set_data(self.data_list[0])
+
+    def next_plot_callback(self):
+        self.trial_index += 1
+        if self.trial_index == len(self.data_list):
+            self.trial_index = 0
+
+        self.set_data(self.data_list[self.trial_index])
+
+    def prev_plot_callback(self):
+        self.trial_index -= 1
+        if self.trial_index < 0:
+            self.trial_index = len(self.data_list) - 1
+
+        self.set_data(self.data_list[self.trial_index])
+
+    def update_num_channels(self, num_channels):
+        self.ui.plotWidget.clear()
+
+        self.plot_items = []
+        self.plot_data_items = []
+        for i in range(num_channels):
+            plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
+            plot_data_item = plot_item.plot(
+                pen=(i, num_channels), antialias=True)
+
+            plot_item.showAxis('bottom', False)
+            plot_item.showGrid(y=True, alpha=0.5)
+            plot_item.setYRange(-1, 1)
+            plot_item.setMouseEnabled(x=False)
+
+            if i > 0:
+                plot_item.setYLink(self.plot_items[0])
+
+            self.plot_items.append(plot_item)
+            self.plot_data_items.append(plot_data_item)
+
+    def set_data(self, data):
+        t, signals, trial, label = data
+        self.ui.titleLabel.setText("Trial %d, Label %s" % (trial, label))
+        for i, item in enumerate(self.plot_data_items):
+            item.setData(t, signals[:, i])
+

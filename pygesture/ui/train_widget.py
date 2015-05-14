@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/train_widget.ui'
 #
-# Created: Tue May 12 16:05:34 2015
+# Created: Wed May 13 15:30:15 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,8 +73,6 @@ class Ui_TrainWidget(object):
         self.frame.setObjectName(_fromUtf8("frame"))
         self.gridLayout_3 = QtGui.QGridLayout(self.frame)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
-        spacerItem = QtGui.QSpacerItem(17, 85, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_3.addItem(spacerItem, 3, 0, 1, 1)
         self.statusBox = QtGui.QGroupBox(self.frame)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -87,7 +85,7 @@ class Ui_TrainWidget(object):
         self.sessionProgressBar = QtGui.QProgressBar(self.statusBox)
         self.sessionProgressBar.setProperty("value", 24)
         self.sessionProgressBar.setObjectName(_fromUtf8("sessionProgressBar"))
-        self.gridLayout_5.addWidget(self.sessionProgressBar, 0, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.sessionProgressBar, 1, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.startButton = QtGui.QPushButton(self.statusBox)
@@ -101,37 +99,10 @@ class Ui_TrainWidget(object):
         self.pauseButton.setIcon(icon)
         self.pauseButton.setObjectName(_fromUtf8("pauseButton"))
         self.horizontalLayout.addWidget(self.pauseButton)
-        self.gridLayout_5.addLayout(self.horizontalLayout, 1, 0, 1, 1)
-        self.gridLayout_3.addWidget(self.statusBox, 4, 0, 1, 2)
-        self.sessionInfoBox = QtGui.QGroupBox(self.frame)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sessionInfoBox.sizePolicy().hasHeightForWidth())
-        self.sessionInfoBox.setSizePolicy(sizePolicy)
-        self.sessionInfoBox.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.sessionInfoBox.setFlat(False)
-        self.sessionInfoBox.setCheckable(False)
-        self.sessionInfoBox.setObjectName(_fromUtf8("sessionInfoBox"))
-        self.gridLayout_4 = QtGui.QGridLayout(self.sessionInfoBox)
-        self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
-        self.formLayout = QtGui.QFormLayout()
-        self.formLayout.setLabelAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.formLayout.setObjectName(_fromUtf8("formLayout"))
-        self.participantLabel = QtGui.QLabel(self.sessionInfoBox)
-        self.participantLabel.setObjectName(_fromUtf8("participantLabel"))
-        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.participantLabel)
-        self.participantLineEdit = QtGui.QLineEdit(self.sessionInfoBox)
-        self.participantLineEdit.setObjectName(_fromUtf8("participantLineEdit"))
-        self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.participantLineEdit)
-        self.sessionLabel = QtGui.QLabel(self.sessionInfoBox)
-        self.sessionLabel.setObjectName(_fromUtf8("sessionLabel"))
-        self.formLayout.setWidget(1, QtGui.QFormLayout.LabelRole, self.sessionLabel)
-        self.sessionLineEdit = QtGui.QLineEdit(self.sessionInfoBox)
-        self.sessionLineEdit.setObjectName(_fromUtf8("sessionLineEdit"))
-        self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.sessionLineEdit)
-        self.gridLayout_4.addLayout(self.formLayout, 0, 0, 1, 1)
-        self.gridLayout_3.addWidget(self.sessionInfoBox, 2, 0, 1, 1)
+        self.gridLayout_5.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.statusBox, 1, 0, 1, 1)
+        spacerItem = QtGui.QSpacerItem(17, 85, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_3.addItem(spacerItem, 0, 0, 1, 1)
         self.horizontalLayout_2.addWidget(self.frame)
 
         self.retranslateUi(TrainWidget)
@@ -139,12 +110,9 @@ class Ui_TrainWidget(object):
 
     def retranslateUi(self, TrainWidget):
         TrainWidget.setWindowTitle(_translate("TrainWidget", "Form", None))
-        self.statusBox.setTitle(_translate("TrainWidget", "Status", None))
+        self.statusBox.setTitle(_translate("TrainWidget", "Controls", None))
         self.sessionProgressBar.setFormat(_translate("TrainWidget", "Trial: %v / %m", None))
         self.startButton.setText(_translate("TrainWidget", "Start", None))
         self.pauseButton.setText(_translate("TrainWidget", "Pause", None))
-        self.sessionInfoBox.setTitle(_translate("TrainWidget", "Session Info", None))
-        self.participantLabel.setText(_translate("TrainWidget", "Participant:", None))
-        self.sessionLabel.setText(_translate("TrainWidget", "Session:", None))
 
-from pygesture.ui.widgets import GestureView, PromptWidget
+from pygesture.ui.widgets import PromptWidget, GestureView

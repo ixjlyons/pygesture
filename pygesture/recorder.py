@@ -22,7 +22,6 @@ class RecordThread(QtCore.QThread):
         self.continuous = True
         self.triggers_per_record = 0
         self.running = False
-        self.simulation = None
         self.pipeline = None
 
     def run(self):
@@ -43,6 +42,8 @@ class RecordThread(QtCore.QThread):
                 self.prediction_sig.emit(y)
 
             self.update_sig.emit(d)
+
+        self.daq.stop()
 
     def run_fixed(self):
         spr = self.daq.samples_per_read
@@ -71,10 +72,6 @@ class RecordThread(QtCore.QThread):
     def kill(self):
         self.running = False
         self.wait()
-
-    def cleanup(self):
-        if self.simulation is not None:
-            self.simulation.finish()
 
 
 def generate_trial_order(labels, n_repeat):

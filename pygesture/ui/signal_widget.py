@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/signal_widget.ui'
 #
-# Created: Tue May 12 16:08:33 2015
+# Created: Wed May 13 19:42:00 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,32 +33,9 @@ class Ui_SignalWidget(object):
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
-        self.plotWidget = PlotWidget(SignalWidget)
+        self.plotWidget = GraphicsLayoutWidget(SignalWidget)
         self.plotWidget.setObjectName(_fromUtf8("plotWidget"))
         self.horizontalLayout_2.addWidget(self.plotWidget)
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.vPlusButton = QtGui.QPushButton(SignalWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.vPlusButton.sizePolicy().hasHeightForWidth())
-        self.vPlusButton.setSizePolicy(sizePolicy)
-        self.vPlusButton.setMinimumSize(QtCore.QSize(30, 30))
-        self.vPlusButton.setMaximumSize(QtCore.QSize(30, 30))
-        self.vPlusButton.setObjectName(_fromUtf8("vPlusButton"))
-        self.verticalLayout.addWidget(self.vPlusButton)
-        self.vMinusButton = QtGui.QPushButton(SignalWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.vMinusButton.sizePolicy().hasHeightForWidth())
-        self.vMinusButton.setSizePolicy(sizePolicy)
-        self.vMinusButton.setMinimumSize(QtCore.QSize(30, 30))
-        self.vMinusButton.setMaximumSize(QtCore.QSize(30, 30))
-        self.vMinusButton.setObjectName(_fromUtf8("vMinusButton"))
-        self.verticalLayout.addWidget(self.vMinusButton)
-        self.horizontalLayout_2.addLayout(self.verticalLayout)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
@@ -87,6 +64,7 @@ class Ui_SignalWidget(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
         self.groupBox = QtGui.QGroupBox(SignalWidget)
+        self.groupBox.setMinimumSize(QtCore.QSize(200, 0))
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
@@ -110,12 +88,10 @@ class Ui_SignalWidget(object):
 
     def retranslateUi(self, SignalWidget):
         SignalWidget.setWindowTitle(_translate("SignalWidget", "Form", None))
-        self.vPlusButton.setText(_translate("SignalWidget", "+", None))
-        self.vMinusButton.setText(_translate("SignalWidget", "-", None))
         self.hMinusButton.setText(_translate("SignalWidget", "-", None))
         self.hPlusButton.setText(_translate("SignalWidget", "+", None))
         self.groupBox.setTitle(_translate("SignalWidget", "Control", None))
         self.probeButton.setText(_translate("SignalWidget", "Probe", None))
         self.signalButton.setText(_translate("SignalWidget", "Signals", None))
 
-from pyqtgraph import PlotWidget
+from pyqtgraph import GraphicsLayoutWidget

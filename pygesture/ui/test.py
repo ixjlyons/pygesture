@@ -38,7 +38,6 @@ class TestWidget(QtGui.QWidget):
         self.calibration = np.zeros((1, len(self.cfg.channels)))
 
         self.init_record_thread()
-        self.init_pid_list()
         self.init_gesture_view()
 
         self.ui.trainButton.clicked.connect(self.build_pipeline)
@@ -51,7 +50,7 @@ class TestWidget(QtGui.QWidget):
             self.init_simulation()
 
     def init_simulation(self):
-        vrepsim.set_path(self.cfg.vrep_pathm)
+        vrepsim.set_path(self.cfg.vrep_path)
         self.sim_connect_thread = SimulationConnectThread(self.cfg.vrep_port)
         self.sim_connect_thread.finished.connect(
             self.simulation_connected_callback)
@@ -71,16 +70,6 @@ class TestWidget(QtGui.QWidget):
     def init_record_thread(self):
         self.record_thread.set_continuous()
         self.record_thread.prediction_sig.connect(self.prediction_callback)
-
-    def init_pid_list(self):
-        pid_list = filestruct.get_participant_list(self.cfg.data_path)
-        pid_list = [pid for pid in pid_list if pid.startswith('p')]
-        self.pid_list = pid_list
-
-        self.ui.pidComboBox.addItems(self.pid_list)
-        self.ui.pidComboBox.currentIndexChanged.connect(self.set_pid)
-
-        self.set_pid(0)
 
     def init_gesture_view(self):
         self.gesture_images = dict()
@@ -143,8 +132,8 @@ class TestWidget(QtGui.QWidget):
             self.gesture_images[imgkey].scaled(
                 w, h, QtCore.Qt.KeepAspectRatio))
 
-    def set_pid(self, index):
-        self.pid = self.pid_list[index]
+    def set_pid(self, pid):
+        self.pid = pid
         self.ui.trainingList.clear()
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)
