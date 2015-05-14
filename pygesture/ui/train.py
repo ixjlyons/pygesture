@@ -77,8 +77,8 @@ class TrainWidget(QtGui.QWidget):
         self.session = recorder.Session(
             self.cfg.data_path, list(self.cfg.arm_gestures),
             self.cfg.num_repeats)
-        pid = self.ui.participantLineEdit.text()
-        sid = self.ui.sessionLineEdit.text()
+        pid = str(self.ui.participantLineEdit.text())
+        sid = str(self.ui.sessionLineEdit.text())
         if pid == '' or sid == '':
             message = QtGui.QMessageBox().critical(
                 self, "Error", "Input session info before starting.")

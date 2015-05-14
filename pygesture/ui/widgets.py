@@ -173,8 +173,8 @@ class NewSessionDialog(QtGui.QDialog):
 
     def get_data(self):
         data = {
-            'pid': self.ui.participantLineEdit.text(),
-            'sid': self.ui.sessionLineEdit.text()
+            'pid': str(self.ui.participantLineEdit.text()),
+            'sid': str(self.ui.sessionLineEdit.text())
         }
         return data
 
@@ -306,6 +306,7 @@ class RecordingViewerWidget(QtGui.QWidget):
             QtGui.QListWidgetItem(sid, self.ui.sessionList)
 
     def sid_selection_callback(self, sid):
+        sid = str(sid)
         session = processing.Session(self.cfg.data_path, self.pid, sid, None)
         self.data_list = []
         for f in session.recording_file_list:
@@ -399,8 +400,8 @@ class ProcessWidget(QtGui.QWidget):
             QtGui.QListWidgetItem(sid, self.ui.sessionList)
 
     def sid_selection_callback(self, sid):
+        self.sid = str(sid)
         self.ui.processButton.setEnabled(True)
-        self.sid = sid
         try:
             f = filestruct.find_feature_file(
                 self.cfg.data_path, self.pid, self.sid)

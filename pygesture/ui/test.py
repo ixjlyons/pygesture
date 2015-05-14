@@ -142,7 +142,7 @@ class TestWidget(QtGui.QWidget):
         for i in range(self.ui.trainingList.count()):
             item = self.ui.trainingList.item(i)
             if item.checkState():
-                train_list.append(item.text())
+                train_list.append(str(item.text()))
 
         if not train_list:
             QtGui.QMessageBox().critical(
