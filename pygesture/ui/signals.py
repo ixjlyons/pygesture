@@ -28,7 +28,12 @@ class SignalWidget(QtGui.QWidget):
         self.set_mode_callback()
 
     def hideEvent(self, event):
-        self.record_thread.update_sig.disconnect(self.update_plot)
+        try:
+            self.record_thread.update_sig.disconnect(self.update_plot)
+        except TypeError:
+            # thrown if the signal isn't connected yet
+            pass
+
         self.record_thread.kill()
 
     def init_plot(self):

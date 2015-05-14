@@ -1,12 +1,18 @@
 import numpy as np
 
+from sklearn.lda import LDA
+from sklearn import cross_validation
+
 from PyQt4 import QtGui, QtCore
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 
 from pygesture import filestruct
 from pygesture import processing
 
 from pygesture.ui.new_session_dialog import Ui_NewSessionDialog
 from pygesture.ui.recording_viewer_widget import Ui_RecordingViewerWidget
+from pygesture.ui.process_widget import Ui_ProcessWidget
 
 
 class GestureView(QtGui.QLabel):
@@ -261,3 +267,109 @@ class RecordingViewerWidget(QtGui.QWidget):
         for i, item in enumerate(self.plot_data_items):
             item.setData(t, signals[:, i])
 
+
+class ProcessWidget(QtGui.QWidget):
+
+    def __init__(self, config, parent=None):
+        super(ProcessWidget, self).__init__(parent)
+
+        self.cfg = config
+        self.plot_items = []
+
+        self.ui = Ui_ProcessWidget()
+        self.ui.setupUi(self)
+
+        self.init_plot()
+        self.init_layout()
+
+        self.ui.processButton.clicked.connect(self.process_button_callback)
+        self.ui.sessionList.currentTextChanged.connect(
+            self.sid_selection_callback)
+
+    def init_plot(self):
+        self.plotWidget = gl.GLViewWidget()
+        g = gl.GLGridItem()
+        self.plotWidget.addItem(g)
+
+    def init_layout(self):
+        self.ui.verticalLayout.addWidget(self.plotWidget)
+
+    def set_pid(self, pid):
+        self.pid = pid
+        self.ui.sessionList.clear()
+        self.sid_list = filestruct.get_session_list(
+            self.cfg.data_path, self.pid)
+
+        for sid in self.sid_list:
+            item = QtGui.QListWidgetItem(sid, self.ui.sessionList)
+
+    def sid_selection_callback(self, sid):
+        self.ui.processButton.setEnabled(True)
+        self.sid = sid
+        try:
+            f = filestruct.find_feature_file(
+                self.cfg.data_path, self.pid, self.sid)
+            data = processing.read_feature_file_list([f])
+            self.plot_data(*data)
+        except Exception as e:
+            # couldn't find feature file
+            self.clear_plot()
+            return
+
+    def process_button_callback(self):
+        session = processing.Session(
+            self.cfg.data_path, self.pid, self.sid, self.cfg.post_processor)
+        self.processor_thread = SessionProcessorThread(session)
+        self.processor_thread.finished.connect(self.process_finished_callback)
+        self.ui.progressBar.setRange(0, 0)
+        self.ui.processButton.setEnabled(False)
+        self.original_button_text = self.ui.processButton.text()
+        self.ui.processButton.setText("Processing...")
+        self.processor_thread.start()
+
+    def process_finished_callback(self):
+        self.ui.progressBar.setRange(0, 1)
+        self.ui.progressBar.setValue(1)
+        self.ui.processButton.setEnabled(True)
+        self.ui.processButton.setText(self.original_button_text)
+        self.sid_selection_callback(self.sid)
+
+    def plot_data(self, X, y):
+        self.clear_plot()
+
+        # get the simple cross validation score
+        clf = LDA()
+        scores = cross_validation.cross_val_score(clf, X, y, cv=5)
+        score = np.mean(scores)
+        self.ui.titleLabel.setText("Accuracy: %.2f" % score)
+
+        # project the data to 3D for visualization
+        clf = LDA(n_components=3)
+        X_proj = clf.fit(X, y).transform(X)
+
+        labels = sorted(np.unique(y))
+        for i in labels:
+            plot = gl.GLScatterPlotItem(
+                pos=X_proj[y==i], color=pg.glColor(pg.intColor(i)))
+            self.plotWidget.addItem(plot)
+            self.plot_items.append(plot)
+
+    def clear_plot(self):
+        for item in self.plot_items:
+            self.plotWidget.removeItem(item)
+        self.plot_items = []
+        self.ui.titleLabel.setText("Process to View Data")
+
+
+class SessionProcessorThread(QtCore.QThread):
+
+    finished = QtCore.pyqtSignal()
+
+    def __init__(self, session):
+        super(SessionProcessorThread, self).__init__()
+        self.session = session
+
+    def run(self):
+        self.session.process()
+
+        self.finished.emit()

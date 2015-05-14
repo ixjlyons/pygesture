@@ -37,19 +37,26 @@ class PygestureMainWindow(QtGui.QMainWindow):
             self.record_thread.kill()
 
     def init_tabs(self):
-        self.signal_tab = signals.SignalWidget(
-            self.cfg, self.record_thread, parent=self)
-        self.train_tab = train.TrainWidget(
-            self.cfg, self.record_thread, parent=self)
-        self.viewer_tab = widgets.RecordingViewerWidget(
-            self.cfg, parent=self)
-        self.test_tab = test.TestWidget(
-            self.cfg, self.record_thread, parent=self)
+        self.tabs = {
+            "Signals":
+                signals.SignalWidget(
+                    self.cfg, self.record_thread, parent=self),
+            "Train":
+                train.TrainWidget(
+                    self.cfg, self.record_thread, parent=self),
+            "View":
+                widgets.RecordingViewerWidget(
+                    self.cfg, parent=self),
+            "Process":
+                widgets.ProcessWidget(
+                    self.cfg, parent=self),
+            "Test":
+                test.TestWidget(
+                    self.cfg, self.record_thread, parent=self)
+        }
 
-        self.ui.tabWidget.addTab(self.signal_tab, "Signals")
-        self.ui.tabWidget.addTab(self.train_tab, "Train")
-        self.ui.tabWidget.addTab(self.viewer_tab, "View")
-        self.ui.tabWidget.addTab(self.test_tab, "Test")
+        for name in ["Signals", "Train", "View", "Process", "Test"]:
+            self.ui.tabWidget.addTab(self.tabs[name], name)
 
     def show_new_session_dialog(self):
         dialog = widgets.NewSessionDialog(self)
@@ -68,8 +75,9 @@ class PygestureMainWindow(QtGui.QMainWindow):
         self.ui.statusbar.addWidget(
             QtGui.QLabel("pid: %s, sid: %s" % (pid, sid)))
 
-        self.test_tab.set_pid(pid)
-        self.viewer_tab.set_pid(pid)
+        self.tabs['Test'].set_pid(pid)
+        self.tabs['View'].set_pid(pid)
+        self.tabs['Process'].set_pid(pid)
 
 
 def main():

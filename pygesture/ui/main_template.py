@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/main_template.ui'
 #
-# Created: Wed May 13 15:30:15 2015
+# Created: Thu May 14 12:22:34 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,9 +48,6 @@ class Ui_PygestureMainWindow(object):
         self.statusbar = QtGui.QStatusBar(PygestureMainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         PygestureMainWindow.setStatusBar(self.statusbar)
-        self.toolBar = QtGui.QToolBar(PygestureMainWindow)
-        self.toolBar.setObjectName(_fromUtf8("toolBar"))
-        PygestureMainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.actionQuit = QtGui.QAction(PygestureMainWindow)
         icon = QtGui.QIcon.fromTheme(_fromUtf8("application-exit"))
         self.actionQuit.setIcon(icon)
@@ -60,9 +57,9 @@ class Ui_PygestureMainWindow(object):
         self.actionNew.setIcon(icon)
         self.actionNew.setObjectName(_fromUtf8("actionNew"))
         self.menu_File.addAction(self.actionNew)
+        self.menu_File.addSeparator()
         self.menu_File.addAction(self.actionQuit)
         self.menubar.addAction(self.menu_File.menuAction())
-        self.toolBar.addAction(self.actionNew)
 
         self.retranslateUi(PygestureMainWindow)
         self.tabWidget.setCurrentIndex(-1)
@@ -72,7 +69,6 @@ class Ui_PygestureMainWindow(object):
     def retranslateUi(self, PygestureMainWindow):
         PygestureMainWindow.setWindowTitle(_translate("PygestureMainWindow", "PyGesture", None))
         self.menu_File.setTitle(_translate("PygestureMainWindow", "&File", None))
-        self.toolBar.setWindowTitle(_translate("PygestureMainWindow", "toolBar", None))
         self.actionQuit.setText(_translate("PygestureMainWindow", "&Quit", None))
         self.actionNew.setText(_translate("PygestureMainWindow", "&New", None))
         self.actionNew.setShortcut(_translate("PygestureMainWindow", "Ctrl+N", None))

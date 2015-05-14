@@ -30,6 +30,7 @@ UI_TEMPLATES=$(UI_DIR)/calibrationdialog_template.ui \
 			 $(UI_DIR)/signal_dialog_template.ui     \
 			 $(UI_DIR)/signal_widget.ui              \
 			 $(UI_DIR)/recording_viewer_widget.ui    \
+			 $(UI_DIR)/process_widget.ui             \
              $(UI_DIR)/new_session_dialog.ui
 
 .PHONY: ui
