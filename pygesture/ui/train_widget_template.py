@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/train_widget.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/train_widget_template.ui'
 #
-# Created: Wed May 13 15:30:15 2015
+# Created: Thu May 14 14:39:28 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -31,7 +31,7 @@ class Ui_TrainWidget(object):
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.frame_2 = QtGui.QFrame(TrainWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(10)
+        sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
         self.frame_2.setSizePolicy(sizePolicy)
@@ -74,7 +74,7 @@ class Ui_TrainWidget(object):
         self.gridLayout_3 = QtGui.QGridLayout(self.frame)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
         self.statusBox = QtGui.QGroupBox(self.frame)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.statusBox.sizePolicy().hasHeightForWidth())

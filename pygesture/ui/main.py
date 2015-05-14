@@ -1,8 +1,11 @@
+import os
 import sys
 import argparse
+import shutil
 
 from pygesture import config
 from pygesture import recorder
+from pygesture import filestruct
 
 from PyQt4 import QtGui
 
@@ -18,12 +21,16 @@ class PygestureMainWindow(QtGui.QMainWindow):
         super(PygestureMainWindow, self).__init__(parent)
 
         self.cfg = config
+        self.session = None
 
         self.ui = Ui_PygestureMainWindow()
         self.ui.setupUi(self)
 
         self.record_thread = recorder.RecordThread(self.cfg.daq)
         self.init_tabs()
+
+        self.statusbar_label = QtGui.QLabel("not signed in")
+        self.ui.statusbar.addPermanentWidget(self.statusbar_label)
 
         self.ui.actionNew.triggered.connect(self.show_new_session_dialog)
 
@@ -61,22 +68,71 @@ class PygestureMainWindow(QtGui.QMainWindow):
         dialog = widgets.NewSessionDialog(self)
         if dialog.exec_():
             data = dialog.get_data()
-            self.create_session(data['pid'], data['sid'])
+            self.update_session(data)
 
-    def create_session(self, pid, sid):
-        if pid == '' or sid == '':
+    def update_session(self, data):
+        if data['pid'] == '' or data['sid'] == '':
             QtGui.QMessageBox.critical(
                 self,
                 "Error",
                 "Session info incomplete.")
             return
 
-        self.ui.statusbar.addWidget(
-            QtGui.QLabel("pid: %s, sid: %s" % (pid, sid)))
+        self.session = Session(
+            self.cfg.data_path,
+            data['pid'],
+            data['sid'],
+            data['configuration'])
+        try:
+            self.session.init_file_structure()
+        except IOError:
+            message = QtGui.QMessageBox().warning(
+                self,
+                "Warning",
+                "Session directory already exists.\nOverwrite?",
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
 
-        self.tabs['Test'].set_pid(pid)
-        self.tabs['View'].set_pid(pid)
-        self.tabs['Process'].set_pid(pid)
+            if message == QtGui.QMessageBox.No:
+                self.session = None
+                return
+            elif message == QtGui.QMessageBox.Yes:
+                self.session.init_file_structure(force=True)
+
+
+        self.statusbar_label.setText("Session " + str(self.session))
+
+        self.tabs['Test'].set_pid(self.session.pid)
+        self.tabs['View'].set_pid(self.session.pid)
+        self.tabs['Process'].set_pid(self.session.pid)
+
+
+class Session(object):
+
+    def __init__(self, data_path, pid, sid, configuration):
+        self.data_path = data_path
+        self.pid = pid
+        self.sid = sid
+        self.configuration = configuration
+
+    def init_file_structure(self, force=False):
+        session_dir, datestr = filestruct.new_session_dir(
+            self.data_path, self.pid, self.sid)
+
+        if os.path.isdir(session_dir):
+            if force:
+                shutil.rmtree(session_dir)
+            else:
+                raise IOError('Session directory already exists.')
+
+        os.makedirs(session_dir)
+
+        self.datestr = datestr
+        self.session_dir = session_dir
+
+    def __str__(self):
+        return "pid: %s, sid: %s, config: %s" % (
+            self.pid, self.sid, self.configuration
+        )
 
 
 def main():

@@ -18,7 +18,7 @@
     <widget class="QFrame" name="frame_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>10</horstretch>
+       <horstretch>1</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
@@ -53,7 +53,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <zorder>frame</zorder>
        </widget>
       </item>
      </layout>
@@ -92,7 +91,7 @@
       <item row="1" column="0">
        <widget class="QGroupBox" name="statusBox">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -119,7 +118,9 @@
               <string>Start</string>
              </property>
              <property name="icon">
-              <iconset theme="media-playback-start"/>
+              <iconset theme="media-playback-start">
+               <normaloff/>
+              </iconset>
              </property>
             </widget>
            </item>
@@ -132,7 +133,9 @@
               <string>Pause</string>
              </property>
              <property name="icon">
-              <iconset theme="media-playback-pause"/>
+              <iconset theme="media-playback-pause">
+               <normaloff/>
+              </iconset>
              </property>
             </widget>
            </item>

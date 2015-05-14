@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/test_widget_template.ui'
 #
-# Created: Thu May 14 12:36:04 2015
+# Created: Thu May 14 14:39:29 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -42,7 +42,7 @@ class Ui_TestWidget(object):
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.gestureDisplayLabel = GestureView(self.frame_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.gestureDisplayLabel.sizePolicy().hasHeightForWidth())
         self.gestureDisplayLabel.setSizePolicy(sizePolicy)

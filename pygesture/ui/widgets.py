@@ -173,8 +173,12 @@ class NewSessionDialog(QtGui.QDialog):
 
     def get_data(self):
         data = {
-            'pid': str(self.ui.participantLineEdit.text()),
-            'sid': str(self.ui.sessionLineEdit.text())
+            'pid':
+                str(self.ui.participantLineEdit.text()),
+            'sid':
+                str(self.ui.sessionLineEdit.text()),
+            'configuration':
+                str(self.ui.configurationGroup.checkedButton().text())
         }
         return data
 
