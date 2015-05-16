@@ -1,5 +1,6 @@
 import os
 import pkg_resources
+import random
 
 import numpy as np
 import scipy.io.wavfile as siowav
@@ -12,6 +13,11 @@ from pygesture.ui.train_widget_template import Ui_TrainWidget
 
 class TrainWidget(QtGui.QWidget):
 
+    session_started = QtCore.pyqtSignal()
+    session_paused = QtCore.pyqtSignal()
+    session_resumed = QtCore.pyqtSignal()
+    session_finished = QtCore.pyqtSignal()
+
     def __init__(self, config, record_thread, parent=None):
         super(TrainWidget, self).__init__(parent)
         self.cfg = config
@@ -22,16 +28,20 @@ class TrainWidget(QtGui.QWidget):
 
         self.running = False
 
-        self.init_record_thread()
         self.init_gesture_view()
         self.init_gesture_prompt()
         self.init_session_progressbar()
         self.init_buttons()
         self.init_intertrial_timer()
 
+    def showEvent(self, event):
+        self.init_record_thread()
+
     def init_record_thread(self):
         tpr = self.cfg.trial_duration * \
             int(self.cfg.daq.rate / self.cfg.daq.samples_per_read)
+        self.cfg.daq.set_channel_range(
+            (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.set_fixed(triggers_per_record=tpr)
         self.record_thread.finished_sig.connect(self.record_finished)
 
@@ -43,20 +53,17 @@ class TrainWidget(QtGui.QWidget):
             img = QtGui.QPixmap(imgpath)
             self.gesture_images[key] = img
 
-        self.ui.gestureView.resize_signal.connect(self.update_gesture_view)
+        self.update_gesture_view()
 
-    def update_gesture_view(self, event=None, imgkey=0):
-        w = self.ui.gestureView.width()
-        h = self.ui.gestureView.height()
-
-        self.ui.gestureView.setPixmap(self.gesture_images[imgkey].scaled(
-            w, h, QtCore.Qt.KeepAspectRatio))
+    def update_gesture_view(self, imgkey=0):
+        self.ui.gestureView.setPixmap(self.gesture_images[imgkey])
 
     def init_gesture_prompt(self):
         self.ui.promptWidget.ticks = self.cfg.trial_duration
         self.ui.promptWidget.transitions = self.cfg.prompt_times
+        self.ui.promptWidget.setMaximum(1000*self.cfg.trial_duration)
         self.prompt_anim = QtCore.QPropertyAnimation(
-            self.ui.promptWidget, 'value_prop')
+            self.ui.promptWidget, 'value')
         self.prompt_anim.setDuration(1000*self.cfg.trial_duration)
         self.prompt_anim.setStartValue(0)
         self.prompt_anim.setEndValue(1000*self.cfg.trial_duration)
@@ -76,35 +83,16 @@ class TrainWidget(QtGui.QWidget):
         self.intertrial_timer.setSingleShot(True)
         self.intertrial_timer.timeout.connect(self.start_recording)
 
-    def start_session(self):
+    def set_session(self, session):
+        self.base_session = session
         self.session = Session(
-            self.cfg.data_path, list(self.cfg.arm_gestures),
-            self.cfg.num_repeats)
-        pid = str(self.ui.participantLineEdit.text())
-        sid = str(self.ui.sessionLineEdit.text())
-        if pid == '' or sid == '':
-            message = QtGui.QMessageBox().critical(
-                self, "Error", "Input session info before starting.")
-            return
+            session, list(self.cfg.arm_gestures), self.cfg.num_repeats)
 
-        try:
-            self.session.set_ids(pid, sid)
-        except IOError:
-            message = QtGui.QMessageBox().warning(
-                self,
-                "Warning",
-                "Session directory already exists.\nOverwrite?",
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.Cancel)
-
-            if message == QtGui.QMessageBox.Cancel:
-                return
-            elif message == QtGui.QMessageBox.Yes:
-                self.session.overwrite_session()
-
+    def start_session(self):
         self.running = True
         self.ui.startButton.setEnabled(False)
-        self.ui.sessionInfoBox.setEnabled(False)
         self.start_recording()
+        self.session_started.emit()
 
     def start_recording(self):
         trial, gesture = self.session.start_trial()
@@ -133,15 +121,17 @@ class TrainWidget(QtGui.QWidget):
                 self.intertrial_timer.stop()
             self.running = False
             self.ui.pauseButton.setText('Resume')
+            self.session_paused.emit()
         else:
             self.running = True
             self.start_recording()
             self.ui.pauseButton.setText('Pause')
+            self.session_resumed.emit()
 
     def finish_session(self):
         self.running = False
         self.ui.startButton.setEnabled(True)
-        self.ui.sessionInfoBox.setEnabled(True)
+        self.session_finished.emit()
 
 
 def generate_trial_order(labels, n_repeat):
@@ -151,57 +141,36 @@ def generate_trial_order(labels, n_repeat):
 
     Parameters
     ----------
-    labels : list (int)
+    labels : list
         List of trial labels.
     n_repeat : int
         Number of times to repeat each gesture.
+
+    Returns
+    -------
+    new_labels : list
+        List of randomized trials.
     """
-    l = labels * n_repeat
-    random.shuffle(l)
-    return l
+    new_labels = labels * n_repeat
+    random.shuffle(new_labels)
+    return new_labels
 
 
 class Session(object):
 
-    def __init__(self, data_root, labels, n_repeat):
+    def __init__(self, session, labels, n_repeat):
+        self.parent_session = session
+
         self.gesture_order = generate_trial_order(labels, n_repeat)
         self.num_trials = len(self.gesture_order)
         self.current_trial = 0
-        self.data_root = data_root
 
-    def set_ids(self, pid, sid):
-        self.participant_id = pid
-        self.session_id = sid
+        self.init_file_structure()
 
-        try:
-            self.init_file_structure()
-        except IOError:
-            raise
-
-    def init_file_structure(self, force=False):
-        session_dir, date_str = \
-            filestruct.new_session_dir(
-                self.data_root,
-                self.participant_id,
-                self.session_id)
-        recording_dir = filestruct.get_recording_dir(session_dir)
-
-        if os.path.isdir(session_dir):
-            if force:
-                shutil.rmtree(session_dir)
-            else:
-                raise IOError('Session directory already exists.')
-                return
-
-        os.makedirs(session_dir)
-        os.makedirs(recording_dir)
-
-        self.date_str = date_str
-        self.session_dir = session_dir
-        self.recording_dir = recording_dir
-
-    def overwrite_session(self):
-        self.init_file_structure(force=True)
+    def init_file_structure(self):
+        self.recording_dir = filestruct.get_recording_dir(
+            self.parent_session.session_dir)
+        os.makedirs(self.recording_dir)
 
     def start_trial(self):
         self.current_trial += 1
@@ -210,8 +179,12 @@ class Session(object):
 
     def write_recording(self, data, fs):
         rec_file = filestruct.get_recording_file(
-            self.recording_dir, self.participant_id, self.session_id,
-            self.date_str, self.current_trial, self.current_gesture)
+            self.recording_dir,
+            self.parent_session.pid,
+            self.parent_session.sid,
+            self.parent_session.datestr,
+            self.current_trial,
+            self.current_gesture)
 
         data *= 32768
         data = data.astype(np.int16, copy=False)

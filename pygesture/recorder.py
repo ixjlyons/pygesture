@@ -1,10 +1,4 @@
-import os
-import random
-import shutil
-
 import numpy as np
-
-from pygesture import filestruct
 
 from PyQt4 import QtCore
 

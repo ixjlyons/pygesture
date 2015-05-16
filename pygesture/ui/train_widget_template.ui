@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>682</width>
-    <height>334</height>
+    <width>698</width>
+    <height>325</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,26 +29,29 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="GestureView" name="gestureView">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="1" column="0">
+       <widget class="PromptWidget" name="promptWidget">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
         </property>
-        <property name="text">
-         <string/>
+        <property name="value">
+         <number>0</number>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="textVisible">
+         <bool>false</bool>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="PromptWidget" name="promptWidget" native="true">
+      <item row="0" column="0">
+       <widget class="GestureView" name="gestureView" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -89,6 +92,22 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="1" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>17</width>
+          <height>85</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="0">
        <widget class="QGroupBox" name="statusBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -114,6 +133,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <widget class="QPushButton" name="startButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Start</string>
              </property>
@@ -128,6 +153,12 @@
             <widget class="QPushButton" name="pauseButton">
              <property name="enabled">
               <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="text">
               <string>Pause</string>
@@ -144,22 +175,6 @@
         </layout>
        </widget>
       </item>
-      <item row="0" column="0">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>17</width>
-          <height>85</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
     </widget>
    </item>
@@ -167,12 +182,12 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>GestureView</class>
-   <extends>QLabel</extends>
+   <class>PromptWidget</class>
+   <extends>QProgressBar</extends>
    <header>pygesture.ui.widgets</header>
   </customwidget>
   <customwidget>
-   <class>PromptWidget</class>
+   <class>GestureView</class>
    <extends>QWidget</extends>
    <header>pygesture.ui.widgets</header>
    <container>1</container>

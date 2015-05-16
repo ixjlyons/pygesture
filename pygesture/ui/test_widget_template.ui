@@ -30,26 +30,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <widget class="GestureView" name="gestureDisplayLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
+       <widget class="GestureView" name="gestureDisplayLabel" native="true"/>
       </item>
      </layout>
     </widget>
@@ -208,8 +189,9 @@
  <customwidgets>
   <customwidget>
    <class>GestureView</class>
-   <extends>QLabel</extends>
+   <extends>QWidget</extends>
    <header>pygesture.ui.widgets</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

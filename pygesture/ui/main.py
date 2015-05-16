@@ -34,10 +34,6 @@ class PygestureMainWindow(QtGui.QMainWindow):
 
         self.ui.actionNew.triggered.connect(self.show_new_session_dialog)
 
-    def showEvent(self, event):
-        # self.show_new_session_dialog()
-        pass
-
     def closeEvent(self, event):
         if self.record_thread is not None:
             self.record_thread.kill()
@@ -64,6 +60,9 @@ class PygestureMainWindow(QtGui.QMainWindow):
         for name in ["Signals", "Train", "View", "Process", "Test"]:
             self.ui.tabWidget.addTab(self.tabs[name], name)
 
+            if name != "Signals":
+                self.tabs[name].setEnabled(False)
+
     def show_new_session_dialog(self):
         dialog = widgets.NewSessionDialog(self)
         if dialog.exec_():
@@ -71,6 +70,7 @@ class PygestureMainWindow(QtGui.QMainWindow):
             self.update_session(data)
 
     def update_session(self, data):
+        # make sure all info was filled in
         if data['pid'] == '' or data['sid'] == '':
             QtGui.QMessageBox.critical(
                 self,
@@ -83,6 +83,8 @@ class PygestureMainWindow(QtGui.QMainWindow):
             data['pid'],
             data['sid'],
             data['configuration'])
+
+        # if session exists, make sure the user wants to overwrite it
         try:
             self.session.init_file_structure()
         except IOError:
@@ -98,12 +100,13 @@ class PygestureMainWindow(QtGui.QMainWindow):
             elif message == QtGui.QMessageBox.Yes:
                 self.session.init_file_structure(force=True)
 
-
         self.statusbar_label.setText("Session " + str(self.session))
 
-        self.tabs['Test'].set_pid(self.session.pid)
-        self.tabs['View'].set_pid(self.session.pid)
-        self.tabs['Process'].set_pid(self.session.pid)
+        for name, tab in self.tabs.items():
+            tab.setEnabled(True)
+
+            if name in ["Train", "Test", "View", "Process"]:
+                tab.set_session(self.session)
 
 
 class Session(object):

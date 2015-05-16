@@ -1,23 +1,27 @@
 import pkg_resources
 
-from pygesture import filestruct
-from pygesture import processing
-from pygesture import pipeline
-from pygesture import features
-from pygesture.simulation import vrepsim
-
 import numpy as np
 from sklearn.lda import LDA
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-from PyQt4 import QtGui, QtCore
+from pygesture import filestruct
+from pygesture import processing
+from pygesture import pipeline
+from pygesture import features
+from pygesture.simulation import vrepsim
 
+from PyQt4 import QtGui, QtCore
 from pygesture.ui.test_widget_template import Ui_TestWidget
 
 
 class TestWidget(QtGui.QWidget):
+
+    session_started = QtCore.pyqtSignal()
+    session_paused = QtCore.pyqtSignal()
+    session_resumed = QtCore.pyqtSignal()
+    session_finished = QtCore.pyqtSignal()
 
     def __init__(self, config, record_thread, parent=None):
         super(TestWidget, self).__init__(parent)
@@ -42,7 +46,7 @@ class TestWidget(QtGui.QWidget):
         self.ui.startButton.setEnabled(False)
 
     def showEvent(self, event):
-        if self.simulation is None:
+        if self.simulation is None and self.isEnabled():
             self.init_simulation()
 
     def init_simulation(self):
@@ -75,8 +79,7 @@ class TestWidget(QtGui.QWidget):
             img = QtGui.QPixmap(imgpath)
             self.gesture_images[key] = img
 
-        self.ui.gestureDisplayLabel.resize_signal.connect(
-            self.update_gesture_view)
+        self.update_gesture_view()
 
     def init_boosts_dock(self):
         self.ui.boostsDock.hide()
@@ -91,21 +94,17 @@ class TestWidget(QtGui.QWidget):
     def boosts_callback(self, boosts):
         self.cfg.controller.boosts = boosts
 
-    def update_gesture_view(self, event=None):
-        w = self.ui.gestureDisplayLabel.width()
-        h = self.ui.gestureDisplayLabel.height()
-
+    def update_gesture_view(self):
         if self.running:
             imgkey = self.prediction
         else:
             imgkey = 0
 
-        self.ui.gestureDisplayLabel.setPixmap(
-            self.gesture_images[imgkey].scaled(
-                w, h, QtCore.Qt.KeepAspectRatio))
+        self.ui.gestureDisplayLabel.setPixmap(self.gesture_images[imgkey])
 
-    def set_pid(self, pid):
-        self.pid = pid
+    def set_session(self, session):
+        self.parent_session = session
+        self.pid = session.pid
         self.ui.trainingList.clear()
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)
@@ -132,8 +131,10 @@ class TestWidget(QtGui.QWidget):
 
         if starting:
             self.start_running()
+            self.session_started.emit()
         else:
             self.stop_running()
+            self.session_finished.emit()
 
         self.ui.connectButton.setEnabled((not starting))
 

@@ -93,7 +93,8 @@ def get_participant_list(rootdir):
     """
     Obtains a list of the IDs of participants who have data stored.
     """
-    return sorted(os.listdir(rootdir))
+    l = os.listdir(rootdir)
+    return sorted([d for d in l if os.path.isdir(os.path.join(rootdir, d))])
 
 
 def get_session_list(rootdir, pid):

@@ -16,36 +16,56 @@ from pygesture.ui.recording_viewer_template import Ui_RecordingViewerWidget
 from pygesture.ui.process_widget_template import Ui_ProcessWidget
 
 
-class GestureView(QtGui.QLabel):
+class GestureView(QtGui.QWidget):
     """
-    A trivial extension of QLabel so we can connect to resizeEvent.
+    A widget meant to display a QPixmap. It automatically adjusts the size of
+    the image while keeping the aspect ratio constant.
     """
-
-    resize_signal = QtCore.pyqtSignal(QtGui.QResizeEvent)
+    # TODO figure out how to center child QLabel (setAlignment doesn't work)
 
     def __init__(self, parent=None):
-        QtGui.QLabel.__init__(self, parent)
+        super(GestureView, self).__init__(parent)
+
+        self.label = QtGui.QLabel(self)
+        self.label.setScaledContents(True)
+        self.label.setFixedSize(0, 0)
 
     def resizeEvent(self, event=None):
-        self.resize_signal.emit(event)
+        super(GestureView, self).resizeEvent(event)
+        self.resize_image()
+
+    def pixmap(self):
+        return self.label.pixmap()
+
+    def setPixmap(self, pixmap):
+        self.label.setPixmap(pixmap)
+        self.resize_image()
+
+    def resize_image(self):
+        pm = self.label.pixmap()
+        if pm is not None:
+            new_size = pm.size()
+            new_size.scale(self.size(), QtCore.Qt.KeepAspectRatio)
+            self.label.setFixedSize(new_size)
 
 
-class PromptWidget(QtGui.QWidget):
-
-    HEIGHT = 40
-    REST_COLOR = QtGui.QColor(90, 90, 90)
-    CONTRACT_COLOR = QtGui.QColor(150, 80, 80, 150)
+class PromptWidget(QtGui.QProgressBar):
+    """
+    A custom QProgressBar which paints tick marks and a highlight bar over the
+    base bar. The ticks can be used, for instance, for indicating the number
+    of seconds in a trial. The highlight bar can be used to indicate the
+    boundaries of some event during the trial.
+    """
 
     def __init__(self, parent=None):
-        super(PromptWidget, self).__init__()
-        self.setFixedHeight(PromptWidget.HEIGHT)
+        super(PromptWidget, self).__init__(parent)
+
         self.value = 0
         self._ticks = 1
         self.update_tick_labels()
         self._transitions = (0, 1)
 
-        self.tick_font = QtGui.QFont('Serif', 7, QtGui.QFont.Light)
-        self.prompt_font = QtGui.QFont('Serif', 10, QtGui.QFont.Light)
+        self.palette = QtGui.QPalette()
 
     @property
     def ticks(self):
@@ -66,26 +86,20 @@ class PromptWidget(QtGui.QWidget):
         self._transitions = value
         self.repaint()
 
-    def setProgress(self, value):
-        self.value = value
-        self.repaint()
-
-    def getProgress(self):
-        return self.value
-
     def update_tick_labels(self):
         self.tick_labels = [str(i) for i in range(1, int(self._ticks))]
 
-    def paintEvent(self, e):
-        qp = QtGui.QPainter()
-        qp.begin(self)
-        self.draw(qp)
-        qp.end()
+    def paintEvent(self, event):
+        super(PromptWidget, self).paintEvent(event)
+        painter = QtGui.QPainter()
+        painter.begin(self)
+        self.draw_ticks(painter)
+        painter.end()
 
-    def draw(self, qp):
 
-        w = self.size().width()
-        h = self.size().height()
+    def draw_ticks(self, painter):
+        w = self.width()
+        h = self.height()
 
         tick_step = int(round(w / self._ticks))
 
@@ -93,40 +107,37 @@ class PromptWidget(QtGui.QWidget):
         f1 = int(((w / float(self._ticks*1000)) * self._transitions[0]*1000))
         f2 = int(((w / float(self._ticks*1000)) * self._transitions[1]*1000))
 
-        qp.setPen(PromptWidget.REST_COLOR)
-        qp.setBrush(PromptWidget.REST_COLOR)
-        qp.drawRect(0, 0, till, h)
+        # the contract indicator window
+        painter.setPen(QtGui.QColor(0, 0, 0, 0))
+        painter.setBrush(QtGui.QColor(180, 80, 80, 140))
+        painter.drawRect(f1, 0, f2-f1, h)
 
-        qp.setPen(PromptWidget.CONTRACT_COLOR)
-        qp.setBrush(PromptWidget.CONTRACT_COLOR)
-        qp.drawRect(f1, 0, f2-f1, h)
+        painter.setPen(self.palette.color(QtGui.QPalette.Text))
+        painter.setFont(self.font())
 
-        pen = QtGui.QPen(QtGui.QColor(20, 20, 20), 1, QtCore.Qt.SolidLine)
-
-        qp.setPen(pen)
-        qp.setBrush(QtCore.Qt.NoBrush)
-        qp.drawRect(0, 0, w-1, h-1)
-
-        qp.setFont(self.prompt_font)
+        # draw the "contact" and "rest" text
         for t, l in zip(self._transitions, ['contract', 'rest']):
             x = int(((w / float(self._ticks*1000)) * (t*1000.)))
-            metrics = qp.fontMetrics()
+            metrics = painter.fontMetrics()
             fw = metrics.width(l)
-            qp.drawText(x-fw/2, h/2, l)
+            painter.drawText(x-fw/2, h/2, l)
 
-        qp.setFont(self.tick_font)
+        # draw the ticks marking each second
         j = 0
         for i in range(tick_step, self._ticks*tick_step, tick_step):
-            qp.drawLine(i, h-5, i, h)
-            metrics = qp.fontMetrics()
+            painter.drawLine(i, h-5, i, h)
+            metrics = painter.fontMetrics()
             fw = metrics.width(self.tick_labels[j])
-            qp.drawText(i-fw/2, h-7, self.tick_labels[j])
+            painter.drawText(i-fw/2, h-7, self.tick_labels[j])
             j += 1
-
-    value_prop = QtCore.pyqtProperty(float, getProgress, setProgress)
 
 
 class BoostsWidget(QtGui.QWidget):
+    """
+    A set of labels and associated combo boxes. It is meant to provide an
+    interface to the "boosts" parameters of the decision-based velocity ramp
+    controller.
+    """
 
     updated = QtCore.pyqtSignal(dict)
 
@@ -164,6 +175,10 @@ class BoostsWidget(QtGui.QWidget):
 
 
 class NewSessionDialog(QtGui.QDialog):
+    """
+    A very simple QDialog for getting some "log in" type information for a
+    session. Layout comes from a ui file.
+    """
 
     def __init__(self, parent=None):
         super(NewSessionDialog, self).__init__(parent)
@@ -300,8 +315,9 @@ class RecordingViewerWidget(QtGui.QWidget):
         self.ui.nextButton.clicked.connect(self.next_plot_callback)
         self.ui.previousButton.clicked.connect(self.prev_plot_callback)
 
-    def set_pid(self, pid):
-        self.pid = pid
+    def set_session(self, session):
+        self.session = session
+        self.pid = session.pid
         self.ui.sessionList.clear()
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)
@@ -394,8 +410,9 @@ class ProcessWidget(QtGui.QWidget):
     def init_layout(self):
         self.ui.verticalLayout.addWidget(self.plotWidget)
 
-    def set_pid(self, pid):
-        self.pid = pid
+    def set_session(self, session):
+        self.session = session
+        self.pid = session.pid
         self.ui.sessionList.clear()
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)
@@ -462,6 +479,9 @@ class ProcessWidget(QtGui.QWidget):
 
 
 class SessionProcessorThread(QtCore.QThread):
+    """
+    Simple thread for processing a pygesture.processing.Session object.
+    """
 
     finished = QtCore.pyqtSignal()
 
