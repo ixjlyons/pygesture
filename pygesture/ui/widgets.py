@@ -328,6 +328,10 @@ class RecordingViewerWidget(QtGui.QWidget):
     def sid_selection_callback(self, sid):
         sid = str(sid)
         session = processing.Session(self.cfg.data_path, self.pid, sid, None)
+
+        if not session.recording_file_list:
+            return
+
         self.data_list = []
         for f in session.recording_file_list:
             rec = processing.Recording(f, self.cfg.post_processor)

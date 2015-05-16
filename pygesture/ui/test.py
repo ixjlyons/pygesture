@@ -49,6 +49,11 @@ class TestWidget(QtGui.QWidget):
         if self.simulation is None and self.isEnabled():
             self.init_simulation()
 
+        self.init_record_thread()
+
+    def hideEvent(self, event):
+        self.dispose_record_thread()
+
     def init_simulation(self):
         vrepsim.set_path(self.cfg.vrep_path)
         self.sim_connect_thread = SimulationConnectThread(self.cfg.vrep_port)
@@ -70,6 +75,10 @@ class TestWidget(QtGui.QWidget):
     def init_record_thread(self):
         self.record_thread.set_continuous()
         self.record_thread.prediction_sig.connect(self.prediction_callback)
+
+    def dispose_record_thread(self):
+        self.record_thread.prediction_sig.disconnect(self.prediction_callback)
+        self.record_thread.kill()
 
     def init_gesture_view(self):
         self.gesture_images = dict()

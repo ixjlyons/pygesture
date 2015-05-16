@@ -37,6 +37,9 @@ class TrainWidget(QtGui.QWidget):
     def showEvent(self, event):
         self.init_record_thread()
 
+    def hideEvent(self, event):
+        self.dispose_record_thread()
+
     def init_record_thread(self):
         tpr = self.cfg.trial_duration * \
             int(self.cfg.daq.rate / self.cfg.daq.samples_per_read)
@@ -44,6 +47,13 @@ class TrainWidget(QtGui.QWidget):
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.set_fixed(triggers_per_record=tpr)
         self.record_thread.finished_sig.connect(self.record_finished)
+
+    def dispose_record_thread(self):
+        try:
+            self.record_thread.finished_sig.disconnect(self.record_finished)
+        except TypeError:
+            pass
+        self.record_thread.kill()
 
     def init_gesture_view(self):
         self.gesture_images = dict()
