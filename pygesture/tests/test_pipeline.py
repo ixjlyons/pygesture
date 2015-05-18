@@ -1,5 +1,6 @@
 import numpy as np
-from numpy.testing import assert_equal, assert_array_equal
+from numpy.testing import (assert_equal, assert_array_equal,
+                           assert_array_almost_equal)
 
 from pygesture import pipeline
 
@@ -79,10 +80,31 @@ class TestConditioner(object):
 
     def test_2d_downsample(self):
         data = rand_data_2d
-        conditioner = pipeline.Conditioner(3, (10, 450), 1000, 500)
+        conditioner = pipeline.Conditioner(3, (10, 450), 1000, f_down=500)
         out = conditioner.process(data)
 
         assert_equal(int(data.shape[0]/2), out.shape[0])
+
+
+class TestBandpassFilter(object):
+
+    def test_1d_overlap(self):
+        self._do_test(rand_data_1d)
+
+    def test_2d_overlap(self):
+        self._do_test(rand_data_2d)
+
+    def _do_test(self, data):
+        win_length = 10
+        overlap = 5
+        filt = pipeline.BandpassFilter(2, (10, 450), 1000, overlap=overlap)
+
+        data1 = data[0:win_length]
+        data2 = data[win_length-overlap:win_length-overlap+win_length]
+        out1 = filt.process(data1)
+        out2 = filt.process(data2)
+
+        assert_array_almost_equal(out1[-overlap:], out2[:overlap])
 
 
 class TestWindower(object):

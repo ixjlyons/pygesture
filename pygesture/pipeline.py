@@ -157,53 +157,108 @@ class Conditioner(PipelineBlock):
 
     Parameters
     ----------
-    n : int
+    order : int
         Filter order.
-    fc : tuple or list of ints (len=2)
+    f_cut : tuple or list of ints (len=2)
         Cutoff frequencies for the filter, specified in Hz.
-    fs : int
+    f_samp : int
         Signal sampling rate.
-    fd : int, default=None
+    f_down : int, default=None
         Downsampled signal sample rate. Must evenly divide into fs. If not
         specified, the sampling rate is unchanged.
+    overlap : int, default=0
+        Number of samples overlapping between consecutive inputs.
     """
 
-    def __init__(self, order, f_cut, f_samp, f_down=None):
+    def __init__(self, order, f_cut, f_samp, f_down=None, overlap=0):
         super(Conditioner, self).__init__()
-        self.n = order
-        self.fc = f_cut
-        self.fs = f_samp
+
+        self.filter = BandpassFilter(order, f_cut, f_samp, overlap)
 
         if f_down is None:
-            f_down = self.fs
-
-        self.m = int(self.fs/f_down)
-
-        self._build_filter()
-        self.zi = None
-
-    def _build_filter(self):
-        wc = [f / (self.fs/2.0) for f in self.fc]
-        self.b, self.a = signal.butter(self.n, wc, 'bandpass')
+            f_down = f_samp
+        self.m = int(f_samp/f_down)
 
     def process(self, data):
-        if self.zi is None:
-            zi = signal.lfilter_zi(self.b, self.a)
-            self.zi = np.tile(zi, (data.shape[1], 1)).T
-
         data_centered = data - np.mean(data, axis=0)
-        data_filtered, self.zi = signal.lfilter(
-            self.b, self.a, data_centered, axis=0, zi=self.zi)
+        data_filtered = self.filter.process(data_centered)
         data_downsampled = data_filtered[::self.m, :]
         return data_downsampled
 
     def __repr__(self):
-        return "%s.%s(n=%s, fc=%s, fs=%s, m=%s)" % (
+        return "%s.%s(n=%s, fc=%s, fs=%s)" % (
             self.__class__.__module__,
             self.__class__.__name__,
             self.n,
             self.fc,
             self.fs
+        )
+
+
+class BandpassFilter(PipelineBlock):
+    """
+    Bandpass filters incoming data with a Butterworth filter.
+
+    Parameters
+    ----------
+    order : int
+        Filter order.
+    f_cut : tuple or list of ints (len=2)
+        Cutoff frequencies for the filter (f_cut_low, f_cut_high).
+    f_samp : int
+        Sampling rate specified in the same units as the frequencies in f_cut.
+    overlap : int (default=0)
+        Number of samples overlapping in consecutive inputs. Needed for
+        correct filter initial conditions in each filtering operation.
+    """
+
+    def __init__(self, order, f_cut, f_samp, overlap=0):
+        super(BandpassFilter, self).__init__()
+        self.order = order
+        self.f_cut = f_cut
+        self.f_samp = f_samp
+        self.overlap = overlap
+
+        self._build_filter()
+        self.zi = None
+
+    def _build_filter(self):
+        wc = [f / (self.f_samp/2.0) for f in self.f_cut]
+        self.b, self.a = signal.butter(self.order, wc, 'bandpass')
+
+    def process(self, data):
+        if self.zi is None:
+            # initial pass, get ICs from filter coefficients
+            zi = signal.lfilter_zi(self.b, self.a)
+            self.zi = np.tile(zi, (data.shape[1], 1)).T
+        else:
+            # subsequent passes get ICs from previous input/output
+            num_ch = data.shape[1]
+            K = max(len(self.a)-1, len(self.b)-1)
+            self.zi = np.zeros((K, num_ch))
+            # unfortunately we have to get zi channel by channel
+            for c in range(data.shape[1]):
+                self.zi[:, c] = signal.lfiltic(
+                    self.b,
+                    self.a,
+                    self.y_prev[-(self.overlap+1)::-1, c],
+                    self.x_prev[-(self.overlap+1)::-1, c])
+
+        out, zf = signal.lfilter(
+            self.b, self.a, data, axis=0, zi=self.zi)
+
+        self.x_prev = data
+        self.y_prev = out
+        return out
+
+    def __repr__(self):
+        return "%s.%s(order=%s, f_cut=%s, f_samp=%s, overlap=%d)" % (
+            self.__class__.__module___,
+            self.__class__.__name__,
+            self.order,
+            self.f_cut,
+            self.f_samp,
+            self.overlap
         )
 
 
