@@ -6,24 +6,14 @@ pygesture is a collection of code for recording multi-channel EMG for the
 purpose of experimenting with myoelectric gesture recognition.
 
 Currently, a Measurement Computing USB data acquisition unit (USB-1608G) is
-used for obtaining EMG data, though it should be fairly straightforward to use
-other devices if needed.
+used for obtaining EMG data, though it should be fairly straightforward to add
+support for other devices through the `daq` module.
 
-There are basically two types of code here: Qt GUIs for recording data and/or
-playing with real-time gesture recogition and processing code for offline
-analysis. Eventually, I'd like the same data processing code to be used for
-both, but it's not quite there yet.
-
-### GUI program: pygesture
-
-This is "the original" pygesture. It is for prompting the user for a randomly
-selected gesture, recording data for a set amount of time, then writing this
-data directly to disk. That's it.
-
-### GUI program: pygesture-rt
-
-This is an in-development effort for testing real-time gesture recognition with
-a simple feedback interface.
+The top-level code is primarily for handling EMG data -- filtering, feature
+extraction, classification, etc. There is also a Qt GUI for recording data,
+viewing and processing it, and using it for real-time gesture recogition.
+Finally, there is also code for interfacing with
+[v-rep](http://coppeliarobotics.com/) for robot control simulation.
 
 ## Dependencies
 
@@ -31,12 +21,20 @@ The direct dependencies are all Python packages (yay!), though many of them
 have non-Python dependencies. These are the direct dependencies. You will have
 to find out and choose how to install them yourself. I don't know the minimum
 version requirements, but I expect any Linux distro package manager to have
-sufficiently up-to-date versions.
+sufficiently up-to-date versions. Python 2 and 3 should both be supported.
+I work primarily with Python 3, so if something breaks Python 2 support,
+I might not notice immediately.
 
-- [PyQt](http://www.riverbankcomputing.com/software/pyqt/intro) (4 only because
-  of pyqtgraph)
+- [PyQt](http://www.riverbankcomputing.com/software/pyqt/intro): PyQt4 or PyQt5
+  should work (PySide should also work, for that matter), but PyQt5 is what is
+  supported here by default.
 - [scipy and numpy](http://www.scipy.org/)
-- [scikit-learn](http://scikit-learn.sourceforge.net/stable/)
+- [scikit-learn](http://scikit-learn.org/stable/)
 - [matplotlib](http://matplotlib.org/)
-- [pyqtgraph](http://pyqtgraph.org/)
-- [pydaqflex](https://github.com/torfbolt/PyDAQFlex)
+- [pyqtgraph](http://pyqtgraph.org/): Install from the git repo to use PyQt5,
+  as PyQt5 support is fairly new. Otherwise, the current stable release should
+  be fine. The 3D plotting features are used in the main GUI (this should
+  eventually be optional), so do follow instructions for pyopengl etc.
+- [pydaqflex](https://github.com/torfbolt/PyDAQFlex): You don't have to
+  explicitly install this one, `setup.py` should handle it and its
+  dependencies.

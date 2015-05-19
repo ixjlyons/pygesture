@@ -2,60 +2,45 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/main_template.ui'
 #
-# Created: Thu May 14 12:22:34 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt5 UI code generator 5.4.1
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_PygestureMainWindow(object):
     def setupUi(self, PygestureMainWindow):
-        PygestureMainWindow.setObjectName(_fromUtf8("PygestureMainWindow"))
+        PygestureMainWindow.setObjectName("PygestureMainWindow")
         PygestureMainWindow.resize(1004, 652)
-        PygestureMainWindow.setStyleSheet(_fromUtf8(""))
-        self.centralwidget = QtGui.QWidget(PygestureMainWindow)
-        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.gridLayout = QtGui.QGridLayout(self.centralwidget)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.tabWidget = QtGui.QTabWidget(self.centralwidget)
-        self.tabWidget.setStyleSheet(_fromUtf8(""))
-        self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
-        self.tabWidget.setTabShape(QtGui.QTabWidget.Rounded)
-        self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
+        PygestureMainWindow.setStyleSheet("")
+        self.centralwidget = QtWidgets.QWidget(PygestureMainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
+        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabWidget.setStyleSheet("")
+        self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
+        self.tabWidget.setObjectName("tabWidget")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
         PygestureMainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(PygestureMainWindow)
+        self.menubar = QtWidgets.QMenuBar(PygestureMainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1004, 27))
-        self.menubar.setObjectName(_fromUtf8("menubar"))
-        self.menu_File = QtGui.QMenu(self.menubar)
-        self.menu_File.setObjectName(_fromUtf8("menu_File"))
+        self.menubar.setObjectName("menubar")
+        self.menu_File = QtWidgets.QMenu(self.menubar)
+        self.menu_File.setObjectName("menu_File")
         PygestureMainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(PygestureMainWindow)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
+        self.statusbar = QtWidgets.QStatusBar(PygestureMainWindow)
+        self.statusbar.setObjectName("statusbar")
         PygestureMainWindow.setStatusBar(self.statusbar)
-        self.actionQuit = QtGui.QAction(PygestureMainWindow)
-        icon = QtGui.QIcon.fromTheme(_fromUtf8("application-exit"))
+        self.actionQuit = QtWidgets.QAction(PygestureMainWindow)
+        icon = QtGui.QIcon.fromTheme("application-exit")
         self.actionQuit.setIcon(icon)
-        self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
-        self.actionNew = QtGui.QAction(PygestureMainWindow)
-        icon = QtGui.QIcon.fromTheme(_fromUtf8("document-new"))
+        self.actionQuit.setObjectName("actionQuit")
+        self.actionNew = QtWidgets.QAction(PygestureMainWindow)
+        icon = QtGui.QIcon.fromTheme("document-new")
         self.actionNew.setIcon(icon)
-        self.actionNew.setObjectName(_fromUtf8("actionNew"))
+        self.actionNew.setObjectName("actionNew")
         self.menu_File.addAction(self.actionNew)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.actionQuit)
@@ -63,13 +48,14 @@ class Ui_PygestureMainWindow(object):
 
         self.retranslateUi(PygestureMainWindow)
         self.tabWidget.setCurrentIndex(-1)
-        QtCore.QObject.connect(self.actionQuit, QtCore.SIGNAL(_fromUtf8("triggered()")), PygestureMainWindow.close)
+        self.actionQuit.triggered.connect(PygestureMainWindow.close)
         QtCore.QMetaObject.connectSlotsByName(PygestureMainWindow)
 
     def retranslateUi(self, PygestureMainWindow):
-        PygestureMainWindow.setWindowTitle(_translate("PygestureMainWindow", "PyGesture", None))
-        self.menu_File.setTitle(_translate("PygestureMainWindow", "&File", None))
-        self.actionQuit.setText(_translate("PygestureMainWindow", "&Quit", None))
-        self.actionNew.setText(_translate("PygestureMainWindow", "&New", None))
-        self.actionNew.setShortcut(_translate("PygestureMainWindow", "Ctrl+N", None))
+        _translate = QtCore.QCoreApplication.translate
+        PygestureMainWindow.setWindowTitle(_translate("PygestureMainWindow", "PyGesture"))
+        self.menu_File.setTitle(_translate("PygestureMainWindow", "&File"))
+        self.actionQuit.setText(_translate("PygestureMainWindow", "&Quit"))
+        self.actionNew.setText(_translate("PygestureMainWindow", "&New"))
+        self.actionNew.setShortcut(_translate("PygestureMainWindow", "Ctrl+N"))
 

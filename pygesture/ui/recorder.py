@@ -1,6 +1,6 @@
 import numpy as np
 
-from PyQt4 import QtCore
+from pygesture.ui.qt import QtCore
 
 
 class RecordThread(QtCore.QThread):

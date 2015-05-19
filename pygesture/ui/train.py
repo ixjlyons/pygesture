@@ -7,7 +7,7 @@ import scipy.io.wavfile as siowav
 
 from pygesture import filestruct
 
-from PyQt4 import QtGui, QtCore
+from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.train_widget_template import Ui_TrainWidget
 
 

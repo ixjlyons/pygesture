@@ -12,7 +12,7 @@ from pygesture import pipeline
 from pygesture import features
 from pygesture.simulation import vrepsim
 
-from PyQt4 import QtGui, QtCore
+from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.test_widget_template import Ui_TestWidget
 
 

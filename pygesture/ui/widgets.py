@@ -3,17 +3,17 @@ import numpy as np
 from sklearn.lda import LDA
 from sklearn import cross_validation
 
-from PyQt4 import QtGui, QtCore
-import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-
 from pygesture import filestruct
 from pygesture import processing
 
+from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.signal_widget_template import Ui_SignalWidget
 from pygesture.ui.new_session_template import Ui_NewSessionDialog
 from pygesture.ui.recording_viewer_template import Ui_RecordingViewerWidget
 from pygesture.ui.process_widget_template import Ui_ProcessWidget
+
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 
 
 class GestureView(QtGui.QWidget):

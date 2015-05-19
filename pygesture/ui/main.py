@@ -4,12 +4,12 @@ import argparse
 import shutil
 
 from pygesture import config
-from pygesture import recorder
 from pygesture import filestruct
 
-from PyQt4 import QtGui
+from pygesture.ui.qt import QtGui
 
 from pygesture.ui.main_template import Ui_PygestureMainWindow
+from pygesture.ui import recorder
 from pygesture.ui import train
 from pygesture.ui import test
 from pygesture.ui import widgets

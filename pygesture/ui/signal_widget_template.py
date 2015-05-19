@@ -2,46 +2,31 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/signal_widget_template.ui'
 #
-# Created: Thu May 14 12:33:43 2015
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt5 UI code generator 5.4.1
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_SignalWidget(object):
     def setupUi(self, SignalWidget):
-        SignalWidget.setObjectName(_fromUtf8("SignalWidget"))
+        SignalWidget.setObjectName("SignalWidget")
         SignalWidget.resize(650, 511)
-        self.gridLayout = QtGui.QGridLayout(SignalWidget)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.verticalLayout_2 = QtGui.QVBoxLayout()
-        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
-        self.horizontalLayout_2 = QtGui.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        self.gridLayout = QtWidgets.QGridLayout(SignalWidget)
+        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.plotWidget = GraphicsLayoutWidget(SignalWidget)
-        self.plotWidget.setObjectName(_fromUtf8("plotWidget"))
+        self.plotWidget.setObjectName("plotWidget")
         self.horizontalLayout_2.addWidget(self.plotWidget)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
-        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.hMinusButton = QtGui.QPushButton(SignalWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.hMinusButton = QtWidgets.QPushButton(SignalWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.hMinusButton.sizePolicy().hasHeightForWidth())
@@ -49,37 +34,37 @@ class Ui_SignalWidget(object):
         self.hMinusButton.setMinimumSize(QtCore.QSize(30, 30))
         self.hMinusButton.setMaximumSize(QtCore.QSize(30, 30))
         self.hMinusButton.setFlat(False)
-        self.hMinusButton.setObjectName(_fromUtf8("hMinusButton"))
+        self.hMinusButton.setObjectName("hMinusButton")
         self.horizontalLayout.addWidget(self.hMinusButton)
-        self.hPlusButton = QtGui.QPushButton(SignalWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        self.hPlusButton = QtWidgets.QPushButton(SignalWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.hPlusButton.sizePolicy().hasHeightForWidth())
         self.hPlusButton.setSizePolicy(sizePolicy)
         self.hPlusButton.setMinimumSize(QtCore.QSize(30, 30))
         self.hPlusButton.setMaximumSize(QtCore.QSize(30, 30))
-        self.hPlusButton.setObjectName(_fromUtf8("hPlusButton"))
+        self.hPlusButton.setObjectName("hPlusButton")
         self.horizontalLayout.addWidget(self.hPlusButton)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
-        self.groupBox = QtGui.QGroupBox(SignalWidget)
+        self.groupBox = QtWidgets.QGroupBox(SignalWidget)
         self.groupBox.setMinimumSize(QtCore.QSize(200, 0))
-        self.groupBox.setObjectName(_fromUtf8("groupBox"))
-        self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox)
-        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
-        self.probeButton = QtGui.QRadioButton(self.groupBox)
+        self.groupBox.setObjectName("groupBox")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.probeButton = QtWidgets.QRadioButton(self.groupBox)
         self.probeButton.setChecked(True)
-        self.probeButton.setObjectName(_fromUtf8("probeButton"))
-        self.buttonGroup = QtGui.QButtonGroup(SignalWidget)
-        self.buttonGroup.setObjectName(_fromUtf8("buttonGroup"))
+        self.probeButton.setObjectName("probeButton")
+        self.buttonGroup = QtWidgets.QButtonGroup(SignalWidget)
+        self.buttonGroup.setObjectName("buttonGroup")
         self.buttonGroup.addButton(self.probeButton)
         self.verticalLayout_3.addWidget(self.probeButton)
-        self.signalButton = QtGui.QRadioButton(self.groupBox)
-        self.signalButton.setObjectName(_fromUtf8("signalButton"))
+        self.signalButton = QtWidgets.QRadioButton(self.groupBox)
+        self.signalButton.setObjectName("signalButton")
         self.buttonGroup.addButton(self.signalButton)
         self.verticalLayout_3.addWidget(self.signalButton)
-        spacerItem = QtGui.QSpacerItem(20, 400, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 400, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem)
         self.gridLayout.addWidget(self.groupBox, 0, 1, 1, 1)
 
@@ -87,11 +72,12 @@ class Ui_SignalWidget(object):
         QtCore.QMetaObject.connectSlotsByName(SignalWidget)
 
     def retranslateUi(self, SignalWidget):
-        SignalWidget.setWindowTitle(_translate("SignalWidget", "Form", None))
-        self.hMinusButton.setText(_translate("SignalWidget", "-", None))
-        self.hPlusButton.setText(_translate("SignalWidget", "+", None))
-        self.groupBox.setTitle(_translate("SignalWidget", "Control", None))
-        self.probeButton.setText(_translate("SignalWidget", "Probe", None))
-        self.signalButton.setText(_translate("SignalWidget", "Signals", None))
+        _translate = QtCore.QCoreApplication.translate
+        SignalWidget.setWindowTitle(_translate("SignalWidget", "Form"))
+        self.hMinusButton.setText(_translate("SignalWidget", "-"))
+        self.hPlusButton.setText(_translate("SignalWidget", "+"))
+        self.groupBox.setTitle(_translate("SignalWidget", "Control"))
+        self.probeButton.setText(_translate("SignalWidget", "Probe"))
+        self.signalButton.setText(_translate("SignalWidget", "Signals"))
 
 from pyqtgraph import GraphicsLayoutWidget

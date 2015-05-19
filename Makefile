@@ -18,7 +18,7 @@ lint:
 		examples/process
 
 
-PYUIC=pyuic4
+PYUIC=pyuic5
 UI_DIR=pygesture/ui
 UI_TEMPLATES=$(UI_DIR)/main_template.ui              \
 			 $(UI_DIR)/train_widget_template.ui      \
