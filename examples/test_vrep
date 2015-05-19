@@ -59,12 +59,12 @@ ref_robot = vrepsim.IRB140Arm(
 ref_robot.command(target_action)
 time.sleep(1)
 
+robot.set_tolerance(30)
 check_signal(opmode=vrep.simx_opmode_streaming)
 controller = cfg.controller
-update_ms = cfg.daq.samples_per_read / cfg.daq.rate
 for label in input_sequence:
     robot.command(controller.process((1, label)))
     check_signal()
-    time.sleep(update_ms)
+    time.sleep(0.25)
 
 sim.finish()

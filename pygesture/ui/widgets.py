@@ -96,14 +96,12 @@ class PromptWidget(QtGui.QProgressBar):
         self.draw_ticks(painter)
         painter.end()
 
-
     def draw_ticks(self, painter):
         w = self.width()
         h = self.height()
 
         tick_step = int(round(w / self._ticks))
 
-        till = int(((w / float(self._ticks*1000)) * self.value))
         f1 = int(((w / float(self._ticks*1000)) * self._transitions[0]*1000))
         f2 = int(((w / float(self._ticks*1000)) * self._transitions[1]*1000))
 

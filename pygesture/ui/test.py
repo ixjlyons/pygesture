@@ -1,3 +1,4 @@
+import time
 import pkg_resources
 
 import numpy as np
@@ -37,7 +38,6 @@ class TestWidget(QtGui.QWidget):
         self.prediction = 0
         self.calibration = np.zeros((1, len(self.cfg.channels)))
 
-        self.init_record_thread()
         self.init_gesture_view()
 
         self.ui.trainButton.clicked.connect(self.build_pipeline)
@@ -74,10 +74,13 @@ class TestWidget(QtGui.QWidget):
 
     def init_record_thread(self):
         self.record_thread.set_continuous()
+        self.cfg.daq.set_channel_range(
+            (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.prediction_sig.connect(self.prediction_callback)
 
     def dispose_record_thread(self):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
+        self.record_thread.pipeline = None
         self.record_thread.kill()
 
     def init_gesture_view(self):
@@ -112,6 +115,9 @@ class TestWidget(QtGui.QWidget):
         self.ui.gestureDisplayLabel.setPixmap(self.gesture_images[imgkey])
 
     def set_session(self, session):
+        if self.simulation is None:
+            self.init_simulation()
+
         self.parent_session = session
         self.pid = session.pid
         self.ui.trainingList.clear()
@@ -121,6 +127,8 @@ class TestWidget(QtGui.QWidget):
             item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
+
+        self.logger = Logger()
 
     def toggle_connect_callback(self):
         starting = self.ui.connectButton.isChecked()
@@ -233,16 +241,37 @@ class TestWidget(QtGui.QWidget):
         self.running = False
         self.prediction = 0
         self.update_gesture_view()
+        self.logger.finish()
 
     def prediction_callback(self, prediction):
         if not self.running:
             return
 
         self.prediction = prediction[1]
+        self.logger.log(self.prediction)
+
         if self.robot is not None:
             commands = self.cfg.controller.process(prediction)
             self.robot.command(commands)
+
         self.update_gesture_view()
+
+
+class Logger(object):
+
+    def __init__(self):
+        self.started = False
+
+    def log(self, prediction):
+        if not self.started:
+            self.start_timestamp = time.time()
+            self.started = True
+
+        ts = time.time() - self.start_timestamp
+        print("%.4f\t%d" % (ts, prediction))
+
+    def finish(self):
+        self.started = False
 
 
 class SimulationConnectThread(QtCore.QThread):

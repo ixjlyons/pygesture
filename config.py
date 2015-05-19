@@ -22,7 +22,7 @@ input_range = 2
 # length of sliding window [s]
 window_length = 0.250
 # amount of overlap between adjacent windows [s]
-window_overlap = 0
+window_overlap = 0.125
 
 # sensor mappings
 # channel_number : (

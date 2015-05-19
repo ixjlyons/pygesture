@@ -129,6 +129,19 @@ class IRB140Arm(object):
                     self.joints['BarrettHand'] = j
                     self.pose['BarrettHand'] = j.initial_position
 
+    def set_tolerance(self, tolerance):
+        """
+        Sets the tolerance of pose checking.
+
+        Parameters
+        ----------
+        tolerance : float
+            Tolerance in degrees.
+        """
+        vrep.simxSetFloatSignal(
+            self.clientId, 'tolerance', math.radians(tolerance),
+            vrep.simx_opmode_oneshot_wait)
+
     def command(self, action):
         """
         Commands the arm to perform an action. The action can be a number of

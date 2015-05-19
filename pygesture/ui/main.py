@@ -57,11 +57,25 @@ class PygestureMainWindow(QtGui.QMainWindow):
                     self.cfg, self.record_thread, parent=self)
         }
 
-        for name in ["Signals", "Train", "View", "Process", "Test"]:
+        self.tab_order = ["Signals", "Train", "View", "Process", "Test"]
+
+        for name in self.tab_order:
             self.ui.tabWidget.addTab(self.tabs[name], name)
 
             if name != "Signals":
                 self.tabs[name].setEnabled(False)
+
+            if name in ["Train", "Test"]:
+                self.tabs[name].session_started.connect(self.disable_tabbar)
+                self.tabs[name].session_paused.connect(self.enable_tabbar)
+                self.tabs[name].session_resumed.connect(self.disable_tabbar)
+                self.tabs[name].session_finished.connect(self.enable_tabbar)
+
+    def disable_tabbar(self):
+        self.ui.tabWidget.tabBar().setEnabled(False)
+
+    def enable_tabbar(self):
+        self.ui.tabWidget.tabBar().setEnabled(True)
 
     def show_new_session_dialog(self):
         dialog = widgets.NewSessionDialog(self)
