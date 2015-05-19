@@ -45,11 +45,12 @@ def check_signal(opmode=None):
 target_action = {
     'elbow-extension': 75,
     'forearm-supination': 75,
-    'wrist-extension': 75
+    'wrist-extension': 75,
+    'closed-fist': 50
 }
 
 input_sequence = \
-    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [0]*10 + [5]*3 + [0]*10
+    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [1]*10 + [5]*8 + [0]*10
 
 robot = vrepsim.IRB140Arm(sim.clientId)
 ref_robot = vrepsim.IRB140Arm(

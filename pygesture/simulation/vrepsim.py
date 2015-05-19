@@ -120,9 +120,14 @@ class IRB140Arm(object):
                     self.joints[basename] = j
                     self.pose[basename] = j.initial_position
 
-                elif 'BarrettHand' in name:
-                    self.joints['BarrettHand'] = BarrettHand(
-                        self.clientId, suffix=self.suffix)
+                elif 'BarrettHand_jointB_0' in name:
+                    j = BarrettHand(
+                        self.clientId,
+                        handle,
+                        suffix=self.suffix,
+                        position_controlled=self.position_controlled)
+                    self.joints['BarrettHand'] = j
+                    self.pose['BarrettHand'] = j.initial_position
 
     def command(self, action):
         """
@@ -134,7 +139,7 @@ class IRB140Arm(object):
         velocity (see `IRB140Arm.joint_map`). All other actions will be turned
         off.
 
-        Ohterwise, you can specify a dictionary with action names (str) as
+        Otherwise, you can specify a dictionary with action names (str) as
         keys and velocity multipliers as values. If contradictory actions (e.g.
         elbow flexion and elbow extension) are specified, the velocities will
         be summed.
@@ -227,24 +232,55 @@ class Joint(object):
 
 class BarrettHand(object):
 
-    def __init__(self, clientId, suffix='', position_controlled=False):
+    def __init__(self, clientId, handle, suffix='', position_controlled=False):
+        # handle is needed for at least one MCP joint to get position
         self.clientId = clientId
+        self.handle = handle
         self.suffix = suffix
         self.position_controlled = position_controlled
         self.velocity = 0
         self.position = 0
 
-        self.signal_name = 'BarrettHand' + self.suffix + '_velocity'
+        self.initial_position = self._get_position(
+            opmode=vrep.simx_opmode_oneshot_wait)
+
+        if position_controlled:
+            self._get_position(opmode=vrep.simx_opmode_streaming)
+            append = '_position'
+        else:
+            append = '_velocity'
+        self.signal_name = 'BarrettHand' + self.suffix + append
 
     def update(self, opmode=None):
         if opmode is None:
             opmode = vrep.simx_opmode_oneshot
 
+        if self.position_controlled:
+            param = self.position
+        else:
+            param = self.velocity
+
         res = vrep.simxSetFloatSignal(
-            self.clientId, self.signal_name, self.velocity, opmode)
+            self.clientId, self.signal_name, param, opmode)
 
         if opmode == vrep.simx_opmode_oneshot_wait:
             _validate(res)
+
+        if not self.position_controlled:
+            self.position = self._get_position(
+                opmode=vrep.simx_opmode_buffer)
+
+    def _get_position(self, opmode=None):
+        if opmode is None:
+            opmode = vrep.simx_opmode_oneshot
+
+        res, pos = vrep.simxGetJointPosition(
+            self.clientId, self.handle, opmode)
+
+        if opmode == vrep.simx_opmode_oneshot_wait:
+            _validate(res)
+
+        return pos
 
 
 def _validate(res):
