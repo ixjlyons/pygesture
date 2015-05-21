@@ -23,8 +23,7 @@ config_options = [
     "leg_gestures",
     "vrep_actions",
     "controller",
-    "results_sid_arm",
-    "results_sid_leg"
+    "dofs"
 ]
 
 

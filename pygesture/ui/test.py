@@ -1,4 +1,5 @@
 import time
+import json
 import pkg_resources
 
 import numpy as np
@@ -11,6 +12,7 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
+from pygesture import experiment
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore
@@ -28,6 +30,9 @@ class TestWidget(QtGui.QWidget):
         super(TestWidget, self).__init__(parent)
         self.cfg = config
         self.record_thread = record_thread
+
+        session = experiment.TACSession(
+            self.cfg.dofs, simultaneous=2, n_repeat=1)
 
         self.ui = Ui_TestWidget()
         self.ui.setupUi(self)
@@ -93,19 +98,6 @@ class TestWidget(QtGui.QWidget):
 
         self.update_gesture_view()
 
-    def init_boosts_dock(self):
-        self.ui.boostsDock.hide()
-        # sorry for the hackage, need a list of (label, 'abbrv') tuples sorted
-        # by label to easily change the controller {label: boost} dict
-        d = self.cfg.arm_gestures
-        labels = [(l, d[l][0]) for l in sorted(d)]
-
-        self.ui.boostsWidget.set_mapping(labels, limits=(0, 1000), init=1)
-        self.ui.boostsWidget.updated.connect(self.boosts_callback)
-
-    def boosts_callback(self, boosts):
-        self.cfg.controller.boosts = boosts
-
     def update_gesture_view(self):
         if self.running:
             imgkey = self.prediction
@@ -136,6 +128,7 @@ class TestWidget(QtGui.QWidget):
         if starting:
             self.simulation.start()
             self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
+            self.target_robot = vrepsim.IRB140
         else:
             self.robot.stop()
             self.simulation.stop()
@@ -193,7 +186,6 @@ class TestWidget(QtGui.QWidget):
             mav_avg = np.mean(X[y == label, :], axis=1)
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
-        # self.ui.boostsWidget.set_values(boosts)
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -248,11 +240,12 @@ class TestWidget(QtGui.QWidget):
             return
 
         self.prediction = prediction[1]
-        self.logger.log(self.prediction)
 
         if self.robot is not None:
             commands = self.cfg.controller.process(prediction)
             self.robot.command(commands)
+
+            self.logger.log(self.prediction, self.robot.pose)
 
         self.update_gesture_view()
 
@@ -262,16 +255,42 @@ class Logger(object):
     def __init__(self):
         self.started = False
 
-    def log(self, prediction):
+        self.active_classes = [
+            'example',
+            'another'
+        ]
+
+        self.target_pose = {
+            'example': 70,
+            'another': 70
+        }
+
+        self.trial_data = {
+            'timestamp': [],
+            'prediction': [],
+            'pose': []
+        }
+
+    def log(self, prediction, pose):
         if not self.started:
             self.start_timestamp = time.time()
             self.started = True
 
         ts = time.time() - self.start_timestamp
-        print("%.4f\t%d" % (ts, prediction))
+
+        self.trial_data['timestamp'].append(ts)
+        self.trial_data['prediction'].append(prediction)
+        self.trial_data['pose'].append(pose)
 
     def finish(self):
         self.started = False
+
+        data = dict(
+            active_classes=self.active_classes,
+            trial_data=self.trial_data,
+            target_pose=self.target_pose
+        )
+        print(json.dumps(data, indent=4))
 
 
 class SimulationConnectThread(QtCore.QThread):

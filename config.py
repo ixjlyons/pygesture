@@ -60,44 +60,55 @@ sensors = {
 # label : (
 #     ('arm_abbrv', 'arm_description'),
 #     ('leg_abbrv', 'leg_description'),
-#     'simulation_action' )
+#     'simulation_action',
+#     dof)
+# }
 gestures = {
     0: (
         ('NC', 'no-contraction'),
         ('NC', 'no-contraction'),
-        'no-contraction'),
+        'no-contraction',
+        -1),
     1: (
         ('CF', 'closed-fist'),
         ('TF', 'toe-flexion'),
-        'closed-fist'),
+        'closed-fist',
+        0),
     2: (
         ('FP', 'forearm-pronation'),
         ('FE', 'foot-eversion'),
-        'forearm-pronation'),
+        'forearm-pronation',
+        1),
     3: (
         ('FS', 'forearm-supination'),
         ('FI', 'foot-inversion'),
-        'forearm-supination'),
+        'forearm-supination',
+        1),
     4: (
         ('OH', 'open-hand'),
         ('TE', 'toe-extension'),
-        'open-hand'),
+        'open-hand',
+        0),
     5: (
         ('RD', 'radial-deviation'),
         ('AD', 'foot-adduction'),
-        'elbow-flexion'),
+        'elbow-flexion',
+        2),
     7: (
         ('UD', 'ulnar-deviation'),
         ('AB', 'foot-abduction'),
-        'elbow-extension'),
+        'elbow-extension',
+        2),
     8: (
         ('WE', 'wrist-extension'),
         ('DF', 'dorsiflexion'),
-        'wrist-extension'),
+        'wrist-extension',
+        3),
     9: (
         ('WF', 'wrist-flexion'),
         ('PF', 'plantarflexion'),
-        'wrist-flexion')
+        'wrist-flexion',
+        3)
 }
 
 """
@@ -173,7 +184,6 @@ post_processor = processing.Processor(
     gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
 )
 
-
 # gesture mappings
 # label: ('abbrv', 'description')
 arm_gestures = {key: val[0] for (key, val) in gestures.items()}
@@ -189,5 +199,6 @@ controller = control.DBVRController(
     boosts=0.5
 )
 
-results_sid_arm = ['arm1', 'arm2', 'arm3', 'arm4']
-results_sid_leg = ['leg1', 'leg2', 'leg3', 'leg4']
+# DOF mapping
+# 'action': DOF
+dofs = {val[2]: val[3] for (key, val) in gestures.items() if val[3] != -1}
