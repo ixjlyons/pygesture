@@ -4,6 +4,7 @@ from pygesture import features
 from pygesture import processing
 from pygesture import daq
 from pygesture import control
+from pygesture import experiment
 
 """
 some things for local use
@@ -78,12 +79,12 @@ gestures = {
         ('FP', 'forearm-pronation'),
         ('FE', 'foot-eversion'),
         'forearm-pronation',
-        1),
+        2),
     3: (
         ('FS', 'forearm-supination'),
         ('FI', 'foot-inversion'),
         'forearm-supination',
-        1),
+        2),
     4: (
         ('OH', 'open-hand'),
         ('TE', 'toe-extension'),
@@ -93,22 +94,33 @@ gestures = {
         ('RD', 'radial-deviation'),
         ('AD', 'foot-adduction'),
         'elbow-flexion',
-        2),
+        3),
     7: (
         ('UD', 'ulnar-deviation'),
         ('AB', 'foot-abduction'),
         'elbow-extension',
-        2),
+        3),
     8: (
         ('WE', 'wrist-extension'),
         ('DF', 'dorsiflexion'),
         'wrist-extension',
-        3),
+        1),
     9: (
         ('WF', 'wrist-flexion'),
         ('PF', 'plantarflexion'),
         'wrist-flexion',
-        3)
+        1)
+}
+
+# {'gesture': dof}
+dofs3a = {
+    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 2]
+}
+dofs3b = {
+    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 3]
+}
+dofs4 = {
+    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 2, 3]
 }
 
 """
@@ -199,6 +211,20 @@ controller = control.DBVRController(
     boosts=0.5
 )
 
-# DOF mapping
-# 'action': DOF
-dofs = {val[2]: val[3] for (key, val) in gestures.items() if val[3] != -1}
+tac_sessions = {
+    '1. 3-1 a':
+        experiment.TACSession(
+            dofs3a, simul=1, rep=4, timeout=15, tol=10, dwell=2),
+    '2. 3-1 b':
+        experiment.TACSession(
+            dofs3b, simul=1, rep=4, timeout=15, tol=10, dwell=2),
+    '3. 3-3 a':
+        experiment.TACSession(
+            dofs3a, simul=3, rep=2, timeout=30, tol=10, dwell=2),
+    '4. 3-3 b':
+        experiment.TACSession(
+            dofs3b, simul=3, rep=2, timeout=30, tol=10, dwell=2),
+    '5. 4-1':
+        experiment.TACSession(
+            dofs4, simul=1, rep=4, timeout=15, tol=10, dwell=2)
+}

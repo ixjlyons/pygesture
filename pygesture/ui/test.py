@@ -12,7 +12,6 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
-from pygesture import experiment
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore
@@ -31,9 +30,6 @@ class TestWidget(QtGui.QWidget):
         self.cfg = config
         self.record_thread = record_thread
 
-        session = experiment.TACSession(
-            self.cfg.dofs, simultaneous=2, n_repeat=1)
-
         self.ui = Ui_TestWidget()
         self.ui.setupUi(self)
 
@@ -44,6 +40,7 @@ class TestWidget(QtGui.QWidget):
         self.calibration = np.zeros((1, len(self.cfg.channels)))
 
         self.init_gesture_view()
+        self.init_session_type_combo()
 
         self.ui.trainButton.clicked.connect(self.build_pipeline)
         self.ui.connectButton.clicked.connect(self.toggle_connect_callback)
@@ -58,6 +55,10 @@ class TestWidget(QtGui.QWidget):
 
     def hideEvent(self, event):
         self.dispose_record_thread()
+
+    def init_session_type_combo(self):
+        for k, v in sorted(self.cfg.tac_sessions.items()):
+            self.ui.sessionTypeComboBox.addItem(k)
 
     def init_simulation(self):
         vrepsim.set_path(self.cfg.vrep_path)
@@ -221,6 +222,9 @@ class TestWidget(QtGui.QWidget):
 
     def start_running(self):
         self.record_thread.start()
+
+        session_name = str(self.ui.sessionTypeComboBox.currentTet())
+        session = self.cfg.tac_sessions[session_name]
 
         self.ui.startButton.setText('Pause')
         self.running = True
