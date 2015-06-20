@@ -9,20 +9,20 @@ from pygesture import control
 some things for local use
 """
 # sampling frequency for the DAQ [Hz]
-f_samp = 4096
+f_samp = 8000
 # frequency of signals for processing [Hz]
-f_proc = 2048
+f_proc = 2000
 # cutoff frequencies for bandpass conditioning filter [Hz]
-f_cutoff = [8, 512]
+f_cutoff = [10, 450]
 # order of conditioning filter
 filt_order = 4
 # voltage input range for the DAQ
 input_range = 2
 
 # length of sliding window [s]
-window_length = 0.250
+window_length = 0.150
 # amount of overlap between adjacent windows [s]
-window_overlap = 0.125
+window_overlap = 0.05
 
 # sensor mappings
 # channel_number : (
@@ -94,6 +94,11 @@ gestures = {
         ('AD', 'foot-adduction'),
         'elbow-flexion',
         2),
+    6: (
+        ('TE', 'thumb-extension'),
+        ('HE', 'hallux-extension'),
+        '',
+        ''),
     7: (
         ('UD', 'ulnar-deviation'),
         ('AB', 'foot-abduction'),
@@ -124,7 +129,7 @@ prompt_times = (2, 5)
 inter_trial_timeout = 3
 
 # path to save/load recordings and feature CSVs
-data_path = os.path.expanduser('~/pygesture-data')
+data_path = os.path.expanduser('~/pygesture-data/offline')
 # path to v-rep (needed for simulation package)
 vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.1')
 # port that the v-rep is listening on (in remoteApiConnections.txt)
@@ -168,6 +173,7 @@ windower = pipeline.Windower(
 
 feature_extractor = features.FeatureExtractor(
     [
+        features.KhushabaSet(u=2),
         features.MAV(),
         features.WL(),
         features.ZC(thresh=0.001),

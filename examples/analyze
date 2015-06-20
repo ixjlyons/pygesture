@@ -79,11 +79,6 @@ def main():
         default='LDA',
         help="Name of the classifier (used with -i option).")
     parser.add_argument(
-        '-x', '--exclude57',
-        dest='exclude57',
-        action='store_true',
-        help="Exclude gestures l5 and l7 from consideration.")
-    parser.add_argument(
         '-o', '--output',
         dest='outfile',
         action='store',
@@ -102,11 +97,6 @@ def main():
 
     rootdir = os.path.normpath(args.rootdir)
     cfg = config.Config(args.config)
-
-    if args.exclude57:
-        xindices = [5, 7]
-    else:
-        xindices = []
 
     if not args.pids:
         parser.error("Must provide at least one particpant ID with -p flat")
@@ -128,22 +118,19 @@ def main():
         for cv_group in cv_groups:
             cm = classification.run_cv(
                 rootdir, pids, cv_group,
-                label_dict=get_labels(cfg, cv_group['name']),
-                exclude_indices=xindices)
+                label_dict=get_labels(cfg, cv_group['name']))
             cm_list.append(cm)
 
         for avg_group in avg_groups:
             cm = classification.run_avg(
                 rootdir, pids, avg_group,
-                label_dict=get_labels(cfg, avg_group['name']),
-                exclude_indices=xindices)
+                label_dict=get_labels(cfg, avg_group['name']))
             cm_list.append(cm)
 
         for single_clf in single_clfs:
             cm = classification.run_single(
                 rootdir, pids, single_clf,
-                label_dict=get_labels(cfg, single_clf['name']),
-                exclude_indices=xindices)
+                label_dict=get_labels(cfg, single_clf['name']))
             cm_list.append(cm)
 
         if args.outfile:
@@ -162,8 +149,7 @@ def main():
         }
         cm = classification.run_cv(
             rootdir, pids, cv_group,
-            label_dict=get_labels(cfg, args.name),
-            exclude_indices=xindices)
+            label_dict=get_labels(cfg, args.name))
         cm.show()
 
     elif args.ids:
@@ -176,8 +162,7 @@ def main():
 
         cm = classification.run_single(
             rootdir, pids, single_clf,
-            label_dict=get_labels(cfg, args.name),
-            exclude_indices=xindices)
+            label_dict=get_labels(cfg, args.name))
         cm.show()
 
     else:
