@@ -205,6 +205,7 @@ class SignalWidget(QtGui.QWidget):
         self.record_thread = record_thread
 
         self.samp_per_read = 1
+        self.hist = 20
         self.plot_items = []
         self.plot_data_items = []
 
@@ -278,6 +279,8 @@ class SignalWidget(QtGui.QWidget):
             self.plot_items.append(plot_item)
             self.plot_data_items.append(plot_data_item)
 
+        self.buf = np.zeros((self.n_channels, self.hist*self.samp_per_read))
+
     def update_plot(self, data):
         n_channels, spr = data.shape
         if self.n_channels != n_channels:
@@ -285,9 +288,13 @@ class SignalWidget(QtGui.QWidget):
 
         if spr != self.samp_per_read:
             self.samp_per_read = spr
+            self.buf = np.zeros((n_channels, self.hist*spr))
+
+        self.buf[:, 0:(self.hist-1)*spr] = self.buf[:, spr:]
+        self.buf[:, (self.hist-1)*spr:] = data
 
         for i in range(self.n_channels):
-            self.plot_data_items[i].setData(data[i, :])
+            self.plot_data_items[i].setData(self.buf[i, :])
 
 
 class RecordingViewerWidget(QtGui.QWidget):
