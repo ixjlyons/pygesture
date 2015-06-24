@@ -3,21 +3,44 @@ import itertools
 
 
 class TACSession(object):
+    """
+    Target Achievement Control test session.
 
-    def __init__(self, gestures, simultaneous=1, n_repeat=1):
+    Parameters
+    ----------
+    gestures : dict {gesture: dof}
+        Dictionary mapping each gesture to a degree of freedom. Pairs of
+        of gestures (e.g. elbow flexion/extension) should have the same dof.
+    simul : int, default=1
+        Number of DOFs for each target.
+    rep : int, default=1
+        Number of repetitions of each possible target.
+    timeout : number, default=0
+        Maximum trial duration, in seconds. Zero means no timeout.
+    tol : number, default=10
+        Error tolerance for each joint (DOF), in degrees.
+    dwell : number, default=0
+        Amount of time the joints must be within `tol` to complete a trial, in
+        seconds.
+    """
+
+    def __init__(self, gestures, simul=1, rep=1, timeout=0, tol=10, dwell=0):
         self.gestures = gestures
-        self.simultaneous = simultaneous
-        self.n_repeat = n_repeat
+        self.simul = simul
+        self.rep = rep
+        self.timeout = timeout
+        self.tol = tol
+        self.dwell = dwell
 
-        if simultaneous == 1:
+        if simul == 1:
             # _gesture_combinations() can handle this case, but it returns a
             # list of 1-tuples
             t = list(gestures)
         else:
-            t = list(_gesture_combinations(gestures, k=simultaneous))
-        self.targets = t
+            t = list(_gesture_combinations(gestures, k=simul))
 
-        self.trials = _generate_trials(self.targets, n_repeat=n_repeat)
+        self.targets = t
+        self.trials = _generate_trials(self.targets, n_repeat=rep)
 
 
 def _gesture_combinations(gestures, k=1):
@@ -29,7 +52,7 @@ def _gesture_combinations(gestures, k=1):
 
     Parameters
     ----------
-    dofs : dict {gesture: dof}
+    gestures : dict {gesture: dof}
         Dictionary mapping each gesture to a degree of freedom. Pairs of
         of gestures (e.g. elbow flexion/extension) should have the same dof.
     k : int, default 1

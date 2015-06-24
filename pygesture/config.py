@@ -23,7 +23,7 @@ config_options = [
     "leg_gestures",
     "vrep_actions",
     "controller",
-    "dofs"
+    "tac_sessions"
 ]
 
 
