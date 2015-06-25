@@ -94,7 +94,7 @@ gestures = {
         ('RD', 'radial-deviation'),
         ('AD', 'foot-adduction'),
         'elbow-flexion',
-        2),
+        3),
     7: (
         ('UD', 'ulnar-deviation'),
         ('AB', 'foot-abduction'),
@@ -174,8 +174,8 @@ conditioner = pipeline.Conditioner(
 )
 
 windower = pipeline.Windower(
-    length=int(f_proc*window_length),
-    overlap=int(f_proc*window_overlap)
+    length=int(f_proc*window_length/1000),
+    overlap=int(f_proc*window_overlap/1000)
 )
 
 feature_extractor = features.FeatureExtractor(

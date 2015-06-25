@@ -40,6 +40,7 @@ class TestWidget(QtGui.QWidget):
         self.calibration = np.zeros((1, len(self.cfg.channels)))
 
         self.init_gesture_view()
+        self.init_session_progressbar()
         self.init_session_type_combo()
 
         self.ui.trainButton.clicked.connect(self.build_pipeline)
@@ -55,10 +56,22 @@ class TestWidget(QtGui.QWidget):
 
     def hideEvent(self, event):
         self.dispose_record_thread()
+        if self.simulation is not None:
+            self.simulation.stop()
 
     def init_session_type_combo(self):
         for k, v in sorted(self.cfg.tac_sessions.items()):
             self.ui.sessionTypeComboBox.addItem(k)
+
+        self.ui.sessionTypeComboBox.activated[str].connect(
+            self.on_session_type_selection)
+        self.on_session_type_selection(
+            self.ui.sessionTypeComboBox.currentText())
+
+    def init_session_progressbar(self):
+        self.ui.sessionProgressBar.setMinimum(0)
+        self.ui.sessionProgressBar.setMaximum(1)
+        self.ui.sessionProgressBar.setValue(0)
 
     def init_simulation(self):
         vrepsim.set_path(self.cfg.vrep_path)
@@ -108,7 +121,8 @@ class TestWidget(QtGui.QWidget):
         self.ui.gestureDisplayLabel.setPixmap(self.gesture_images[imgkey])
 
     def set_session(self, session):
-        if self.simulation is None:
+        """Standard method for setting the parent session."""
+        if self.simulation is None and self.isVisible():
             self.init_simulation()
 
         self.parent_session = session
@@ -123,13 +137,20 @@ class TestWidget(QtGui.QWidget):
 
         self.logger = Logger()
 
+    def on_session_type_selection(self, text):
+        self.tac_session = self.cfg.tac_sessions[text]
+        self.ui.sessionProgressBar.setMaximum(len(self.tac_session.trials))
+
     def toggle_connect_callback(self):
         starting = self.ui.connectButton.isChecked()
 
         if starting:
             self.simulation.start()
             self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
-            self.target_robot = vrepsim.IRB140
+            self.target_robot = vrepsim.IRB140Arm(
+                self.simulation.clientId,
+                suffix='#0',
+                position_controlled=True)
         else:
             self.robot.stop()
             self.simulation.stop()
@@ -150,6 +171,12 @@ class TestWidget(QtGui.QWidget):
         self.ui.connectButton.setEnabled((not starting))
 
     def build_pipeline(self):
+        """Builds the processing pipeline.
+
+        Most of the pipeline is specified by the config, but we need to gather
+        training data, build a classifier with that data, and insert the
+        classifier into the pipeline.
+        """
         train_list = []
         for i in range(self.ui.trainingList.count()):
             item = self.ui.trainingList.item(i)
@@ -223,8 +250,10 @@ class TestWidget(QtGui.QWidget):
     def start_running(self):
         self.record_thread.start()
 
-        session_name = str(self.ui.sessionTypeComboBox.currentTet())
-        session = self.cfg.tac_sessions[session_name]
+        self.trial_number = 1
+        motions = self.tac_session.trials[self.trial_number-1]
+        target = {motion: 60 for motion in motions}
+        self.target_robot.command(target)
 
         self.ui.startButton.setText('Pause')
         self.running = True
@@ -239,16 +268,17 @@ class TestWidget(QtGui.QWidget):
         self.update_gesture_view()
         self.logger.finish()
 
-    def prediction_callback(self, prediction):
+    def prediction_callback(self, data):
+        """Called by the `RecordThread` when it produces a new output."""
+        mav, label = data
+
         if not self.running:
             return
 
-        self.prediction = prediction[1]
-
+        self.prediction = label
         if self.robot is not None:
-            commands = self.cfg.controller.process(prediction)
+            commands = self.cfg.controller.process(data)
             self.robot.command(commands)
-
             self.logger.log(self.prediction, self.robot.pose)
 
         self.update_gesture_view()
@@ -294,7 +324,7 @@ class Logger(object):
             trial_data=self.trial_data,
             target_pose=self.target_pose
         )
-        print(json.dumps(data, indent=4))
+        #print(json.dumps(data, indent=4))
 
 
 class SimulationConnectThread(QtCore.QThread):

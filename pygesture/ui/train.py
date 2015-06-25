@@ -94,6 +94,7 @@ class TrainWidget(QtGui.QWidget):
         self.intertrial_timer.timeout.connect(self.start_recording)
 
     def set_session(self, session):
+        """Standard method called by parent."""
         self.base_session = session
         self.session = Session(
             session, list(self.cfg.arm_gestures), self.cfg.num_repeats)

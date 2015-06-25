@@ -22,6 +22,15 @@ class TACSession(object):
     dwell : number, default=0
         Amount of time the joints must be within `tol` to complete a trial, in
         seconds.
+
+    Attributes
+    ----------
+    targets : list
+        A list of tuples, where each tuple specifies a set of gestures for the
+        given trial (each tuple has `simul` elements).
+    trials : list
+        A list of the same tuples as in `targets`, but repeated (specified by
+        `rep`) and in randomized order.
     """
 
     def __init__(self, gestures, simul=1, rep=1, timeout=0, tol=10, dwell=0):
@@ -32,12 +41,7 @@ class TACSession(object):
         self.tol = tol
         self.dwell = dwell
 
-        if simul == 1:
-            # _gesture_combinations() can handle this case, but it returns a
-            # list of 1-tuples
-            t = list(gestures)
-        else:
-            t = list(_gesture_combinations(gestures, k=simul))
+        t = list(_gesture_combinations(gestures, k=simul))
 
         self.targets = t
         self.trials = _generate_trials(self.targets, n_repeat=rep)

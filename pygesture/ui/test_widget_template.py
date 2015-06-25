@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/test_widget_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -101,14 +101,21 @@ class Ui_TestWidget(object):
         self.gridLayout.addWidget(self.connectButton, 2, 0, 1, 1)
         self.sessionBox = QtWidgets.QGroupBox(self.frame)
         self.sessionBox.setObjectName("sessionBox")
-        self.formLayout = QtWidgets.QFormLayout(self.sessionBox)
-        self.formLayout.setObjectName("formLayout")
+        self.gridLayout_4 = QtWidgets.QGridLayout(self.sessionBox)
+        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.sessionTypeLabel = QtWidgets.QLabel(self.sessionBox)
         self.sessionTypeLabel.setObjectName("sessionTypeLabel")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.sessionTypeLabel)
+        self.horizontalLayout_2.addWidget(self.sessionTypeLabel)
         self.sessionTypeComboBox = QtWidgets.QComboBox(self.sessionBox)
         self.sessionTypeComboBox.setObjectName("sessionTypeComboBox")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.sessionTypeComboBox)
+        self.horizontalLayout_2.addWidget(self.sessionTypeComboBox)
+        self.gridLayout_4.addLayout(self.horizontalLayout_2, 0, 0, 2, 2)
+        self.sessionProgressBar = QtWidgets.QProgressBar(self.sessionBox)
+        self.sessionProgressBar.setProperty("value", 24)
+        self.sessionProgressBar.setObjectName("sessionProgressBar")
+        self.gridLayout_4.addWidget(self.sessionProgressBar, 2, 0, 1, 1)
         self.gridLayout.addWidget(self.sessionBox, 1, 0, 1, 1)
         self.horizontalLayout_3.addWidget(self.frame)
 
@@ -128,5 +135,6 @@ class Ui_TestWidget(object):
         self.connectButton.setText(_translate("TestWidget", "Connect"))
         self.sessionBox.setTitle(_translate("TestWidget", "Session"))
         self.sessionTypeLabel.setText(_translate("TestWidget", "Type:"))
+        self.sessionProgressBar.setFormat(_translate("TestWidget", "Trial: %v / %m"))
 
 from pygesture.ui.widgets import GestureView
