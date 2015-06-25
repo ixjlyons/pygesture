@@ -173,10 +173,14 @@ class Conditioner(PipelineBlock):
     def __init__(self, order, f_cut, f_samp, f_down=None, overlap=0):
         super(Conditioner, self).__init__()
 
+        self.f_samp = f_samp
+
         self.filter = BandpassFilter(order, f_cut, f_samp, overlap)
 
         if f_down is None:
             f_down = f_samp
+
+        self.f_down = f_down
         self.m = int(f_samp/f_down)
 
     def process(self, data):

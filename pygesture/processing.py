@@ -2,9 +2,9 @@ import os
 from multiprocessing import Pool
 
 import numpy as np
-import scipy.io.wavfile as siowav
 
 from pygesture import filestruct
+from pygesture import wav
 
 
 class Processor(object):
@@ -151,14 +151,10 @@ class Session:
             proc_data, features = rec.process()
 
             outfile = os.path.join(self.procdir, rec.filename)
-            self.write_proc_file(outfile, proc_data)
+            fs_proc = self.processor.conditioner.f_down
+            wav.write(outfile, fs_proc, proc_data)
 
             np.savetxt(feat_fid, features, delimiter=',', fmt='%.5e')
-
-    def write_proc_file(self, filepath, data):
-        data *= 32768
-        data = data.astype(np.int16, copy=False)
-        siowav.write(filepath, 2000, data)
 
 
 class Recording:
@@ -170,9 +166,7 @@ class Recording:
 
         self.n_features = self.feature_extractor.n_features
 
-        fs_raw, data = siowav.read(wavfile)
-        self.fs_raw = fs_raw
-        self.raw_data = data / 32768.0
+        self.fs_raw, self.raw_data = wav.read(wavfile)
         path, self.filename = os.path.split(wavfile)
         self.location = loc
         self.parse_details(self.filename)

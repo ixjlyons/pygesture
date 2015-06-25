@@ -3,9 +3,9 @@ import pkg_resources
 import random
 
 import numpy as np
-import scipy.io.wavfile as siowav
 
 from pygesture import filestruct
+from pygesture import wav
 
 from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.train_widget_template import Ui_TrainWidget
@@ -196,6 +196,4 @@ class Session(object):
             self.current_trial,
             self.current_gesture)
 
-        data *= 32768
-        data = data.astype(np.int16, copy=False)
-        siowav.write(rec_file, fs, data.T)
+        wav.write(rec_file, fs, data.T)
