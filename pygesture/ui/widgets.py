@@ -134,7 +134,8 @@ class BoostsWidget(QtGui.QWidget):
     """
     A set of labels and associated combo boxes. It is meant to provide an
     interface to the "boosts" parameters of the decision-based velocity ramp
-    controller.
+    controller. Not currently used. It is certainly a good candidate for
+    migrating to MVC-style code.
     """
 
     updated = QtCore.pyqtSignal(dict)
@@ -197,6 +198,15 @@ class NewSessionDialog(QtGui.QDialog):
 
 
 class SignalWidget(QtGui.QWidget):
+    """
+    A composite widget for displaying real-time signals.
+
+    Single and multi-channel data is supported. A single signal is shown in
+    "probe mode." A radio group allows switching between single and
+    multi-channel modes. The widget is self-encompassing in that it doesn't
+    need external input aside from a `pygesture.ui.recorder.RecordThread` for
+    receiving data.
+    """
 
     def __init__(self, config, record_thread, parent=None):
         super(SignalWidget, self).__init__(parent)
@@ -276,8 +286,12 @@ class SignalWidget(QtGui.QWidget):
             if i > 0:
                 plot_item.setYLink(self.plot_items[0])
 
+
             self.plot_items.append(plot_item)
             self.plot_data_items.append(plot_data_item)
+
+        self.plot_items[0].disableAutoRange(pg.ViewBox.YAxis)
+        self.plot_items[0].setYRange(-1, 1)
 
         self.buf = np.zeros((self.n_channels, self.hist*self.samp_per_read))
 
@@ -298,6 +312,9 @@ class SignalWidget(QtGui.QWidget):
 
 
 class RecordingViewerWidget(QtGui.QWidget):
+    """
+    A widget for viewing EMG recording files.
+    """
 
     def __init__(self, config, parent=None):
         super(RecordingViewerWidget, self).__init__(parent)
