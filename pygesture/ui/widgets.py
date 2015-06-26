@@ -286,7 +286,6 @@ class SignalWidget(QtGui.QWidget):
             if i > 0:
                 plot_item.setYLink(self.plot_items[0])
 
-
             self.plot_items.append(plot_item)
             self.plot_data_items.append(plot_data_item)
 

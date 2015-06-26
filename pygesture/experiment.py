@@ -61,6 +61,11 @@ def _gesture_combinations(gestures, k=1):
         of gestures (e.g. elbow flexion/extension) should have the same dof.
     k : int, default 1
         Number of gestures to include in each combination.
+
+    Returns
+    -------
+    comb : generator of tuples
+        The combinations of `k` elements from exclusive DOFs in `gestures`.
     """
     for comb in itertools.combinations(gestures, r=k):
         # only yield combination if k DOFs are represented

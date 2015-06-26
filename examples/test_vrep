@@ -46,7 +46,7 @@ target_action = {
     'elbow-extension': 75,
     'forearm-supination': 75,
     'wrist-extension': 75,
-    'closed-fist': 50
+    'open-hand': 50
 }
 
 input_sequence = \
@@ -66,5 +66,9 @@ for label in input_sequence:
     robot.command(controller.process((1, label)))
     check_signal()
     time.sleep(0.25)
+
+ref_robot.stop()
+
+time.sleep(1)
 
 sim.finish()

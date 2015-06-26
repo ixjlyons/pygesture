@@ -106,6 +106,9 @@ class IRB140Arm(object):
             self.clientId, vrep.sim_object_joint_type, 0,
             vrep.simx_opmode_oneshot_wait)
 
+        err, self.base_handle = vrep.simxGetObjectHandle(
+            self.clientId, 'IRB140'+self.suffix, vrep.simx_opmode_oneshot_wait)
+
         self.joints = dict()
         self.pose = dict()
         for name, handle in zip(names, handles):
@@ -142,6 +145,31 @@ class IRB140Arm(object):
             self.clientId, 'tolerance', math.radians(tolerance),
             vrep.simx_opmode_oneshot_wait)
 
+    def set_visible(self, visible):
+        """
+        Sets the visibility of the robot.
+
+        Parameters
+        ----------
+        visible : bool
+            Model is set visible if true, invisible otherwise.
+        """
+        err, prop = vrep.simxGetModelProperty(
+            self.clientId,
+            self.base_handle,
+            vrep.simx_opmode_oneshot_wait)
+
+        if visible:
+            prop &= ~vrep.sim_modelproperty_not_visible
+        else:
+            prop |= vrep.sim_modelproperty_not_visible
+
+        vrep.simxSetModelProperty(
+            self.clientId,
+            self.base_handle,
+            prop,
+            vrep.simx_opmode_oneshot_wait)
+
     def command(self, action):
         """
         Commands the arm to perform an action. The action can be a number of
@@ -154,8 +182,8 @@ class IRB140Arm(object):
 
         Otherwise, you can specify a dictionary with action names (str) as
         keys and velocity multipliers as values. If contradictory actions (e.g.
-        elbow flexion and elbow extension) are specified, the velocities will
-        be summed.
+        elbow flcodeexion and elbow extension) are specified, the velocities
+        will be summed.
         """
         if type(action) is str:
             action = {action: 1}
@@ -175,9 +203,11 @@ class IRB140Arm(object):
         for motion, param in default_actions.items():
             joint_name, v_norm = self.joint_map[motion]
             joint = self.joints[joint_name]
-
             if joint.position_controlled:
-                joint.position += math.radians(param)
+                sign = 1
+                if v_norm < 0:
+                    sign = -1
+                joint.position += sign*math.radians(param)
             else:
                 joint.velocity += param*math.radians(v_norm)
 
@@ -248,6 +278,7 @@ class BarrettHand(object):
     def __init__(self, clientId, handle, suffix='', position_controlled=False):
         # handle is needed for at least one MCP joint to get position
         self.clientId = clientId
+        self.name = 'BarrettHand'+suffix
         self.handle = handle
         self.suffix = suffix
         self.position_controlled = position_controlled

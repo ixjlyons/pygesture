@@ -43,6 +43,8 @@ class TestWidget(QtGui.QWidget):
         self.init_session_progressbar()
         self.init_session_type_combo()
 
+        self.init_trial_start_timer()
+
         self.ui.trainButton.clicked.connect(self.build_pipeline)
         self.ui.connectButton.clicked.connect(self.toggle_connect_callback)
         self.ui.startButton.clicked.connect(self.toggle_running_callback)
@@ -72,6 +74,11 @@ class TestWidget(QtGui.QWidget):
         self.ui.sessionProgressBar.setMinimum(0)
         self.ui.sessionProgressBar.setMaximum(1)
         self.ui.sessionProgressBar.setValue(0)
+
+    def init_trial_start_timer(self):
+        self.trial_start_timer = QtCore.QTimer(self)
+        self.trial_start_timer.setSingleShot(True)
+        self.trial_start_timer.timeout.connect(self.start_trial)
 
     def init_simulation(self):
         vrepsim.set_path(self.cfg.vrep_path)
@@ -206,6 +213,7 @@ class TestWidget(QtGui.QWidget):
                 start = j
                 break
             else:
+                self.target_robot.stop()
                 j += feature.dim_per_channel*len(self.cfg.channels)
         X, y = training_data
         X = X[:, start:len(self.cfg.channels)]
@@ -253,13 +261,19 @@ class TestWidget(QtGui.QWidget):
         self.trial_number = 1
         motions = self.tac_session.trials[self.trial_number-1]
         target = {motion: 60 for motion in motions}
+        self.target_robot.set_visible(False)
+        self.trial_start_timer.start(1000)
         self.target_robot.command(target)
 
         self.ui.startButton.setText('Pause')
         self.running = True
 
+    def start_trial(self):
+        self.target_robot.set_visible(True)
+
     def stop_running(self):
         self.robot.stop()
+        self.target_robot.stop()
         self.record_thread.kill()
         self.ui.sessionInfoBox.setEnabled(True)
         self.ui.startButton.setText('Start')
@@ -324,7 +338,7 @@ class Logger(object):
             trial_data=self.trial_data,
             target_pose=self.target_pose
         )
-        #print(json.dumps(data, indent=4))
+        print(json.dumps(data, indent=4))
 
 
 class SimulationConnectThread(QtCore.QThread):

@@ -2,8 +2,6 @@ import os
 import pkg_resources
 import random
 
-import numpy as np
-
 from pygesture import filestruct
 from pygesture import wav
 

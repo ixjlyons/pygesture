@@ -9,14 +9,16 @@ class TestTACSession(object):
             'bp': 1, 'bm': 1,
             'cp': 2, 'cm': 2
         }
-        session = experiment.TACSession(gestures, simultaneous=1)
-        assert sorted(list(gestures)) == sorted(session.targets)
+        session = experiment.TACSession(gestures, simul=1)
+        a = sorted([(g,) for g in list(gestures)])
+        b = sorted(session.targets)
+        assert a == b
 
-        session = experiment.TACSession(gestures, simultaneous=2)
+        session = experiment.TACSession(gestures, simul=2)
         assert len(session.targets) == 12
 
-        session = experiment.TACSession(gestures, simultaneous=3)
+        session = experiment.TACSession(gestures, simul=3)
         assert len(session.targets) == 8
 
-        session = experiment.TACSession(gestures, simultaneous=4)
+        session = experiment.TACSession(gestures, simul=4)
         assert len(session.targets) == 0
