@@ -1,3 +1,23 @@
+"""
+Real-time gesture recognition and control test setup.
+
+Testing protocol:
+    - a classifier is trained
+    - a target achievement control (TAC) test session type is selected
+    - the session is started:
+        - a timer is started which delays the start of a trial (2 second)
+        - the simulation is started
+        - the target robot moves into position
+        - the trial begins and the user attempts to move the robot to target
+        - the trial ends if timeout is triggered or the robot sits within the
+          target posture (with specified angular tolerance) for a specified
+          dwell time
+        - the simulation is stopped
+        - an inter-trial timer is started, triggering the next trial
+    - at the end of a session, UI is re-enabled and a new session can be
+      created
+"""
+
 import time
 import json
 import pkg_resources
@@ -18,6 +38,10 @@ from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.test_widget_template import Ui_TestWidget
 
 
+# time to wait before starting the recorder
+trial_start_delay = 2000
+
+
 class TestWidget(QtGui.QWidget):
 
     session_started = QtCore.pyqtSignal()
@@ -33,21 +57,21 @@ class TestWidget(QtGui.QWidget):
         self.ui = Ui_TestWidget()
         self.ui.setupUi(self)
 
-        self.running = False
+        self.session_running = False
+        self.trial_running = False
+        self.trial_initializing = False
         self.simulation = None
         self.robot = None
         self.prediction = 0
-        self.calibration = np.zeros((1, len(self.cfg.channels)))
 
         self.init_gesture_view()
         self.init_session_progressbar()
         self.init_session_type_combo()
-
-        self.init_trial_start_timer()
+        self.init_timers()
 
         self.ui.trainButton.clicked.connect(self.build_pipeline)
-        self.ui.connectButton.clicked.connect(self.toggle_connect_callback)
-        self.ui.startButton.clicked.connect(self.toggle_running_callback)
+        self.ui.startButton.clicked.connect(self.on_start_clicked)
+        self.ui.pauseButton.clicked.connect(self.on_pause_clicked)
         self.ui.startButton.setEnabled(False)
 
     def showEvent(self, event):
@@ -60,6 +84,23 @@ class TestWidget(QtGui.QWidget):
         self.dispose_record_thread()
         if self.simulation is not None:
             self.simulation.stop()
+
+    def set_session(self, session):
+        """Standard method for setting the parent session."""
+        if self.simulation is None and self.isVisible():
+            self.init_simulation()
+
+        self.parent_session = session
+        self.pid = session.pid
+        self.ui.trainingList.clear()
+        self.sid_list = filestruct.get_session_list(
+            self.cfg.data_path, self.pid)
+        for sid in self.sid_list:
+            item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
+            item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+            item.setCheckState(QtCore.Qt.Unchecked)
+
+        self.logger = Logger()
 
     def init_session_type_combo(self):
         for k, v in sorted(self.cfg.tac_sessions.items()):
@@ -75,28 +116,12 @@ class TestWidget(QtGui.QWidget):
         self.ui.sessionProgressBar.setMaximum(1)
         self.ui.sessionProgressBar.setValue(0)
 
-    def init_trial_start_timer(self):
-        self.trial_start_timer = QtCore.QTimer(self)
-        self.trial_start_timer.setSingleShot(True)
-        self.trial_start_timer.timeout.connect(self.start_trial)
-
     def init_simulation(self):
         vrepsim.set_path(self.cfg.vrep_path)
         self.sim_connect_thread = SimulationConnectThread(self.cfg.vrep_port)
         self.sim_connect_thread.finished.connect(
-            self.simulation_connected_callback)
+            self.on_simulation_connected)
         self.sim_connect_thread.start()
-
-    def simulation_connected_callback(self, simulation):
-        self.simulation = simulation
-
-        if simulation is None:
-            self.ui.connectButton.setEnabled(False)
-            QtGui.QMessageBox().warning(
-                self,
-                "Warning",
-                "Couldn't connect to v-rep.",
-                QtGui.QMessageBox.Ok)
 
     def init_record_thread(self):
         self.record_thread.set_continuous()
@@ -119,70 +144,156 @@ class TestWidget(QtGui.QWidget):
 
         self.update_gesture_view()
 
+    def init_timers(self):
+        # timer which delays start of a trial (after trial initialization)
+        self.trial_start_timer = QtCore.QTimer(self)
+        self.trial_start_timer.setInterval(trial_start_delay)
+        self.trial_start_timer.setSingleShot(True)
+        self.trial_start_timer.timeout.connect(self.start_trial)
+
+        # timer which enforces the timeout of a trial
+        self.trial_timeout_timer = QtCore.QTimer(self)
+        self.trial_timeout_timer.setInterval(self.tac_session.timeout*1000)
+        self.trial_timeout_timer.setSingleShot(True)
+        self.trial_timeout_timer.timeout.connect(self.finish_trial)
+
+        # timer to wait between trials
+        self.intertrial_timer = QtCore.QTimer(self)
+        self.intertrial_timer.setInterval(self.cfg.inter_trial_timeout*1000)
+        self.intertrial_timer.setSingleShot(True)
+        self.intertrial_timer.timeout.connect(self.initialize_trial)
+
+    def on_simulation_connected(self, simulation):
+        self.simulation = simulation
+
+        if simulation is None:
+            QtGui.QMessageBox().warning(
+                self,
+                "Warning",
+                "Couldn't connect to v-rep.",
+                QtGui.QMessageBox.Ok)
+
+    def on_session_type_selection(self, text):
+        self.tac_session = self.cfg.tac_sessions[text]
+        self.ui.sessionProgressBar.setMaximum(len(self.tac_session.trials))
+
+    def on_start_clicked(self):
+        self.start_session()
+
+    def on_pause_clicked(self):
+        if self.ui.pauseButton.text() == "Pause":
+            self.pause_trial()
+            self.ui.pauseButton.setText("Resume")
+
+        else:
+            self.initialize_trial()
+            self.ui.pauseButton.setText("Pause")
+
+    def start_session(self):
+        self.session_started.emit()
+        self.trial_number = 1
+        self.initialize_trial()
+        self.session_running = True
+
+        self.ui.startButton.setEnabled(False)
+        self.ui.pauseButton.setEnabled(True)
+
+    def initialize_trial(self):
+        """
+        Starts the simulation, initializes the robots in the simulation, starts
+        a timer for the trial to start, and positions the target robot.
+        """
+        self.trial_initializing = True
+        self.ui.sessionProgressBar.setValue(self.trial_number)
+
+        if self.simulation is not None:
+            self.simulation.start()
+            self.robot = vrepsim.IRB140Arm(
+                self.simulation.clientId)
+            self.target_robot = vrepsim.IRB140Arm(
+                self.simulation.clientId,
+                suffix='#0',
+                position_controlled=True)
+
+        self.trial_start_timer.start()
+
+        if self.simulation is not None:
+            motions = self.tac_session.trials[self.trial_number-1]
+            target = {motion: 60 for motion in motions}
+            self.target_robot.command(target)
+
+    def start_trial(self):
+        """
+        Starts the trial -- recording, prediction, robot control, etc. all
+        starts here, not in `initialize_trial`.
+        """
+        self.trial_initializing = False
+        self.trial_running = True
+        self.record_thread.start()
+        self.trial_timeout_timer.start()
+
+    def pause_trial(self):
+        self.trial_timeout_timer.stop()
+        self.intertrial_timer.stop()
+        self.trial_start_timer.stop()
+        self.trial_running = False
+
+        if self.simulation is not None:
+            self.robot.stop()
+            self.target_robot.stop()
+            self.simulation.stop()
+
+    def finish_trial(self):
+        # TODO check target acquisition
+
+        self.pause_trial()
+        self.trial_number += 1
+
+        if self.trial_number < len(self.tac_session.trials):
+            self.intertrial_timer.start()
+        else:
+            self.finish_session()
+
+    def finish_session(self):
+        self.session_finished.emit()
+        self.record_thread.kill()
+        self.prediction = 0
+        self.update_gesture_view()
+        self.logger.finish()
+        self.session_running = False
+
+        self.ui.sessionInfoBox.setEnabled(True)
+        self.ui.startButton.setEnabled(True)
+        self.ui.pauseButton.setEnabled(False)
+
+    def prediction_callback(self, data):
+        """Called by the `RecordThread` when it produces a new output."""
+        mav, label = data
+
+        if not self.trial_running:
+            return
+
+        self.prediction = label
+        if self.robot is not None:
+            commands = self.cfg.controller.process(data)
+            self.robot.command(commands)
+            self.logger.log(self.prediction, self.robot.pose)
+
+        self.update_gesture_view()
+
     def update_gesture_view(self):
-        if self.running:
+        if self.trial_running:
             imgkey = self.prediction
         else:
             imgkey = 0
 
         self.ui.gestureDisplayLabel.setPixmap(self.gesture_images[imgkey])
 
-    def set_session(self, session):
-        """Standard method for setting the parent session."""
-        if self.simulation is None and self.isVisible():
-            self.init_simulation()
-
-        self.parent_session = session
-        self.pid = session.pid
-        self.ui.trainingList.clear()
-        self.sid_list = filestruct.get_session_list(
-            self.cfg.data_path, self.pid)
-        for sid in self.sid_list:
-            item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
-            item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-            item.setCheckState(QtCore.Qt.Unchecked)
-
-        self.logger = Logger()
-
-    def on_session_type_selection(self, text):
-        self.tac_session = self.cfg.tac_sessions[text]
-        self.ui.sessionProgressBar.setMaximum(len(self.tac_session.trials))
-
-    def toggle_connect_callback(self):
-        starting = self.ui.connectButton.isChecked()
-
-        if starting:
-            self.simulation.start()
-            self.robot = vrepsim.IRB140Arm(self.simulation.clientId)
-            self.target_robot = vrepsim.IRB140Arm(
-                self.simulation.clientId,
-                suffix='#0',
-                position_controlled=True)
-        else:
-            self.robot.stop()
-            self.simulation.stop()
-            self.robot = None
-
-        self.ui.startButton.setEnabled(starting)
-
-    def toggle_running_callback(self):
-        starting = (not self.running)
-
-        if starting:
-            self.start_running()
-            self.session_started.emit()
-        else:
-            self.stop_running()
-            self.session_finished.emit()
-
-        self.ui.connectButton.setEnabled((not starting))
-
     def build_pipeline(self):
-        """Builds the processing pipeline.
-
-        Most of the pipeline is specified by the config, but we need to gather
-        training data, build a classifier with that data, and insert the
-        classifier into the pipeline.
+        """
+        Builds the processing pipeline. Most of the pipeline is specified by
+        the config, but we need to gather training data, build a classifier
+        with that data, and insert the classifier into the pipeline.
         """
         train_list = []
         for i in range(self.ui.trainingList.count()):
@@ -255,47 +366,7 @@ class TestWidget(QtGui.QWidget):
 
         self.record_thread.set_pipeline(pl)
 
-    def start_running(self):
-        self.record_thread.start()
-
-        self.trial_number = 1
-        motions = self.tac_session.trials[self.trial_number-1]
-        target = {motion: 60 for motion in motions}
-        self.target_robot.set_visible(False)
-        self.trial_start_timer.start(1000)
-        self.target_robot.command(target)
-
-        self.ui.startButton.setText('Pause')
-        self.running = True
-
-    def start_trial(self):
-        self.target_robot.set_visible(True)
-
-    def stop_running(self):
-        self.robot.stop()
-        self.target_robot.stop()
-        self.record_thread.kill()
-        self.ui.sessionInfoBox.setEnabled(True)
-        self.ui.startButton.setText('Start')
-        self.running = False
-        self.prediction = 0
-        self.update_gesture_view()
-        self.logger.finish()
-
-    def prediction_callback(self, data):
-        """Called by the `RecordThread` when it produces a new output."""
-        mav, label = data
-
-        if not self.running:
-            return
-
-        self.prediction = label
-        if self.robot is not None:
-            commands = self.cfg.controller.process(data)
-            self.robot.command(commands)
-            self.logger.log(self.prediction, self.robot.pose)
-
-        self.update_gesture_view()
+        self.ui.startButton.setEnabled(True)
 
 
 class Logger(object):
@@ -338,7 +409,7 @@ class Logger(object):
             trial_data=self.trial_data,
             target_pose=self.target_pose
         )
-        print(json.dumps(data, indent=4))
+        return json.dumps(data, indent=4)
 
 
 class SimulationConnectThread(QtCore.QThread):

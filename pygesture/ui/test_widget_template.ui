@@ -56,18 +56,6 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="3" column="0">
-       <widget class="QPushButton" name="startButton">
-        <property name="text">
-         <string>Start</string>
-        </property>
-        <property name="icon">
-         <iconset theme="media-playback-start">
-          <normaloff/>
-         </iconset>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QGroupBox" name="sessionInfoBox">
         <property name="sizePolicy">
@@ -160,27 +148,6 @@
         </layout>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="connectButton">
-        <property name="text">
-         <string>Connect</string>
-        </property>
-        <property name="icon">
-         <iconset theme="insert-link">
-          <normaloff/>
-         </iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QGroupBox" name="sessionBox">
         <property name="title">
@@ -213,6 +180,37 @@
          </item>
         </layout>
        </widget>
+      </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="startButton">
+          <property name="text">
+           <string>Start</string>
+          </property>
+          <property name="icon">
+           <iconset theme="media-playback-start">
+            <normaloff/>
+           </iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pauseButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Pause</string>
+          </property>
+          <property name="icon">
+           <iconset theme="media-playback-pause">
+            <normaloff/>
+           </iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

@@ -45,13 +45,21 @@ class VrepSimulation(object):
         Starts the simulation. Use stop() to stop the simulation or finish() to
         stop and kill the connection to the v-rep server.
         """
-        vrep.simxStartSimulation(self.clientId, vrep.simx_opmode_oneshot_wait)
+        ret = vrep.simxStartSimulation(
+            self.clientId,
+            vrep.simx_opmode_oneshot_wait)
+        print("VrepSimulation.start")
+        _validate(ret)
 
     def stop(self):
         """
         Stops the simulation. Can be started again.
         """
-        vrep.simxStopSimulation(self.clientId, vrep.simx_opmode_oneshot_wait)
+        ret = vrep.simxStopSimulation(
+            self.clientId,
+            vrep.simx_opmode_oneshot_wait)
+        print("VrepSimulation.stop")
+        _validate(ret)
 
     def finish(self):
         """
