@@ -48,7 +48,6 @@ class VrepSimulation(object):
         ret = vrep.simxStartSimulation(
             self.clientId,
             vrep.simx_opmode_oneshot_wait)
-        print("VrepSimulation.start")
         _validate(ret)
 
     def stop(self):
@@ -58,7 +57,6 @@ class VrepSimulation(object):
         ret = vrep.simxStopSimulation(
             self.clientId,
             vrep.simx_opmode_oneshot_wait)
-        print("VrepSimulation.stop")
         _validate(ret)
 
     def finish(self):
@@ -79,6 +77,143 @@ class VrepSimulation(object):
 
     def _disconnect(self):
         vrep.simxFinish(self.clientId)
+
+
+class Signal(object):
+    """
+    Generic class for convenient interfacing with signals in v-rep.
+
+    Parameters
+    ----------
+    clientId : int
+        The v-rep simulation client ID (obtained from `VrepSimulation`)
+    name : str
+        The name of the signal, as it is named in the v-rep scene.
+    functions: dict
+        Dictionary of remote API functions for handling the signal. Required
+        keys are 'set', 'get', and 'clear'.
+    """
+
+    def __init__(self, clientId, name, functions):
+        self.clientId = clientId
+        self.name = name
+        self.functions = functions
+
+        self._first_read = True
+
+    def read(self):
+        """
+        Reads the signal.
+
+        Returns
+        -------
+        sig : relevant type for the signal (str, float, or int)
+            The signal value if it has been set on the v-rep side. Returns None
+            if it has not been set.
+        """
+        if self._first_read:
+            opmode = vrep.simx_opmode_streaming
+            self._first_read = False
+        else:
+            opmode = vrep.simx_opmode_buffer
+
+        err, sig = self.functions['get'](
+            self.clientId,
+            self.name,
+            opmode)
+
+        if err == vrep.simx_return_ok:
+            self._clear()
+        else:
+            sig = None
+
+        return sig
+
+    def write(self, value):
+        """
+        Writes a value to the signal.
+
+        Parameters
+        ----------
+        value : relevant type for the signal (str, float, or int)
+            Value to send to the signal.
+        """
+        self.functions['set'](
+            self.clientId,
+            self.name,
+            value,
+            vrep.simx_opmode_oneshot)
+
+    def _clear(self):
+        self.functions['clear'](
+            self.clientId,
+            self.name,
+            vrep.simx_opmode_oneshot)
+
+
+class StringSignal(Signal):
+    """
+    Class for convenient interfacing with string signals in v-rep.
+
+    Parameters
+    ----------
+    clientId : int
+        The v-rep simulation client ID (obtained from `VrepSimulation`)
+    name : str
+        The name of the signal, as it is named in the v-rep scene.
+    """
+
+    def __init__(self, clientId, name):
+        functions = {
+            'set': vrep.simxSetStringSignal,
+            'get': vrep.simxGetStringSignal,
+            'clear': vrep.simxClearStringSignal
+        }
+
+        super(IntegerSignal, self).__init__(clientId, name, functions)
+
+
+class FloatSignal(Signal):
+    """
+    Class for convenient interfacing with float signals in v-rep.
+
+    Parameters
+    ----------
+    clientId : int
+        The v-rep simulation client ID (obtained from `VrepSimulation`)
+    name : str
+        The name of the signal, as it is named in the v-rep scene.
+    """
+
+    def __init__(self, clientId, name):
+        functions = {
+            'set': vrep.simxSetFloatSignal,
+            'get': vrep.simxGetFloatSignal,
+            'clear': vrep.simxClearFloatSignal
+        }
+
+        super(IntegerSignal, self).__init__(clientId, name, functions)
+
+
+class IntegerSignal(Signal):
+    """
+    Class for convenient interfacing with integer signals in v-rep.
+
+    Parameters
+    ----------
+    clientId : int
+        The v-rep simulation client ID (obtained from `VrepSimulation`)
+    name : str
+        The name of the signal, as it is named in the v-rep scene.
+    """
+    def __init__(self, clientId, name):
+        functions = {
+            'set': vrep.simxSetIntegerSignal,
+            'get': vrep.simxGetIntegerSignal,
+            'clear': vrep.simxClearIntegerSignal
+        }
+
+        super(IntegerSignal, self).__init__(clientId, name, functions)
 
 
 class IRB140Arm(object):
@@ -284,7 +419,7 @@ class Joint(object):
 class BarrettHand(object):
 
     def __init__(self, clientId, handle, suffix='', position_controlled=False):
-        # handle is needed for at least one MCP joint to get position
+        # handle is needed for at least one MCP joint (jointB) to get position
         self.clientId = clientId
         self.name = 'BarrettHand'+suffix
         self.handle = handle
@@ -336,21 +471,21 @@ class BarrettHand(object):
 
 
 def _validate(res):
-    if res != vrep.simx_error_noerror:
+    if res != vrep.simx_return_ok:
         err = ""
-        if res == vrep.simx_error_novalue_flag:
+        if res == vrep.simx_return_novalue_flag:
             err = "Input buffer doesn't contain the specified command"
-        elif res == vrep.simx_error_timeout_flag:
+        elif res == vrep.simx_return_timeout_flag:
             err = "Command reply not received in time for wait opmode"
-        elif res == vrep.simx_error_illegal_opmode_flag:
+        elif res == vrep.simx_return_illegal_opmode_flag:
             err = "Command odesn't support specified opmode"
-        elif res == vrep.simx_error_remote_error_flag:
+        elif res == vrep.simx_return_remote_error_flag:
             err = "Command caused an error on the server side"
-        elif res == vrep.simx_error_split_progress_flag:
+        elif res == vrep.simx_return_split_progress_flag:
             err = "Previous similar command not processed yet"
-        elif res == vrep.simx_local_error_flag:
+        elif res == vrep.simx_return_local_error_flag:
             err = "Command caused an error on the client side"
-        elif res == vrep.simx_error_initialize_error_flag:
+        elif res == vrep.simx_return_initialize_error_flag:
             err = "simxStart not yet called"
         else:
             err = "Unknown v-rep error code: %s" % hex(res)

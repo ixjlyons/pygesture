@@ -32,16 +32,6 @@ from pygesture.simulation import vrep
 sim = vrepsim.VrepSimulation(cfg.vrep_port)
 sim.start()
 
-def check_signal(opmode=None):
-    if opmode is None:
-        opmode = vrep.simx_opmode_buffer
-    res, sig = vrep.simxGetIntegerSignal(
-        sim.clientId, 'target_acquired', opmode)
-    if res == 0:
-        print("target acquired: %d" % (sig))
-        vrep.simxClearIntegerSignal(
-            sim.clientId, 'target_acquired', vrep.simx_opmode_oneshot)
-
 target_action = {
     'elbow-extension': 75,
     'forearm-supination': 75,
@@ -50,8 +40,9 @@ target_action = {
 }
 
 input_sequence = \
-    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [1]*10 + [5]*8 + [0]*10
+    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [4]*10 + [5]*8 + [0]*10
 
+acquired_signal = vrepsim.IntegerSignal(sim.clientId, 'target_acquired')
 robot = vrepsim.IRB140Arm(sim.clientId)
 ref_robot = vrepsim.IRB140Arm(
         sim.clientId, suffix='#0', position_controlled=True)
@@ -60,11 +51,14 @@ ref_robot.command(target_action)
 time.sleep(1)
 
 robot.set_tolerance(30)
-check_signal(opmode=vrep.simx_opmode_streaming)
 controller = cfg.controller
 for label in input_sequence:
     robot.command(controller.process((1, label)))
-    check_signal()
+
+    acq = acquired_signal.read()
+    if acq is not None:
+        print("target acquired: %d" % acq)
+
     time.sleep(0.25)
 
 ref_robot.stop()

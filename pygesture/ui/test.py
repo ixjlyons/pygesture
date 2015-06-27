@@ -208,6 +208,9 @@ class TestWidget(QtGui.QWidget):
 
         if self.simulation is not None:
             self.simulation.start()
+            self.acquired_signal = vrepsim.IntegerSignal(
+                self.simulation.clientId,
+                'target_acquired')
             self.robot = vrepsim.IRB140Arm(
                 self.simulation.clientId)
             self.target_robot = vrepsim.IRB140Arm(
@@ -244,8 +247,6 @@ class TestWidget(QtGui.QWidget):
             self.simulation.stop()
 
     def finish_trial(self):
-        # TODO check target acquisition
-
         self.pause_trial()
         self.trial_number += 1
 
@@ -266,6 +267,14 @@ class TestWidget(QtGui.QWidget):
         self.ui.startButton.setEnabled(True)
         self.ui.pauseButton.setEnabled(False)
 
+    def on_target_enter(self):
+        # TODO start timer
+        print("target entered")
+
+    def on_target_leave(self):
+        # TODO cancel timer
+        print("target left")
+
     def prediction_callback(self, data):
         """Called by the `RecordThread` when it produces a new output."""
         mav, label = data
@@ -274,10 +283,19 @@ class TestWidget(QtGui.QWidget):
             return
 
         self.prediction = label
-        if self.robot is not None:
+        if self.simulation is not None:
             commands = self.cfg.controller.process(data)
             self.robot.command(commands)
+
+            acq = self.acquired_signal.read()
+            if acq is not None:
+                if acq == 1:
+                    self.on_target_enter()
+                else:
+                    self.on_target_leave()
+
             self.logger.log(self.prediction, self.robot.pose)
+
 
         self.update_gesture_view()
 
@@ -314,6 +332,8 @@ class TestWidget(QtGui.QWidget):
             self.cfg.data_path, self.pid, train_list)
         training_data = processing.read_feature_file_list(
             file_list, labels=list(self.cfg.arm_gestures))
+
+        # TODO filter data for TAC session
 
         # get average MAV for each gesture label to auto-set boosts
         # warning: super hacky
