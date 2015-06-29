@@ -30,7 +30,9 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <widget class="GestureView" name="gestureDisplayLabel" native="true"/>
+       <widget class="GestureView" name="gestureDisplayLabel" native="true">
+        <zorder>frame</zorder>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -65,7 +67,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Classification</string>
+         <string>Session</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
@@ -92,6 +94,20 @@
                 </property>
                </item>
               </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QLabel" name="sessionTypeLabel">
+               <property name="text">
+                <string>Type:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="sessionTypeComboBox"/>
              </item>
             </layout>
            </item>
@@ -149,25 +165,11 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QGroupBox" name="sessionBox">
+       <widget class="QGroupBox" name="controlsBox">
         <property name="title">
-         <string>Session</string>
+         <string>Controls</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0" rowspan="2" colspan="2">
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="QLabel" name="sessionTypeLabel">
-             <property name="text">
-              <string>Type:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="sessionTypeComboBox"/>
-           </item>
-          </layout>
-         </item>
          <item row="2" column="0">
           <widget class="QProgressBar" name="sessionProgressBar">
            <property name="value">
@@ -178,39 +180,39 @@
            </property>
           </widget>
          </item>
+         <item row="3" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QPushButton" name="startButton">
+             <property name="text">
+              <string>Start</string>
+             </property>
+             <property name="icon">
+              <iconset theme="media-playback-start">
+               <normaloff/>
+              </iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pauseButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Pause</string>
+             </property>
+             <property name="icon">
+              <iconset theme="media-playback-pause">
+               <normaloff/>
+              </iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
         </layout>
        </widget>
-      </item>
-      <item row="2" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QPushButton" name="startButton">
-          <property name="text">
-           <string>Start</string>
-          </property>
-          <property name="icon">
-           <iconset theme="media-playback-start">
-            <normaloff/>
-           </iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pauseButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Pause</string>
-          </property>
-          <property name="icon">
-           <iconset theme="media-playback-pause">
-            <normaloff/>
-           </iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>

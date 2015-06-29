@@ -32,6 +32,7 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
+from pygesture import classification
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore
@@ -69,10 +70,11 @@ class TestWidget(QtGui.QWidget):
         self.init_session_type_combo()
         self.init_timers()
 
-        self.ui.trainButton.clicked.connect(self.build_pipeline)
+        self.ui.trainButton.clicked.connect(self.on_train_clicked)
         self.ui.startButton.clicked.connect(self.on_start_clicked)
         self.ui.pauseButton.clicked.connect(self.on_pause_clicked)
-        self.ui.startButton.setEnabled(False)
+
+        self.ui.controlsBox.setEnabled(False)
 
     def showEvent(self, event):
         if self.simulation is None and self.isEnabled():
@@ -177,6 +179,11 @@ class TestWidget(QtGui.QWidget):
         self.tac_session = self.cfg.tac_sessions[text]
         self.ui.sessionProgressBar.setMaximum(len(self.tac_session.trials))
 
+    def on_train_clicked(self):
+        self.build_pipeline()
+        self.ui.controlsBox.setEnabled(True)
+        self.ui.startButton.setEnabled(True)
+
     def on_start_clicked(self):
         self.start_session()
 
@@ -184,7 +191,6 @@ class TestWidget(QtGui.QWidget):
         if self.ui.pauseButton.text() == "Pause":
             self.pause_trial()
             self.ui.pauseButton.setText("Resume")
-
         else:
             self.initialize_trial()
             self.ui.pauseButton.setText("Pause")
@@ -195,6 +201,7 @@ class TestWidget(QtGui.QWidget):
         self.initialize_trial()
         self.session_running = True
 
+        self.ui.sessionInfoBox.setEnabled(False)
         self.ui.startButton.setEnabled(False)
         self.ui.pauseButton.setEnabled(True)
 
@@ -326,14 +333,16 @@ class TestWidget(QtGui.QWidget):
                 QtGui.QMessageBox.Ok)
             return
 
-        self.ui.sessionInfoBox.setEnabled(False)
+        # get only the labels for the selected TAC session
+        labels = [0] # always include rest, unbelievably hacky
+        for k, v in self.cfg.vrep_actions.items():
+            if v in self.tac_session.gestures:
+                labels.append(k)
 
         file_list = filestruct.get_feature_file_list(
             self.cfg.data_path, self.pid, train_list)
         training_data = processing.read_feature_file_list(
-            file_list, labels=list(self.cfg.arm_gestures))
-
-        # TODO filter data for TAC session
+            file_list, labels=labels)
 
         # get average MAV for each gesture label to auto-set boosts
         # warning: super hacky
@@ -344,12 +353,11 @@ class TestWidget(QtGui.QWidget):
                 start = j
                 break
             else:
-                self.target_robot.stop()
                 j += feature.dim_per_channel*len(self.cfg.channels)
         X, y = training_data
         X = X[:, start:len(self.cfg.channels)]
         boosts = dict()
-        for label, names in self.cfg.arm_gestures.items():
+        for label in labels:
             mav_avg = np.mean(X[y == label, :], axis=1)
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
@@ -385,8 +393,6 @@ class TestWidget(QtGui.QWidget):
         )
 
         self.record_thread.set_pipeline(pl)
-
-        self.ui.startButton.setEnabled(True)
 
 
 class Logger(object):
