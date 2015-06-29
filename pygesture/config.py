@@ -19,9 +19,7 @@ config_options = [
     "channels",
     "probe_channel",
     "daq",
-    "arm_gestures",
-    "leg_gestures",
-    "vrep_actions",
+    "gestures",
     "controller",
     "tac_sessions"
 ]

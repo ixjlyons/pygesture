@@ -32,7 +32,6 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
-from pygesture import classification
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore
@@ -138,11 +137,11 @@ class TestWidget(QtGui.QWidget):
 
     def init_gesture_view(self):
         self.gesture_images = dict()
-        for (key, val) in self.cfg.arm_gestures.items():
+        for gesture in self.cfg.gestures:
             imgpath = pkg_resources.resource_filename(
-                __name__, 'images/'+val[1]+'.png')
+                __name__, 'images/'+gesture.description+'.png')
             img = QtGui.QPixmap(imgpath)
-            self.gesture_images[key] = img
+            self.gesture_images[gesture.label] = img
 
         self.update_gesture_view()
 
@@ -228,8 +227,8 @@ class TestWidget(QtGui.QWidget):
         self.trial_start_timer.start()
 
         if self.simulation is not None:
-            motions = self.tac_session.trials[self.trial_number-1]
-            target = {motion: 60 for motion in motions}
+            gestures = self.tac_session.trials[self.trial_number-1]
+            target = {g.action: 60 for g in gestures}
             self.target_robot.command(target)
 
     def start_trial(self):
@@ -303,7 +302,6 @@ class TestWidget(QtGui.QWidget):
 
             self.logger.log(self.prediction, self.robot.pose)
 
-
         self.update_gesture_view()
 
     def update_gesture_view(self):
@@ -334,10 +332,15 @@ class TestWidget(QtGui.QWidget):
             return
 
         # get only the labels for the selected TAC session
-        labels = [0] # always include rest, unbelievably hacky
-        for k, v in self.cfg.vrep_actions.items():
-            if v in self.tac_session.gestures:
-                labels.append(k)
+        # need to loop over available gestures to catch those with no dof
+        labels = []
+        for gesture in self.cfg.gestures:
+            if gesture.dof is None:
+                labels.append(gesture.label)
+            else:
+                if gesture in self.tac_session.gestures:
+                    labels.append(gesture.label)
+        print(labels)
 
         file_list = filestruct.get_feature_file_list(
             self.cfg.data_path, self.pid, train_list)

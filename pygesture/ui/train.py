@@ -55,11 +55,11 @@ class TrainWidget(QtGui.QWidget):
 
     def init_gesture_view(self):
         self.gesture_images = dict()
-        for (key, val) in self.cfg.arm_gestures.items():
+        for gesture in self.cfg.gestures:
             imgpath = pkg_resources.resource_filename(
-                __name__, 'images/'+val[1]+'.png')
+                __name__, 'images/'+gesture.description+'.png')
             img = QtGui.QPixmap(imgpath)
-            self.gesture_images[key] = img
+            self.gesture_images[gesture.label] = img
 
         self.update_gesture_view()
 
@@ -79,7 +79,7 @@ class TrainWidget(QtGui.QWidget):
     def init_session_progressbar(self):
         self.ui.sessionProgressBar.setMinimum(0)
         self.ui.sessionProgressBar.setMaximum(
-            self.cfg.num_repeats*len(list(self.cfg.arm_gestures)))
+            self.cfg.num_repeats*len(self.cfg.gestures))
         self.ui.sessionProgressBar.setValue(0)
 
     def init_buttons(self):
@@ -95,7 +95,9 @@ class TrainWidget(QtGui.QWidget):
         """Standard method called by parent."""
         self.base_session = session
         self.session = Session(
-            session, list(self.cfg.arm_gestures), self.cfg.num_repeats)
+            session,
+            [g.label for g in self.cfg.gestures],
+            self.cfg.num_repeats)
 
     def start_session(self):
         self.running = True

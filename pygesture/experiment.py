@@ -8,9 +8,10 @@ class TACSession(object):
 
     Parameters
     ----------
-    gestures : dict {gesture: dof}
-        Dictionary mapping each gesture to a degree of freedom. Pairs of
-        of gestures (e.g. elbow flexion/extension) should have the same dof.
+    gestures : list
+        List of gestures to be used in the session. Must have an attribute
+        called `dof`. Pairs of gestures (e.g. elbow flexion/extension) should
+        have the same dof.
     simul : int, default=1
         Number of DOFs for each target.
     rep : int, default=1
@@ -56,9 +57,10 @@ def _gesture_combinations(gestures, k=1):
 
     Parameters
     ----------
-    gestures : dict {gesture: dof}
-        Dictionary mapping each gesture to a degree of freedom. Pairs of
-        of gestures (e.g. elbow flexion/extension) should have the same dof.
+    gestures : list
+        List of gestures. Pairs of gestures (e.g. elbow flexion/extension)
+        should have the same `dof` attribute. `pygesture.util.Gesture` can be
+        used.
     k : int, default 1
         Number of gestures to include in each combination.
 
@@ -69,7 +71,7 @@ def _gesture_combinations(gestures, k=1):
     """
     for comb in itertools.combinations(gestures, r=k):
         # only yield combination if k DOFs are represented
-        if len(set(gestures[gest] for gest in comb)) == k:
+        if len(set(gesture.dof for gesture in comb)) == k:
             yield comb
 
 

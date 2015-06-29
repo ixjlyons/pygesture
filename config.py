@@ -1,4 +1,5 @@
 import os
+from pygesture import util
 from pygesture import pipeline
 from pygesture import features
 from pygesture import processing
@@ -25,103 +26,6 @@ window_length = 150
 # amount of overlap between adjacent windows [ms]
 window_overlap = 100
 
-# sensor mappings
-# channel_number : (
-#     ('arm_abbrv', 'arm_description')
-#     ('leg_abbrv', 'leg_description')
-# )
-sensors = {
-    0: (
-        ('ECR', 'extensor carpi radialis brevis'),
-        ('TA', 'tibialis anterior')
-    ),
-    1: (
-        ('ED', 'extensor digitorum'),
-        ('PL', 'peroneus longus')
-    ),
-    2: (
-        ('EPL', 'extensor pollicis longus'),
-        ('GL', 'gastrocnemius lateralis')
-    ),
-    3: (
-        ('FDS', 'flexor digitorum superficialis'),
-        ('EHL', 'extensor hallucis longus')
-    ),
-    4: (
-        ('FCR', 'flexor carpi radialis'),
-        ('EDL', 'extensor digitorum longus')
-    ),
-    5: (
-        ('PT', 'pronator teres'),
-        ('FDL', 'flexor digitorum longus')
-    )
-}
-
-# gesture mappings
-# label : (
-#     ('arm_abbrv', 'arm_description'),
-#     ('leg_abbrv', 'leg_description'),
-#     'simulation_action',
-#     dof)
-# }
-gestures = {
-    0: (
-        ('NC', 'no-contraction'),
-        ('NC', 'no-contraction'),
-        'no-contraction',
-        -1),
-    1: (
-        ('CF', 'closed-fist'),
-        ('TF', 'toe-flexion'),
-        'closed-fist',
-        0),
-    2: (
-        ('FP', 'forearm-pronation'),
-        ('FE', 'foot-eversion'),
-        'forearm-pronation',
-        2),
-    3: (
-        ('FS', 'forearm-supination'),
-        ('FI', 'foot-inversion'),
-        'forearm-supination',
-        2),
-    4: (
-        ('OH', 'open-hand'),
-        ('TE', 'toe-extension'),
-        'open-hand',
-        0),
-    5: (
-        ('RD', 'radial-deviation'),
-        ('AD', 'foot-adduction'),
-        'elbow-flexion',
-        3),
-    7: (
-        ('UD', 'ulnar-deviation'),
-        ('AB', 'foot-abduction'),
-        'elbow-extension',
-        3),
-    8: (
-        ('WE', 'wrist-extension'),
-        ('DF', 'dorsiflexion'),
-        'wrist-extension',
-        1),
-    9: (
-        ('WF', 'wrist-flexion'),
-        ('PF', 'plantarflexion'),
-        'wrist-flexion',
-        1)
-}
-
-# {'gesture': dof}
-dofs3a = {
-    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 2]
-}
-dofs3b = {
-    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 3]
-}
-dofs4 = {
-    val[2]: val[3] for (key, val) in gestures.items() if val[3] in [0, 1, 2, 3]
-}
 
 """
 attributes picked up by pygesture.config
@@ -143,13 +47,37 @@ vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.1')
 vrep_port = 20013
 
 # sensor mappings
-# channel_number : ('abbrv', 'muscle')
-arm_sensors = {key: val[0] for (key, val) in sensors.items()}
-leg_sensors = {key: val[1] for (key, val) in sensors.items()}
+arm_sensors = [
+    util.Sensor(0, "ECR", description="extensor carpi radialis brevis"),
+    util.Sensor(1, "ED", description="extensor digitorum"),
+    util.Sensor(2, "EPL", description="extensor pollicis longus"),
+    util.Sensor(3, "FDS", description="flexor digitorum superficialis"),
+    util.Sensor(4, "FCR", description="flexor carpi radialis"),
+    util.Sensor(5, "PT", description="pronator teres")
+]
+leg_sensors = [
+    util.Sensor(0, "TA", description="tibialis anterior"),
+    util.Sensor(1, "PL", description="peroneus longus"),
+    util.Sensor(2, "GL", description="gastrocnemius lateralis"),
+    util.Sensor(3, "EHL", description="extensor hallucis longus"),
+    util.Sensor(4, "EDL", description="extensor digitorum longus"),
+    util.Sensor(5, "FDL", description="flexor digitorum longus"),
+]
 
-channels = sorted(list(arm_sensors))
-
+channels = [s.channel for s in arm_sensors]
 probe_channel = 6
+
+gestures = [
+    util.Gesture(0, "NC", "no-contraction"),
+    util.Gesture(1, "CF", "closed-fist", dof=0),
+    util.Gesture(2, "FP", "forearm-pronation", dof=1),
+    util.Gesture(3, "FS", "forearm-supination", dof=1),
+    util.Gesture(4, "OH", "open-hand", dof=0),
+    util.Gesture(5, "RD", "radial-deviation", dof=2, action="elbow-flexion"),
+    util.Gesture(7, "UD", "ulnar-deviation", dof=2, action="elbow-extension"),
+    util.Gesture(8, "WE", "wrist-extension", dof=3),
+    util.Gesture(9, "WF", "wrist-flexion", dof=3)
+]
 
 try:
     daq = daq.MccDaq(
@@ -196,17 +124,8 @@ post_processor = processing.Processor(
     gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
 )
 
-# gesture mappings
-# label: ('abbrv', 'description')
-arm_gestures = {key: val[0] for (key, val) in gestures.items()}
-leg_gestures = {key: val[1] for (key, val) in gestures.items()}
-
-# simulation mapping
-# label : 'action'
-vrep_actions = {key: val[2] for (key, val) in gestures.items()}
-
 controller = control.DBVRController(
-    mapping=vrep_actions,
+    mapping={g.label: g.action for g in gestures},
     ramp_length=5,
     boosts=0.5
 )
@@ -214,17 +133,22 @@ controller = control.DBVRController(
 tac_sessions = {
     '1. 3-1 a':
         experiment.TACSession(
-            dofs3a, simul=1, rep=4, timeout=15, tol=10, dwell=2),
+            [g for g in gestures if g.dof in [0, 1, 2]],
+            simul=1, rep=4, timeout=15, tol=10, dwell=2),
     '2. 3-1 b':
         experiment.TACSession(
-            dofs3b, simul=1, rep=4, timeout=15, tol=10, dwell=2),
+            [g for g in gestures if g.dof in [0, 1, 3]],
+            simul=1, rep=4, timeout=15, tol=10, dwell=2),
     '3. 3-3 a':
         experiment.TACSession(
-            dofs3a, simul=3, rep=2, timeout=30, tol=10, dwell=2),
+            [g for g in gestures if g.dof in [0, 1, 2]],
+            simul=3, rep=2, timeout=30, tol=10, dwell=2),
     '4. 3-3 b':
         experiment.TACSession(
-            dofs3b, simul=3, rep=2, timeout=30, tol=10, dwell=2),
+            [g for g in gestures if g.dof in [0, 1, 3]],
+            simul=3, rep=2, timeout=30, tol=10, dwell=2),
     '5. 4-1':
         experiment.TACSession(
-            dofs4, simul=1, rep=4, timeout=15, tol=10, dwell=2)
+            [g for g in gestures if g.dof is not None],
+            simul=1, rep=4, timeout=15, tol=10, dwell=2)
 }
