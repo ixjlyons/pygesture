@@ -160,9 +160,14 @@ def main():
         dest='config',
         default='config.py',
         help="Config file. Default is `config.py` (current directory).")
+    parser.add_argument(
+        '-t', '--test',
+        dest='test',
+        action='store_true', default=False)
     args = parser.parse_args()
 
     cfg = config.Config(args.config)
+    cfg.test = args.test
 
     app = QtGui.QApplication([])
     mw = PygestureMainWindow(cfg)

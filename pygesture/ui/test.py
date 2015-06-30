@@ -52,6 +52,7 @@ class TestWidget(QtGui.QWidget):
     def __init__(self, config, record_thread, parent=None):
         super(TestWidget, self).__init__(parent)
         self.cfg = config
+        self.test = getattr(config, 'test', False)
         self.record_thread = record_thread
 
         self.ui = Ui_TestWidget()
@@ -74,6 +75,7 @@ class TestWidget(QtGui.QWidget):
         self.ui.pauseButton.clicked.connect(self.on_pause_clicked)
 
         self.ui.controlsBox.setEnabled(False)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def showEvent(self, event):
         if self.simulation is None and self.isEnabled():
@@ -100,8 +102,6 @@ class TestWidget(QtGui.QWidget):
             item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
-
-        self.logger = Logger()
 
     def init_session_type_combo(self):
         for k, v in sorted(self.cfg.tac_sessions.items()):
@@ -164,6 +164,11 @@ class TestWidget(QtGui.QWidget):
         self.intertrial_timer.setSingleShot(True)
         self.intertrial_timer.timeout.connect(self.initialize_trial)
 
+        # timer to check for target dwell
+        self.dwell_timer = QtCore.QTimer(self)
+        self.dwell_timer.setSingleShot(True)
+        self.dwell_timer.timeout.connect(self.dwell_timeout)
+
     def on_simulation_connected(self, simulation):
         self.simulation = simulation
 
@@ -196,13 +201,16 @@ class TestWidget(QtGui.QWidget):
 
     def start_session(self):
         self.session_started.emit()
-        self.trial_number = 1
-        self.initialize_trial()
-        self.session_running = True
 
         self.ui.sessionInfoBox.setEnabled(False)
         self.ui.startButton.setEnabled(False)
         self.ui.pauseButton.setEnabled(True)
+
+        self.trial_number = 1
+        self.logger = Logger()
+        self.dwell_timer.setInterval(self.tac_session.dwell*1000)
+        self.initialize_trial()
+        self.session_running = True
 
     def initialize_trial(self):
         """
@@ -223,6 +231,8 @@ class TestWidget(QtGui.QWidget):
                 self.simulation.clientId,
                 suffix='#0',
                 position_controlled=True)
+
+            self.robot.set_tolerance(self.tac_session.tol)
 
         self.trial_start_timer.start()
 
@@ -245,6 +255,7 @@ class TestWidget(QtGui.QWidget):
         self.trial_timeout_timer.stop()
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
+        self.dwell_timer.stop()
         self.trial_running = False
 
         if self.simulation is not None:
@@ -252,7 +263,7 @@ class TestWidget(QtGui.QWidget):
             self.target_robot.stop()
             self.simulation.stop()
 
-    def finish_trial(self):
+    def finish_trial(self, success=False):
         self.pause_trial()
         self.trial_number += 1
 
@@ -274,12 +285,13 @@ class TestWidget(QtGui.QWidget):
         self.ui.pauseButton.setEnabled(False)
 
     def on_target_enter(self):
-        # TODO start timer
-        print("target entered")
+        self.dwell_timer.start()
+
+    def dwell_timeout(self):
+        self.finish_trial(success=True)
 
     def on_target_leave(self):
-        # TODO cancel timer
-        print("target left")
+        self.dwell_timer.stop()
 
     def prediction_callback(self, data):
         """Called by the `RecordThread` when it produces a new output."""
@@ -288,7 +300,11 @@ class TestWidget(QtGui.QWidget):
         if not self.trial_running:
             return
 
-        self.prediction = label
+        if not self.test:
+            self.prediction = label
+        else:
+            data = ([1], self.prediction)
+
         if self.simulation is not None:
             commands = self.cfg.controller.process(data)
             self.robot.command(commands)
@@ -303,6 +319,18 @@ class TestWidget(QtGui.QWidget):
             self.logger.log(self.prediction, self.robot.pose)
 
         self.update_gesture_view()
+
+    def keyPressEvent(self, event):
+        if self.test and self.trial_running:
+            label = self.tac_session.trials[self.trial_number-1][0].label
+            if event.key() == QtCore.Qt.Key_PageUp:
+                self.prediction = label
+            elif event.key() == QtCore.Qt.Key_PageDown:
+                self.prediction = 0
+            else:
+                super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
 
     def update_gesture_view(self):
         if self.trial_running:
@@ -340,7 +368,6 @@ class TestWidget(QtGui.QWidget):
             else:
                 if gesture in self.tac_session.gestures:
                     labels.append(gesture.label)
-        print(labels)
 
         file_list = filestruct.get_feature_file_list(
             self.cfg.data_path, self.pid, train_list)
