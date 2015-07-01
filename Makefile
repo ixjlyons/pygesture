@@ -26,7 +26,8 @@ UI_TEMPLATES=$(UI_DIR)/main_template.ui              \
 			 $(UI_DIR)/signal_widget_template.ui     \
 			 $(UI_DIR)/recording_viewer_template.ui  \
 			 $(UI_DIR)/process_widget_template.ui    \
-             $(UI_DIR)/new_session_template.ui
+             $(UI_DIR)/new_session_template.ui       \
+			 $(UI_DIR)/session_browser_template.ui
 
 .PHONY: ui
 ui: $(patsubst %.ui,%.py,$(UI_TEMPLATES))

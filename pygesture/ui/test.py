@@ -34,7 +34,7 @@ from pygesture import pipeline
 from pygesture import features
 from pygesture.simulation import vrepsim
 
-from pygesture.ui.qt import QtGui, QtCore
+from pygesture.ui.qt import QtGui, QtCore, QtWidgets
 from pygesture.ui.test_widget_template import Ui_TestWidget
 
 
@@ -42,7 +42,7 @@ from pygesture.ui.test_widget_template import Ui_TestWidget
 trial_start_delay = 2000
 
 
-class TestWidget(QtGui.QWidget):
+class TestWidget(QtWidgets.QWidget):
 
     session_started = QtCore.pyqtSignal()
     session_paused = QtCore.pyqtSignal()
@@ -99,7 +99,7 @@ class TestWidget(QtGui.QWidget):
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)
         for sid in self.sid_list:
-            item = QtGui.QListWidgetItem(sid, self.ui.trainingList)
+            item = QtWidgets.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
 
@@ -173,11 +173,11 @@ class TestWidget(QtGui.QWidget):
         self.simulation = simulation
 
         if simulation is None:
-            QtGui.QMessageBox().warning(
+            QtWidgets.QMessageBox().warning(
                 self,
                 "Warning",
                 "Couldn't connect to v-rep.",
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def on_session_type_selection(self, text):
         self.tac_session = self.cfg.tac_sessions[text]
@@ -353,10 +353,10 @@ class TestWidget(QtGui.QWidget):
                 train_list.append(str(item.text()))
 
         if not train_list:
-            QtGui.QMessageBox().critical(
+            QtWidgets.QMessageBox().critical(
                 self, "Error",
                 "No sessions selected for training.",
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
             return
 
         # get only the labels for the selected TAC session

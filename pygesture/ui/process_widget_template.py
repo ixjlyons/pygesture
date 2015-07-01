@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/process_widget_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -37,6 +37,9 @@ class Ui_ProcessWidget(object):
         self.groupBox.setObjectName("groupBox")
         self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
         self.gridLayout.setObjectName("gridLayout")
+        self.sessionBrowser = SessionBrowser(self.groupBox)
+        self.sessionBrowser.setObjectName("sessionBrowser")
+        self.gridLayout.addWidget(self.sessionBrowser, 0, 0, 1, 1)
         self.processButton = QtWidgets.QPushButton(self.groupBox)
         self.processButton.setEnabled(False)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -45,21 +48,7 @@ class Ui_ProcessWidget(object):
         sizePolicy.setHeightForWidth(self.processButton.sizePolicy().hasHeightForWidth())
         self.processButton.setSizePolicy(sizePolicy)
         self.processButton.setObjectName("processButton")
-        self.gridLayout.addWidget(self.processButton, 1, 1, 1, 1)
-        self.sessionList = QtWidgets.QListWidget(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sessionList.sizePolicy().hasHeightForWidth())
-        self.sessionList.setSizePolicy(sizePolicy)
-        self.sessionList.setProperty("showDropIndicator", False)
-        self.sessionList.setAlternatingRowColors(True)
-        self.sessionList.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.sessionList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.sessionList.setResizeMode(QtWidgets.QListView.Fixed)
-        self.sessionList.setViewMode(QtWidgets.QListView.ListMode)
-        self.sessionList.setObjectName("sessionList")
-        self.gridLayout.addWidget(self.sessionList, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.processButton, 1, 0, 1, 1)
         self.progressBar = QtWidgets.QProgressBar(self.groupBox)
         self.progressBar.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -74,7 +63,7 @@ class Ui_ProcessWidget(object):
         self.progressBar.setInvertedAppearance(False)
         self.progressBar.setFormat("")
         self.progressBar.setObjectName("progressBar")
-        self.gridLayout.addWidget(self.progressBar, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.progressBar, 2, 0, 1, 1)
         self.gridLayout_2.addWidget(self.groupBox, 0, 1, 1, 1)
 
         self.retranslateUi(ProcessWidget)
@@ -86,3 +75,4 @@ class Ui_ProcessWidget(object):
         self.groupBox.setTitle(_translate("ProcessWidget", "Sessions"))
         self.processButton.setText(_translate("ProcessWidget", "Process"))
 
+from pygesture.ui.widgets import SessionBrowser

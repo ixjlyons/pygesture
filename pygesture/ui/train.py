@@ -6,11 +6,11 @@ from pygesture import filestruct
 from pygesture import wav
 from pygesture import experiment
 
-from pygesture.ui.qt import QtGui, QtCore
+from pygesture.ui.qt import QtGui, QtCore, QtWidgets
 from pygesture.ui.train_widget_template import Ui_TrainWidget
 
 
-class TrainWidget(QtGui.QWidget):
+class TrainWidget(QtWidgets.QWidget):
 
     session_started = QtCore.pyqtSignal()
     session_paused = QtCore.pyqtSignal()

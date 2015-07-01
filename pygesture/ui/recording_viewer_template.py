@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/recording_viewer_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -68,19 +68,9 @@ class Ui_RecordingViewerWidget(object):
         self.groupBox.setObjectName("groupBox")
         self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
         self.gridLayout.setObjectName("gridLayout")
-        self.sessionList = QtWidgets.QListWidget(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sessionList.sizePolicy().hasHeightForWidth())
-        self.sessionList.setSizePolicy(sizePolicy)
-        self.sessionList.setProperty("showDropIndicator", False)
-        self.sessionList.setAlternatingRowColors(True)
-        self.sessionList.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.sessionList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.sessionList.setResizeMode(QtWidgets.QListView.Fixed)
-        self.sessionList.setObjectName("sessionList")
-        self.gridLayout.addWidget(self.sessionList, 0, 0, 1, 1)
+        self.sessionBrowser = SessionBrowser(self.groupBox)
+        self.sessionBrowser.setObjectName("sessionBrowser")
+        self.gridLayout.addWidget(self.sessionBrowser, 0, 0, 1, 1)
         self.gridLayout_2.addWidget(self.groupBox, 0, 1, 1, 1)
 
         self.retranslateUi(RecordingViewerWidget)
@@ -93,4 +83,5 @@ class Ui_RecordingViewerWidget(object):
         self.nextButton.setText(_translate("RecordingViewerWidget", "Next"))
         self.groupBox.setTitle(_translate("RecordingViewerWidget", "Sessions"))
 
+from pygesture.ui.widgets import SessionBrowser
 from pyqtgraph import GraphicsLayoutWidget

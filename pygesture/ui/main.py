@@ -6,16 +6,16 @@ import shutil
 from pygesture import config
 from pygesture import filestruct
 
-from pygesture.ui.qt import QtGui
+from pygesture.ui.qt import QtGui, QtWidgets
 
 from pygesture.ui.main_template import Ui_PygestureMainWindow
 from pygesture.ui import recorder
 from pygesture.ui import train
 from pygesture.ui import test
-from pygesture.ui import widgets
+from pygesture.ui import tabs
 
 
-class PygestureMainWindow(QtGui.QMainWindow):
+class PygestureMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, config, parent=None):
         super(PygestureMainWindow, self).__init__(parent)
@@ -29,7 +29,7 @@ class PygestureMainWindow(QtGui.QMainWindow):
         self.record_thread = recorder.RecordThread(self.cfg.daq)
         self.init_tabs()
 
-        self.statusbar_label = QtGui.QLabel("not signed in")
+        self.statusbar_label = QtWidgets.QLabel("not signed in")
         self.ui.statusbar.addPermanentWidget(self.statusbar_label)
 
         self.ui.actionNew.triggered.connect(self.show_new_session_dialog)
@@ -42,17 +42,17 @@ class PygestureMainWindow(QtGui.QMainWindow):
         self.permanent_tabs = [
             (
                 "Signals",
-                widgets.SignalWidget(
+                tabs.SignalWidget(
                     self.cfg, self.record_thread, parent=self)
             ),
             (
                 "View",
-                widgets.RecordingViewerWidget(
+                tabs.RecordingViewerWidget(
                     self.cfg, parent=self),
             ),
             (
                 "Process",
-                widgets.ProcessWidget(
+                tabs.ProcessWidget(
                     self.cfg, parent=self),
             )
         ]
@@ -61,14 +61,14 @@ class PygestureMainWindow(QtGui.QMainWindow):
             self.ui.tabWidget.addTab(widget, name)
 
     def show_new_session_dialog(self):
-        dialog = widgets.NewSessionDialog(self)
+        dialog = tabs.NewSessionDialog(self)
         if dialog.exec_():
             data = dialog.get_data()
             self.new_session(data)
 
     def new_session(self, data):
         if data['pid'] == '' or data['sid'] == '':
-            QtGui.QMessageBox.critical(
+            QtWidgets.QMessageBox.critical(
                 self,
                 "Error",
                 "Session info incomplete.")
@@ -85,13 +85,13 @@ class PygestureMainWindow(QtGui.QMainWindow):
         try:
             self.session.init_file_structure()
         except IOError:
-            message = QtGui.QMessageBox().warning(
+            message = QtWidgets.QMessageBox().warning(
                 self,
                 "Warning",
                 "Session directory already exists.\nOverwrite?",
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
-            if message == QtGui.QMessageBox.No:
+            if message == QtWidgets.QMessageBox.No:
                 self.session = None
                 return
             else:
@@ -165,7 +165,7 @@ def main():
     cfg = config.Config(args.config)
     cfg.test = args.test
 
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     mw = PygestureMainWindow(cfg)
     mw.show()
     app.exec_()
