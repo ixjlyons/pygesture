@@ -191,6 +191,8 @@ class NewSessionDialog(QtGui.QDialog):
                 str(self.ui.participantLineEdit.text()),
             'sid':
                 str(self.ui.sessionLineEdit.text()),
+            'task':
+                str(self.ui.taskGroup.checkedButton().text()),
             'configuration':
                 str(self.ui.configurationGroup.checkedButton().text())
         }
@@ -280,7 +282,8 @@ class SignalWidget(QtGui.QWidget):
             if self.n_channels > 1:
                 ch = self.cfg.channels[i]
                 label = "%s/%s" % (
-                    self.cfg.arm_sensors[ch][0], self.cfg.leg_sensors[ch][0])
+                    self.cfg.arm_sensors[ch].name,
+                    self.cfg.leg_sensors[ch].name)
                 plot_item.setLabels(left=label)
 
             if i > 0:

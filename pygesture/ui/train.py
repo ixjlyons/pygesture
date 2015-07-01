@@ -4,6 +4,7 @@ import random
 
 from pygesture import filestruct
 from pygesture import wav
+from pygesture import experiment
 
 from pygesture.ui.qt import QtGui, QtCore
 from pygesture.ui.train_widget_template import Ui_TrainWidget
@@ -16,16 +17,18 @@ class TrainWidget(QtGui.QWidget):
     session_resumed = QtCore.pyqtSignal()
     session_finished = QtCore.pyqtSignal()
 
-    def __init__(self, config, record_thread, parent=None):
+    def __init__(self, config, record_thread, base_session, parent=None):
         super(TrainWidget, self).__init__(parent)
         self.cfg = config
         self.record_thread = record_thread
+        self.base_session = base_session
 
         self.ui = Ui_TrainWidget()
         self.ui.setupUi(self)
 
         self.running = False
 
+        self.init_session()
         self.init_gesture_view()
         self.init_gesture_prompt()
         self.init_session_progressbar()
@@ -91,11 +94,9 @@ class TrainWidget(QtGui.QWidget):
         self.intertrial_timer.setSingleShot(True)
         self.intertrial_timer.timeout.connect(self.start_recording)
 
-    def set_session(self, session):
-        """Standard method called by parent."""
-        self.base_session = session
+    def init_session(self):
         self.session = Session(
-            session,
+            self.base_session,
             [g.label for g in self.cfg.gestures],
             self.cfg.num_repeats)
 
@@ -145,34 +146,13 @@ class TrainWidget(QtGui.QWidget):
         self.session_finished.emit()
 
 
-def generate_trial_order(labels, n_repeat):
-    """
-    Generates the sequence of trials for the session. Each label is represented
-    a specified number of times, and the order is randomized.
-
-    Parameters
-    ----------
-    labels : list
-        List of trial labels.
-    n_repeat : int
-        Number of times to repeat each gesture.
-
-    Returns
-    -------
-    new_labels : list
-        List of randomized trials.
-    """
-    new_labels = labels * n_repeat
-    random.shuffle(new_labels)
-    return new_labels
-
-
 class Session(object):
 
     def __init__(self, session, labels, n_repeat):
         self.parent_session = session
 
-        self.gesture_order = generate_trial_order(labels, n_repeat)
+        self.gesture_order = experiment.generate_trials(
+            labels, n_repeat=n_repeat)
         self.num_trials = len(self.gesture_order)
         self.current_trial = 0
 

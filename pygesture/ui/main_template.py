@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/main_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -21,6 +21,7 @@ class Ui_PygestureMainWindow(object):
         self.tabWidget.setStyleSheet("")
         self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
+        self.tabWidget.setTabsClosable(False)
         self.tabWidget.setObjectName("tabWidget")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
         PygestureMainWindow.setCentralWidget(self.centralwidget)

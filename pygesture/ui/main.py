@@ -39,52 +39,34 @@ class PygestureMainWindow(QtGui.QMainWindow):
             self.record_thread.kill()
 
     def init_tabs(self):
-        self.tabs = {
-            "Signals":
+        self.permanent_tabs = [
+            (
+                "Signals",
                 widgets.SignalWidget(
-                    self.cfg, self.record_thread, parent=self),
-            "Train":
-                train.TrainWidget(
-                    self.cfg, self.record_thread, parent=self),
-            "View":
+                    self.cfg, self.record_thread, parent=self)
+            ),
+            (
+                "View",
                 widgets.RecordingViewerWidget(
                     self.cfg, parent=self),
-            "Process":
+            ),
+            (
+                "Process",
                 widgets.ProcessWidget(
                     self.cfg, parent=self),
-            "Test":
-                test.TestWidget(
-                    self.cfg, self.record_thread, parent=self)
-        }
+            )
+        ]
 
-        self.tab_order = ["Signals", "Train", "View", "Process", "Test"]
-
-        for name in self.tab_order:
-            self.ui.tabWidget.addTab(self.tabs[name], name)
-
-            if name != "Signals":
-                self.tabs[name].setEnabled(False)
-
-            if name in ["Train", "Test"]:
-                self.tabs[name].session_started.connect(self.disable_tabbar)
-                self.tabs[name].session_paused.connect(self.enable_tabbar)
-                self.tabs[name].session_resumed.connect(self.disable_tabbar)
-                self.tabs[name].session_finished.connect(self.enable_tabbar)
-
-    def disable_tabbar(self):
-        self.ui.tabWidget.tabBar().setEnabled(False)
-
-    def enable_tabbar(self):
-        self.ui.tabWidget.tabBar().setEnabled(True)
+        for name, widget in self.permanent_tabs:
+            self.ui.tabWidget.addTab(widget, name)
 
     def show_new_session_dialog(self):
         dialog = widgets.NewSessionDialog(self)
         if dialog.exec_():
             data = dialog.get_data()
-            self.update_session(data)
+            self.new_session(data)
 
-    def update_session(self, data):
-        # make sure all info was filled in
+    def new_session(self, data):
         if data['pid'] == '' or data['sid'] == '':
             QtGui.QMessageBox.critical(
                 self,
@@ -96,6 +78,7 @@ class PygestureMainWindow(QtGui.QMainWindow):
             self.cfg.data_path,
             data['pid'],
             data['sid'],
+            data['task'],
             data['configuration'])
 
         # if session exists, make sure the user wants to overwrite it
@@ -111,24 +94,37 @@ class PygestureMainWindow(QtGui.QMainWindow):
             if message == QtGui.QMessageBox.No:
                 self.session = None
                 return
-            elif message == QtGui.QMessageBox.Yes:
+            else:
                 self.session.init_file_structure(force=True)
+
+        self.remove_session_tab()
+        if self.session.task == "train":
+            name = "Train"
+            widget = train.TrainWidget(
+                self.cfg, self.record_thread, self.session, parent=self)
+        else:
+            name = "Test"
+            widget = test.TestWidget(
+                self.cfg, self.record_thread, self.session, parent=self)
+        self.ui.tabWidget.addTab(widget, name)
+        self.ui.tabWidget.setCurrentIndex(self.ui.tabWidget.count()-1)
 
         self.statusbar_label.setText("Session " + str(self.session))
 
-        for name, tab in self.tabs.items():
-            tab.setEnabled(True)
-
-            if name in ["Train", "Test", "View", "Process"]:
-                tab.set_session(self.session)
+    def remove_session_tab(self):
+        """Removes a session tab (train or test) if one exists."""
+        count = self.ui.tabWidget.count()
+        if count > len(self.permanent_tabs):
+            self.ui.tabWidget.removeTab(count-1)
 
 
 class Session(object):
 
-    def __init__(self, data_path, pid, sid, configuration):
+    def __init__(self, data_path, pid, sid, task, configuration):
         self.data_path = data_path
         self.pid = pid
         self.sid = sid
+        self.task = task
         self.configuration = configuration
 
     def init_file_structure(self, force=False):
@@ -147,8 +143,8 @@ class Session(object):
         self.session_dir = session_dir
 
     def __str__(self):
-        return "pid: %s, sid: %s, config: %s" % (
-            self.pid, self.sid, self.configuration
+        return "pid: %s, sid: %s, task: %s, config: %s" % (
+            self.pid, self.sid, self.task, self.configuration
         )
 
 

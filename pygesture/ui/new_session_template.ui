@@ -28,66 +28,96 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QFormLayout" name="formLayout">
    <item row="0" column="0">
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="participantLabel">
+    <widget class="QLabel" name="participantLabel">
+     <property name="text">
+      <string>Participant ID:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="participantLineEdit"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="sessionLabel">
+     <property name="text">
+      <string>Session ID:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="sessionLineEdit"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Task:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QRadioButton" name="trainRadioButton">
        <property name="text">
-        <string>Participant ID:</string>
+        <string>train</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">taskGroup</string>
+       </attribute>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="participantLineEdit"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="sessionLabel">
+     <item>
+      <widget class="QRadioButton" name="testRadioButton">
        <property name="text">
-        <string>Session ID:</string>
+        <string>test</string>
        </property>
+       <attribute name="buttonGroup">
+        <string notr="true">taskGroup</string>
+       </attribute>
       </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="sessionLineEdit"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="configurationLabel">
-       <property name="text">
-        <string>Configuration:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QRadioButton" name="armRadioButton">
-         <property name="text">
-          <string>arm</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">configurationGroup</string>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="legRadioButton">
-         <property name="text">
-          <string>leg</string>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">configurationGroup</string>
-         </attribute>
-        </widget>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
+   <item row="3" column="0">
+    <widget class="QLabel" name="configurationLabel">
+     <property name="text">
+      <string>Configuration:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QRadioButton" name="armRadioButton">
+       <property name="text">
+        <string>arm</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">configurationGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="legRadioButton">
+       <property name="text">
+        <string>leg</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">configurationGroup</string>
+       </attribute>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -142,5 +172,6 @@
  </connections>
  <buttongroups>
   <buttongroup name="configurationGroup"/>
+  <buttongroup name="taskGroup"/>
  </buttongroups>
 </ui>

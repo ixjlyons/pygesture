@@ -49,11 +49,12 @@ class TestWidget(QtGui.QWidget):
     session_resumed = QtCore.pyqtSignal()
     session_finished = QtCore.pyqtSignal()
 
-    def __init__(self, config, record_thread, parent=None):
+    def __init__(self, config, record_thread, base_session, parent=None):
         super(TestWidget, self).__init__(parent)
         self.cfg = config
         self.test = getattr(config, 'test', False)
         self.record_thread = record_thread
+        self.base_session = base_session
 
         self.ui = Ui_TestWidget()
         self.ui.setupUi(self)
@@ -65,6 +66,7 @@ class TestWidget(QtGui.QWidget):
         self.robot = None
         self.prediction = 0
 
+        self.init_base_session()
         self.init_gesture_view()
         self.init_session_progressbar()
         self.init_session_type_combo()
@@ -88,13 +90,11 @@ class TestWidget(QtGui.QWidget):
         if self.simulation is not None:
             self.simulation.stop()
 
-    def set_session(self, session):
-        """Standard method for setting the parent session."""
+    def init_base_session(self):
         if self.simulation is None and self.isVisible():
             self.init_simulation()
 
-        self.parent_session = session
-        self.pid = session.pid
+        self.pid = self.base_session.pid
         self.ui.trainingList.clear()
         self.sid_list = filestruct.get_session_list(
             self.cfg.data_path, self.pid)

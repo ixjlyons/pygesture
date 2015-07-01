@@ -45,7 +45,7 @@ class TACSession(object):
         t = list(_gesture_combinations(gestures, k=simul))
 
         self.targets = t
-        self.trials = _generate_trials(self.targets, n_repeat=rep)
+        self.trials = generate_trials(self.targets, n_repeat=rep)
 
 
 def _gesture_combinations(gestures, k=1):
@@ -84,10 +84,30 @@ def _shuffle(x):
     return x
 
 
-def _generate_trials(trial_set, n_repeat=1):
+def generate_trials(trial_set, n_repeat=1):
     """
     Generates a trial sequence where trial_set is shuffled and repeated
-    n_repeat times.
+    n_repeat times. The shuffling occurs on the set passed in, so the set is
+    randomly shuffled a number of times and the shuffled sets are concatenated
+    to form the output. This helps to keep the frequency of a given trial type
+    somewhat uniform, that is, it helps to avoid situations where adjacent
+    trials are the same, then that trial type is not seen again for a long
+    time.
+
+    Parameters
+    ----------
+    trial_set : iterable
+        A set of trials to be shuffled and repeated. Often, this is just a list
+        of integers representing a trial type index.
+    n_repeat : int, default=1
+        The number of times to repeat the trials. Default is 1, so the input
+        set is just shuffled and returned.
+
+    Returns
+    -------
+    trials : list
+        The list of randomized trials. The trials are of whatever type was
+        passed in through `trial_set`.
     """
     return list(itertools.chain.from_iterable(
         _shuffle(trial_set) for i in range(n_repeat)))

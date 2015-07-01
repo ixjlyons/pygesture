@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/new_session_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -20,9 +20,7 @@ class Ui_NewSessionDialog(object):
         NewSessionDialog.setSizePolicy(sizePolicy)
         NewSessionDialog.setSizeGripEnabled(False)
         NewSessionDialog.setModal(True)
-        self.gridLayout = QtWidgets.QGridLayout(NewSessionDialog)
-        self.gridLayout.setObjectName("gridLayout")
-        self.formLayout = QtWidgets.QFormLayout()
+        self.formLayout = QtWidgets.QFormLayout(NewSessionDialog)
         self.formLayout.setObjectName("formLayout")
         self.participantLabel = QtWidgets.QLabel(NewSessionDialog)
         self.participantLabel.setObjectName("participantLabel")
@@ -36,9 +34,26 @@ class Ui_NewSessionDialog(object):
         self.sessionLineEdit = QtWidgets.QLineEdit(NewSessionDialog)
         self.sessionLineEdit.setObjectName("sessionLineEdit")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sessionLineEdit)
+        self.label = QtWidgets.QLabel(NewSessionDialog)
+        self.label.setObjectName("label")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.trainRadioButton = QtWidgets.QRadioButton(NewSessionDialog)
+        self.trainRadioButton.setChecked(True)
+        self.trainRadioButton.setObjectName("trainRadioButton")
+        self.taskGroup = QtWidgets.QButtonGroup(NewSessionDialog)
+        self.taskGroup.setObjectName("taskGroup")
+        self.taskGroup.addButton(self.trainRadioButton)
+        self.horizontalLayout_2.addWidget(self.trainRadioButton)
+        self.testRadioButton = QtWidgets.QRadioButton(NewSessionDialog)
+        self.testRadioButton.setObjectName("testRadioButton")
+        self.taskGroup.addButton(self.testRadioButton)
+        self.horizontalLayout_2.addWidget(self.testRadioButton)
+        self.formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_2)
         self.configurationLabel = QtWidgets.QLabel(NewSessionDialog)
         self.configurationLabel.setObjectName("configurationLabel")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.configurationLabel)
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.configurationLabel)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.armRadioButton = QtWidgets.QRadioButton(NewSessionDialog)
@@ -52,13 +67,12 @@ class Ui_NewSessionDialog(object):
         self.legRadioButton.setObjectName("legRadioButton")
         self.configurationGroup.addButton(self.legRadioButton)
         self.horizontalLayout.addWidget(self.legRadioButton)
-        self.formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
-        self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
+        self.formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
         self.buttonBox = QtWidgets.QDialogButtonBox(NewSessionDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
-        self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.SpanningRole, self.buttonBox)
 
         self.retranslateUi(NewSessionDialog)
         self.buttonBox.accepted.connect(NewSessionDialog.accept)
@@ -73,6 +87,9 @@ class Ui_NewSessionDialog(object):
         NewSessionDialog.setWindowTitle(_translate("NewSessionDialog", "New Session"))
         self.participantLabel.setText(_translate("NewSessionDialog", "Participant ID:"))
         self.sessionLabel.setText(_translate("NewSessionDialog", "Session ID:"))
+        self.label.setText(_translate("NewSessionDialog", "Task:"))
+        self.trainRadioButton.setText(_translate("NewSessionDialog", "train"))
+        self.testRadioButton.setText(_translate("NewSessionDialog", "test"))
         self.configurationLabel.setText(_translate("NewSessionDialog", "Configuration:"))
         self.armRadioButton.setText(_translate("NewSessionDialog", "arm"))
         self.legRadioButton.setText(_translate("NewSessionDialog", "leg"))
