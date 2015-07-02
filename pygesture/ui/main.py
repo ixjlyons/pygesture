@@ -13,6 +13,7 @@ from pygesture.ui import recorder
 from pygesture.ui import train
 from pygesture.ui import test
 from pygesture.ui import tabs
+from pygesture.ui import widgets
 
 
 class PygestureMainWindow(QtWidgets.QMainWindow):
@@ -61,7 +62,7 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
             self.ui.tabWidget.addTab(widget, name)
 
     def show_new_session_dialog(self):
-        dialog = tabs.NewSessionDialog(self)
+        dialog = widgets.NewSessionDialog(self)
         if dialog.exec_():
             data = dialog.get_data()
             self.new_session(data)

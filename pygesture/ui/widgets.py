@@ -54,7 +54,7 @@ class PromptWidget(QtWidgets.QProgressBar):
         self.update_tick_labels()
         self._transitions = (0, 1)
 
-        self.palette = QtWidgets.QPalette()
+        self.palette = QtGui.QPalette()
 
     @property
     def ticks(self):
@@ -80,7 +80,7 @@ class PromptWidget(QtWidgets.QProgressBar):
 
     def paintEvent(self, event):
         super(PromptWidget, self).paintEvent(event)
-        painter = QtWidgets.QPainter()
+        painter = QtGui.QPainter()
         painter.begin(self)
         self.draw_ticks(painter)
         painter.end()
