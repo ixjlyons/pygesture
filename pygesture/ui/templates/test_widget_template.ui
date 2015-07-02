@@ -30,9 +30,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <widget class="GestureView" name="gestureDisplayLabel" native="true">
-        <zorder>frame</zorder>
-       </widget>
+       <widget class="GestureView" name="gestureDisplayLabel" native="true"/>
       </item>
      </layout>
     </widget>

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/signal_widget_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/templates/signal_widget_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -49,7 +49,7 @@ class Ui_SignalWidget(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
         self.groupBox = QtWidgets.QGroupBox(SignalWidget)
-        self.groupBox.setMinimumSize(QtCore.QSize(200, 0))
+        self.groupBox.setMinimumSize(QtCore.QSize(250, 0))
         self.groupBox.setObjectName("groupBox")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox)
         self.verticalLayout_3.setObjectName("verticalLayout_3")

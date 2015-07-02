@@ -156,11 +156,11 @@ class RecordingViewerWidget(QtWidgets.QWidget):
         self.ui.previousButton.clicked.connect(self.prev_plot_callback)
 
     def init_browser(self):
-        self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
         self.ui.sessionBrowser.participant_selected.connect(
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
         self.pid = pid
@@ -259,11 +259,11 @@ class ProcessWidget(QtWidgets.QWidget):
         self.ui.verticalLayout.addWidget(self.plotWidget)
 
     def init_browser(self):
-        self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
         self.ui.sessionBrowser.participant_selected.connect(
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
         self.pid = pid

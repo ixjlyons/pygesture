@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/process_widget_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/templates/process_widget_template.ui'
 #
 # Created by: PyQt5 UI code generator 5.4.2
 #
@@ -33,7 +33,7 @@ class Ui_ProcessWidget(object):
         self.verticalLayout.addWidget(self.titleLabel)
         self.gridLayout_2.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.groupBox = QtWidgets.QGroupBox(ProcessWidget)
-        self.groupBox.setMinimumSize(QtCore.QSize(200, 0))
+        self.groupBox.setMinimumSize(QtCore.QSize(250, 0))
         self.groupBox.setObjectName("groupBox")
         self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
         self.gridLayout.setObjectName("gridLayout")

@@ -166,14 +166,18 @@ class SessionBrowser(QtWidgets.QWidget):
         self.ui.participantComboBox.clear()
         self.ui.sessionList.clear()
 
-        pids = filestruct.get_participant_list(self.data_path)
-        self.ui.participantComboBox.addItems(pids)
-
         self.ui.participantComboBox.currentIndexChanged[str].connect(
             self.on_participant_selection)
 
+        pids = filestruct.get_participant_list(self.data_path)
+        self.ui.participantComboBox.addItems(pids)
+
         self.ui.sessionList.currentTextChanged.connect(
             self.on_session_selection)
+
+        if len(pids) > 0:
+            self.on_participant_selection(
+                self.ui.participantComboBox.currentText())
 
     def on_participant_selection(self, text):
         pid = str(text)
