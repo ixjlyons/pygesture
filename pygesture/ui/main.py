@@ -6,9 +6,9 @@ import shutil
 from pygesture import config
 from pygesture import filestruct
 
-from pygesture.ui.qt import QtGui, QtWidgets
+from pygesture.ui.qt import QtWidgets
 
-from pygesture.ui.main_template import Ui_PygestureMainWindow
+from pygesture.ui.templates.main_template import Ui_PygestureMainWindow
 from pygesture.ui import recorder
 from pygesture.ui import train
 from pygesture.ui import test

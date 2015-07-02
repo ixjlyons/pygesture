@@ -35,7 +35,7 @@ from pygesture import features
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
-from pygesture.ui.test_widget_template import Ui_TestWidget
+from pygesture.ui.templates.test_widget_template import Ui_TestWidget
 
 
 # time to wait before starting the recorder

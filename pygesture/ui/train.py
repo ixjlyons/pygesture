@@ -1,13 +1,12 @@
 import os
 import pkg_resources
-import random
 
 from pygesture import filestruct
 from pygesture import wav
 from pygesture import experiment
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
-from pygesture.ui.train_widget_template import Ui_TrainWidget
+from pygesture.ui.templates.train_widget_template import Ui_TrainWidget
 
 
 class TrainWidget(QtWidgets.QWidget):

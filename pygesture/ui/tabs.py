@@ -6,10 +6,10 @@ from sklearn import cross_validation
 from pygesture import filestruct
 from pygesture import processing
 
-from pygesture.ui.qt import QtGui, QtCore, QtWidgets
-from pygesture.ui.signal_widget_template import Ui_SignalWidget
-from pygesture.ui.recording_viewer_template import Ui_RecordingViewerWidget
-from pygesture.ui.process_widget_template import Ui_ProcessWidget
+from pygesture.ui.qt import QtCore, QtWidgets
+from .templates.signal_widget_template import Ui_SignalWidget
+from .templates.recording_viewer_template import Ui_RecordingViewerWidget
+from .templates.process_widget_template import Ui_ProcessWidget
 
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl

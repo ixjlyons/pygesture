@@ -19,7 +19,7 @@ lint:
 
 
 PYUIC=pyuic5
-UI_DIR=pygesture/ui
+UI_DIR=pygesture/ui/templates
 UI_TEMPLATES=$(UI_DIR)/main_template.ui              \
 			 $(UI_DIR)/train_widget_template.ui      \
 			 $(UI_DIR)/test_widget_template.ui       \

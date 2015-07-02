@@ -1,8 +1,8 @@
 from pygesture import filestruct
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
-from pygesture.ui.new_session_template import Ui_NewSessionDialog
-from pygesture.ui.session_browser_template import Ui_SessionBrowser
+from .templates.new_session_template import Ui_NewSessionDialog
+from .templates.session_browser_template import Ui_SessionBrowser
 
 
 class GestureView(QtWidgets.QWidget):
@@ -80,7 +80,7 @@ class PromptWidget(QtWidgets.QProgressBar):
 
     def paintEvent(self, event):
         super(PromptWidget, self).paintEvent(event)
-        painter = QtWidets.QPainter()
+        painter = QtWidgets.QPainter()
         painter.begin(self)
         self.draw_ticks(painter)
         painter.end()
