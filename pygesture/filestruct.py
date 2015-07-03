@@ -38,17 +38,46 @@ def get_processed_dir(session_dir):
     return proc_dir
 
 
-def get_recording_file(recording_dir, pid, sid, date_str, trial_num, label):
+def get_log_dir(session_dir):
+    """
+    Returns the path to the log files directory within session_dir.
+    Example:
+        <SESSION_DIR>/log
+    """
+    log_dir = os.path.join(session_dir, 'log')
+    return log_dir
+
+
+def get_recording_file(recording_dir, pid, sid, date_str, trial_num,
+                       label=None):
     """
     Creates a path to a new recording file in the given recording directory.
     Example:
         <RECORDING_DIR>/rec_2014-08-12_p0_t01_l2.wav
     """
+    if label is None:
+        labelstr = ""
+    else:
+        labelstr = '_l' + ('%d' % label)
+
     recording_file = os.path.join(
         recording_dir,
         'rec_' + date_str + '_' + pid + '_' + 't' + ('%02d' % trial_num) +
-        '_' + 'l' + ('%d' % label) + '.wav')
+        labelstr + '.wav')
     return recording_file
+
+
+def get_log_file(log_dir, pid, sid, date_str, trial_num):
+    """
+    Creates a path to a new log file in the given log directory.
+    Example:
+        <RECORDING_DIR>/log_2014-08-12_t01.json
+    """
+    log_file = os.path.join(
+        log_dir,
+        'log_' + date_str + '_' + pid + '_' + 't' + ('%02d' % trial_num) +
+        '.json')
+    return log_file
 
 
 def find_session_dir(rootdir, pid, sid):

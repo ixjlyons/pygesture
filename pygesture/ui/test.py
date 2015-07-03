@@ -18,6 +18,7 @@ Testing protocol:
       created
 """
 
+import os
 import time
 import json
 import pkg_resources
@@ -32,6 +33,7 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
+from pygesture import wav
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
@@ -129,6 +131,7 @@ class TestWidget(QtWidgets.QWidget):
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.prediction_sig.connect(self.prediction_callback)
+        self.record_thread.update_sig.connect(self.record_callback)
 
     def dispose_record_thread(self):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
@@ -202,12 +205,13 @@ class TestWidget(QtWidgets.QWidget):
     def start_session(self):
         self.session_started.emit()
 
+        self.session = Session(self.base_session, self.tac_session)
+
         self.ui.sessionInfoBox.setEnabled(False)
         self.ui.startButton.setEnabled(False)
         self.ui.pauseButton.setEnabled(True)
 
         self.trial_number = 1
-        self.logger = Logger()
         self.dwell_timer.setInterval(self.tac_session.dwell*1000)
         self.initialize_trial()
         self.session_running = True
@@ -219,6 +223,8 @@ class TestWidget(QtWidgets.QWidget):
         """
         self.trial_initializing = True
         self.ui.sessionProgressBar.setValue(self.trial_number)
+
+        self.logger = Logger(self.tac_session, self.trial_number-1)
 
         if self.simulation is not None:
             self.simulation.start()
@@ -256,6 +262,7 @@ class TestWidget(QtWidgets.QWidget):
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
         self.dwell_timer.stop()
+        self.record_thread.kill()
         self.trial_running = False
 
         if self.simulation is not None:
@@ -265,6 +272,14 @@ class TestWidget(QtWidgets.QWidget):
 
     def finish_trial(self, success=False):
         self.pause_trial()
+        self.prediction = 0
+        self.update_gesture_view()
+
+        self.session.write_trial(
+            self.trial_number,
+            self.logger.get_data(),
+            self.cfg.daq.rate)
+
         self.trial_number += 1
 
         if self.trial_number < len(self.tac_session.trials):
@@ -274,10 +289,6 @@ class TestWidget(QtWidgets.QWidget):
 
     def finish_session(self):
         self.session_finished.emit()
-        self.record_thread.kill()
-        self.prediction = 0
-        self.update_gesture_view()
-        self.logger.finish()
         self.session_running = False
 
         self.ui.sessionInfoBox.setEnabled(True)
@@ -319,6 +330,10 @@ class TestWidget(QtWidgets.QWidget):
             self.logger.log(self.prediction, self.robot.pose)
 
         self.update_gesture_view()
+
+    def record_callback(self, data):
+        """Called by the `RecordThread` when it gets new recording data."""
+        self.logger.record(data)
 
     def keyPressEvent(self, event):
         if self.test and self.trial_running:
@@ -425,26 +440,63 @@ class TestWidget(QtWidgets.QWidget):
         self.record_thread.set_pipeline(pl)
 
 
+class Session(object):
+
+    def __init__(self, base_session, tac_session):
+        self.base_session = base_session
+        self.tac_session = tac_session
+
+        self.init_file_structure()
+
+    def init_file_structure(self):
+        self.recording_dir = filestruct.get_recording_dir(
+            self.base_session.session_dir)
+        os.makedirs(self.recording_dir)
+
+        self.log_dir = filestruct.get_log_dir(
+            self.base_session.session_dir)
+        os.makedirs(self.log_dir)
+
+    def write_trial(self, trial_number, data, fs):
+        rec, log = data
+
+        rec_file = filestruct.get_recording_file(
+            self.recording_dir,
+            self.base_session.pid,
+            self.base_session.sid,
+            self.base_session.datestr,
+            trial_number)
+
+        wav.write(rec_file, fs, rec.T)
+
+        log_file = filestruct.get_log_file(
+            self.log_dir,
+            self.base_session.pid,
+            self.base_session.sid,
+            self.base_session.datestr,
+            trial_number)
+
+        with open(log_file, 'w') as f:
+            f.write(log)
+
+
 class Logger(object):
 
-    def __init__(self):
+    def __init__(self, tac_session, trial_index):
         self.started = False
 
-        self.active_classes = [
-            'example',
-            'another'
-        ]
+        self.tac_session = tac_session
+        self.trial_index = trial_index
 
-        self.target_pose = {
-            'example': 70,
-            'another': 70
-        }
+        self.active_classes = [g.action for g in tac_session.gestures]
+        self.target_pose = [g.action for g in tac_session.trials[trial_index]]
 
         self.trial_data = {
             'timestamp': [],
             'prediction': [],
             'pose': []
         }
+        self.rec_data = []
 
     def log(self, prediction, pose):
         if not self.started:
@@ -457,15 +509,20 @@ class Logger(object):
         self.trial_data['prediction'].append(prediction)
         self.trial_data['pose'].append(pose)
 
-    def finish(self):
-        self.started = False
+    def record(self, data):
+        self.rec_data.append(data)
 
-        data = dict(
+    def get_data(self):
+        rec = np.concatenate(self.rec_data, axis=1)
+
+        d = dict(
             active_classes=self.active_classes,
             trial_data=self.trial_data,
             target_pose=self.target_pose
         )
-        return json.dumps(data, indent=4)
+        log = json.dumps(d, indent=4)
+
+        return (rec, log)
 
 
 class SimulationConnectThread(QtCore.QThread):
