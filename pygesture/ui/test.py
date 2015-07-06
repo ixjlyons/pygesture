@@ -224,13 +224,15 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = True
         self.ui.sessionProgressBar.setValue(self.trial_number)
 
-        self.logger = Logger(self.tac_session, self.trial_number-1)
+        self.logger = Logger(self.tac_session, self.trial_number-1,
+            self.training_sessions, self.boosts)
 
         if self.simulation is not None:
             self.simulation.start()
             self.acquired_signal = vrepsim.IntegerSignal(
-                self.simulation.clientId,
-                'target_acquired')
+                self.simulation.clientId, 'target_acquired')
+            self.state_signal = vrepsim.IntegerSignal(
+                self.simulation.clientId, 'trial_state')
             self.robot = vrepsim.IRB140Arm(
                 self.simulation.clientId)
             self.target_robot = vrepsim.IRB140Arm(
@@ -245,6 +247,7 @@ class TestWidget(QtWidgets.QWidget):
         if self.simulation is not None:
             gestures = self.tac_session.trials[self.trial_number-1]
             target = {g.action: 60 for g in gestures}
+            self.state_signal.write(2)
             self.target_robot.command(target)
 
     def start_trial(self):
@@ -256,6 +259,7 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_running = True
         self.record_thread.start()
         self.trial_timeout_timer.start()
+        self.state_signal.write(3)
 
     def pause_trial(self):
         self.trial_timeout_timer.stop()
@@ -366,6 +370,7 @@ class TestWidget(QtWidgets.QWidget):
             item = self.ui.trainingList.item(i)
             if item.checkState():
                 train_list.append(str(item.text()))
+        self.training_sessions = train_list
 
         if not train_list:
             QtWidgets.QMessageBox().critical(
@@ -406,6 +411,7 @@ class TestWidget(QtWidgets.QWidget):
             mav_avg = np.mean(X[y == label, :], axis=1)
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
+        self.boosts = boosts
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -482,11 +488,13 @@ class Session(object):
 
 class Logger(object):
 
-    def __init__(self, tac_session, trial_index):
+    def __init__(self, tac_session, trial_index, training_sessions, boosts):
         self.started = False
 
         self.tac_session = tac_session
         self.trial_index = trial_index
+        self.training_sessions = training_sessions
+        self.boosts = boosts
 
         self.active_classes = [g.action for g in tac_session.gestures]
         self.target_pose = [g.action for g in tac_session.trials[trial_index]]
@@ -494,20 +502,26 @@ class Logger(object):
         self.trial_data = {
             'timestamp': [],
             'prediction': [],
-            'pose': []
+            'pose': {}
         }
         self.rec_data = []
 
     def log(self, prediction, pose):
         if not self.started:
             self.start_timestamp = time.time()
+
+            for k, v in pose.items():
+                self.trial_data['pose'][k] = []
+
             self.started = True
 
         ts = time.time() - self.start_timestamp
 
         self.trial_data['timestamp'].append(ts)
         self.trial_data['prediction'].append(prediction)
-        self.trial_data['pose'].append(pose)
+
+        for k, v in pose.items():
+            self.trial_data['pose'][k].append(v)
 
     def record(self, data):
         self.rec_data.append(data)
@@ -516,6 +530,8 @@ class Logger(object):
         rec = np.concatenate(self.rec_data, axis=1)
 
         d = dict(
+            training_sessions=self.training_sessions,
+            boosts=self.boosts,
             active_classes=self.active_classes,
             trial_data=self.trial_data,
             target_pose=self.target_pose

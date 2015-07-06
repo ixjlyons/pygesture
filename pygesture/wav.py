@@ -43,3 +43,24 @@ def read(filename):
     rate, data = siowav.read(filename)
     data = data / 32768.0
     return (rate, data)
+
+
+class ContinuousWriter(object):
+    """
+    Writes data to a WAV file chunk by chunk.
+
+    Parameters
+    ----------
+    """
+
+    def __init__(self, filename, fs):
+        self.filename = filename
+        self.fs = fs
+
+        self.fid = open(self.filename, 'ab')
+
+    def write(self, data):
+        write(self.fid, self.fs, data)
+
+    def close(self):
+        self.fid.close()
