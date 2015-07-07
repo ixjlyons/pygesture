@@ -34,6 +34,7 @@ from pygesture import processing
 from pygesture import pipeline
 from pygesture import features
 from pygesture import wav
+from pygesture import control
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
@@ -318,10 +319,10 @@ class TestWidget(QtWidgets.QWidget):
         if not self.test:
             self.prediction = label
         else:
-            data = ([1], self.prediction)
+            data = ([0.5], self.prediction)
 
         if self.simulation is not None:
-            commands = self.cfg.controller.process(data)
+            commands = self.controller.process(data)
             self.robot.command(commands)
 
             acq = self.acquired_signal.read()
@@ -331,7 +332,7 @@ class TestWidget(QtWidgets.QWidget):
                 else:
                     self.on_target_leave()
 
-            self.logger.log(self.prediction, self.robot.pose)
+            self.logger.log(self.prediction, self.robot.pose, acq)
 
         self.update_gesture_view()
 
@@ -382,12 +383,15 @@ class TestWidget(QtWidgets.QWidget):
         # get only the labels for the selected TAC session
         # need to loop over available gestures to catch those with no dof
         labels = []
+        mapping = {}
         for gesture in self.cfg.gestures:
             if gesture.dof is None:
                 labels.append(gesture.label)
+                mapping[gesture.label] = gesture.action
             else:
                 if gesture in self.tac_session.gestures:
                     labels.append(gesture.label)
+                    mapping[gesture.label] = gesture.action
 
         file_list = filestruct.get_feature_file_list(
             self.cfg.data_path, self.pid, train_list)
@@ -412,6 +416,11 @@ class TestWidget(QtWidgets.QWidget):
             # -np.partition(-data, N) gets N largest elements of data
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
         self.boosts = boosts
+
+        self.controller = control.DBVRController(
+            mapping=mapping,
+            ramp_length=self.cfg.controller.ramp_length,
+            boosts=1 if self.test else boosts)
 
         clf_type = self.ui.classifierComboBox.currentText()
         if clf_type == 'LDA':
@@ -502,11 +511,12 @@ class Logger(object):
         self.trial_data = {
             'timestamp': [],
             'prediction': [],
+            'target_entered': [],
             'pose': {}
         }
         self.rec_data = []
 
-    def log(self, prediction, pose):
+    def log(self, prediction, pose, acq):
         if not self.started:
             self.start_timestamp = time.time()
 
@@ -519,6 +529,9 @@ class Logger(object):
 
         self.trial_data['timestamp'].append(ts)
         self.trial_data['prediction'].append(prediction)
+
+        if acq:
+            self.trial_data['target_entered'].append(ts)
 
         for k, v in pose.items():
             self.trial_data['pose'][k].append(v)

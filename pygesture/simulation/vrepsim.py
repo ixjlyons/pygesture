@@ -358,8 +358,7 @@ class IRB140Arm(object):
         # calls would be useful here
         for name in self.joints.keys():
             self.joints[name].update()
-            if 'IRB140' in name:
-                self.pose[name] = self.joints[name].position
+            self.pose[name] = self.joints[name].position
 
     def stop(self):
         """
@@ -432,9 +431,9 @@ class BarrettHand(object):
             opmode=vrep.simx_opmode_oneshot_wait)
 
         if position_controlled:
-            self._get_position(opmode=vrep.simx_opmode_streaming)
             append = '_position'
         else:
+            self._get_position(opmode=vrep.simx_opmode_streaming)
             append = '_velocity'
         self.signal_name = 'BarrettHand' + self.suffix + append
 

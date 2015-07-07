@@ -69,14 +69,14 @@ probe_channel = 6
 
 gestures = [
     util.Gesture(0, "NC", "no-contraction"),
-    util.Gesture(1, "CF", "closed-fist", dof=0),
+    util.Gesture(1, "CF", "closed-fist", dof=3),
     util.Gesture(2, "FP", "forearm-pronation", dof=1),
     util.Gesture(3, "FS", "forearm-supination", dof=1),
-    util.Gesture(4, "OH", "open-hand", dof=0),
-    util.Gesture(5, "RD", "radial-deviation", dof=2, action="elbow-flexion"),
-    util.Gesture(7, "UD", "ulnar-deviation", dof=2, action="elbow-extension"),
-    util.Gesture(8, "WE", "wrist-extension", dof=3),
-    util.Gesture(9, "WF", "wrist-flexion", dof=3)
+    util.Gesture(4, "OH", "open-hand", dof=3),
+    util.Gesture(5, "RD", "radial-deviation", dof=0, action="elbow-flexion"),
+    util.Gesture(7, "UD", "ulnar-deviation", dof=0, action="elbow-extension"),
+    util.Gesture(8, "WE", "wrist-extension", dof=2),
+    util.Gesture(9, "WF", "wrist-flexion", dof=2)
 ]
 
 try:
@@ -126,26 +126,26 @@ post_processor = processing.Processor(
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=5,
+    ramp_length=10,
     boosts=0.5
 )
 
 tac_sessions = {
     '1. 3-1 a':
         experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 1, 2]],
+            [g for g in gestures if g.dof in [1, 2, 3]],
             simul=1, rep=4, timeout=15, tol=10, dwell=2),
     '2. 3-1 b':
         experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 1, 3]],
+            [g for g in gestures if g.dof in [0, 2, 3]],
             simul=1, rep=4, timeout=15, tol=10, dwell=2),
     '3. 3-3 a':
         experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 1, 2]],
+            [g for g in gestures if g.dof in [1, 2, 3]],
             simul=3, rep=2, timeout=30, tol=10, dwell=2),
     '4. 3-3 b':
         experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 1, 3]],
+            [g for g in gestures if g.dof in [0, 2, 3]],
             simul=3, rep=2, timeout=30, tol=10, dwell=2),
     '5. 4-1':
         experiment.TACSession(
