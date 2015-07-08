@@ -158,7 +158,6 @@ class TestWidget(QtWidgets.QWidget):
 
         # timer which enforces the timeout of a trial
         self.trial_timeout_timer = QtCore.QTimer(self)
-        self.trial_timeout_timer.setInterval(self.tac_session.timeout*1000)
         self.trial_timeout_timer.setSingleShot(True)
         self.trial_timeout_timer.timeout.connect(self.finish_trial)
 
@@ -214,6 +213,7 @@ class TestWidget(QtWidgets.QWidget):
 
         self.trial_number = 1
         self.dwell_timer.setInterval(self.tac_session.dwell*1000)
+        self.trial_timeout_timer.setInterval(self.tac_session.timeout*1000)
         self.initialize_trial()
         self.session_running = True
 
@@ -332,7 +332,7 @@ class TestWidget(QtWidgets.QWidget):
                 else:
                     self.on_target_leave()
 
-            self.logger.log(self.prediction, self.robot.pose, acq)
+            self.logger.log(self.prediction, commands, self.robot.pose, acq)
 
         self.update_gesture_view()
 
@@ -506,17 +506,21 @@ class Logger(object):
         self.boosts = boosts
 
         self.active_classes = [g.action for g in tac_session.gestures]
-        self.target_pose = [g.action for g in tac_session.trials[trial_index]]
+        self.target = {
+            'dist': tac_session.dist,
+            'pose': [g.action for g in tac_session.trials[trial_index]]
+        }
 
         self.trial_data = {
             'timestamp': [],
             'prediction': [],
+            'command': [],
             'target_entered': [],
             'pose': {}
         }
         self.rec_data = []
 
-    def log(self, prediction, pose, acq):
+    def log(self, prediction, command, pose, acq):
         if not self.started:
             self.start_timestamp = time.time()
 
@@ -533,6 +537,8 @@ class Logger(object):
         if acq:
             self.trial_data['target_entered'].append(ts)
 
+        self.trial_data['command'].append(command)
+
         for k, v in pose.items():
             self.trial_data['pose'][k].append(v)
 
@@ -547,7 +553,7 @@ class Logger(object):
             boosts=self.boosts,
             active_classes=self.active_classes,
             trial_data=self.trial_data,
-            target_pose=self.target_pose
+            target=self.target
         )
         log = json.dumps(d, indent=4)
 

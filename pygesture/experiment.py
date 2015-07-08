@@ -18,6 +18,8 @@ class TACSession(object):
         Number of repetitions of each possible target.
     timeout : number, default=0
         Maximum trial duration, in seconds. Zero means no timeout.
+    dist : number, default=50
+        Angle of rotation for each DOF in a target, in degrees.
     tol : number, default=10
         Error tolerance for each joint (DOF), in degrees.
     dwell : number, default=0
@@ -34,11 +36,13 @@ class TACSession(object):
         `rep`) and in randomized order.
     """
 
-    def __init__(self, gestures, simul=1, rep=1, timeout=0, tol=10, dwell=0):
+    def __init__(self, gestures, simul=1, rep=1, timeout=0, dist=50, tol=10,
+                 dwell=0):
         self.gestures = gestures
         self.simul = simul
         self.rep = rep
         self.timeout = timeout
+        self.dist = dist
         self.tol = tol
         self.dwell = dwell
 

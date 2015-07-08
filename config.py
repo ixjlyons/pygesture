@@ -131,24 +131,24 @@ controller = control.DBVRController(
 )
 
 tac_sessions = {
-    '1. 3-1 a':
+    '3-1 a':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=1, rep=4, timeout=15, tol=10, dwell=2),
-    '2. 3-1 b':
+            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+    '3-1 b':
         experiment.TACSession(
             [g for g in gestures if g.dof in [0, 2, 3]],
-            simul=1, rep=4, timeout=15, tol=10, dwell=2),
-    '3. 3-3 a':
-        experiment.TACSession(
-            [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=3, rep=2, timeout=30, tol=10, dwell=2),
-    '4. 3-3 b':
-        experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 2, 3]],
-            simul=3, rep=2, timeout=30, tol=10, dwell=2),
-    '5. 4-1':
+            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+    '4-1':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=1, rep=4, timeout=15, tol=10, dwell=2)
+            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+    '3-2':
+        experiment.TACSession(
+            [g for g in gestures if g.dof in [1, 2, 3]],
+            simul=2, rep=2, timeout=20, dist=60, tol=10, dwell=2),
+    '4-2':
+        experiment.TACSession(
+            [g for g in gestures if g.dof in [0, 2, 3]],
+            simul=2, rep=2, timeout=25, dist=60, tol=10, dwell=2)
 }
