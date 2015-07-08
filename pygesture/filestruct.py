@@ -151,6 +151,14 @@ def get_recording_file_list(recording_dir):
     return file_list
 
 
+def get_log_file_list(log_dir):
+    """
+    Returns a sorted list of json files in the specified log file directory.
+    """
+    file_list = sorted(glob.glob(os.path.join(log_dir, '*.json')))
+    return file_list
+
+
 def parse_date_string(name):
     """
     Returns the date string from the given file/folder. The name can be the
