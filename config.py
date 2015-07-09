@@ -40,31 +40,23 @@ prompt_times = (2, 5)
 inter_trial_timeout = 3
 
 # path to save/load recordings and feature CSVs
-data_path = os.path.expanduser('~/pygesture-data/online')
+data_path = os.path.expanduser('~/pygesture-data/tactest')
 # path to v-rep (needed for simulation package)
 vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.1')
 # port that the v-rep is listening on (in remoteApiConnections.txt)
 vrep_port = 20013
 
 # sensor mappings
-arm_sensors = [
-    util.Sensor(0, "ECR", description="extensor carpi radialis brevis"),
-    util.Sensor(1, "ED", description="extensor digitorum"),
-    util.Sensor(2, "EPL", description="extensor pollicis longus"),
-    util.Sensor(3, "FDS", description="flexor digitorum superficialis"),
-    util.Sensor(4, "FCR", description="flexor carpi radialis"),
-    util.Sensor(5, "PT", description="pronator teres")
-]
-leg_sensors = [
-    util.Sensor(0, "TA", description="tibialis anterior"),
-    util.Sensor(1, "PL", description="peroneus longus"),
-    util.Sensor(2, "GL", description="gastrocnemius lateralis"),
-    util.Sensor(3, "EHL", description="extensor hallucis longus"),
-    util.Sensor(4, "EDL", description="extensor digitorum longus"),
-    util.Sensor(5, "FDL", description="flexor digitorum longus"),
+sensors = [
+    util.Sensor(0, "ECR/TA"),
+    util.Sensor(1, "ED/PL"),
+    util.Sensor(2, "EPL/GL"),
+    util.Sensor(3, "FDS/EHL"),
+    util.Sensor(4, "FCR/EDL"),
+    util.Sensor(5, "PT/FDL")
 ]
 
-channels = [s.channel for s in arm_sensors]
+channels = [s.channel for s in sensors]
 probe_channel = 6
 
 gestures = [
@@ -135,6 +127,10 @@ tac_sessions = {
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
             simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+    '3 active, 2 target':
+        experiment.TACSession(
+            [g for g in gestures if g.dof in [1, 2, 3]],
+            simul=2, rep=2, timeout=20, dist=60, tol=10, dwell=2),
     '4 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],

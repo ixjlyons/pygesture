@@ -260,7 +260,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_running = True
         self.record_thread.start()
         self.trial_timeout_timer.start()
-        self.state_signal.write(3)
+        if self.simulation is not None:
+            self.state_signal.write(3)
 
     def pause_trial(self):
         self.trial_timeout_timer.stop()

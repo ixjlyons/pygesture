@@ -97,9 +97,7 @@ class SignalWidget(QtWidgets.QWidget):
 
             if self.n_channels > 1:
                 ch = self.cfg.channels[i]
-                label = "%s/%s" % (
-                    self.cfg.arm_sensors[ch].name,
-                    self.cfg.leg_sensors[ch].name)
+                label = "%s" % (self.cfg.sensors[ch].name)
                 plot_item.setLabels(left=label)
 
             if i > 0:
