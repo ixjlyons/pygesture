@@ -141,7 +141,6 @@ class TrainWidget(QtWidgets.QWidget):
 
     def finish_session(self):
         self.running = False
-        self.ui.startButton.setEnabled(True)
         self.session_finished.emit()
 
 

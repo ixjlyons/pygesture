@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 
 from pygesture.ui.qt import QtCore
@@ -27,6 +28,7 @@ class RecordThread(QtCore.QThread):
             self.run_fixed()
 
     def run_continuous(self):
+        print(str(datetime.datetime.now().time()) + ' start')
         self.daq.start()
 
         while self.running:
@@ -37,6 +39,7 @@ class RecordThread(QtCore.QThread):
 
             self.update_sig.emit(d)
 
+        print(str(datetime.datetime.now().time()) + ' stop')
         self.daq.stop()
 
     def run_fixed(self):

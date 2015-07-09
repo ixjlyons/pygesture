@@ -171,9 +171,12 @@ class Recording:
         self.location = loc
         self.parse_details(self.filename)
 
-        self.rest_ind = range(
-            processor.rest_bounds[0], processor.rest_bounds[1],
-            self.windower.length-self.windower.overlap)
+        self.rest_ind = []
+        if processor.rest_bounds:
+            self.rest_ind = range(
+                processor.rest_bounds[0], processor.rest_bounds[1],
+                self.windower.length-self.windower.overlap)
+
         self.gest_ind = range(
             processor.gesture_bounds[0], processor.gesture_bounds[1],
             self.windower.length-self.windower.overlap)

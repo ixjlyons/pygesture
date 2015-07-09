@@ -160,6 +160,8 @@ class SessionBrowser(QtWidgets.QWidget):
         self.ui = Ui_SessionBrowser()
         self.ui.setupUi(self)
 
+        self.ui.refreshButton.clicked.connect(self.on_refresh_clicked)
+
     def set_data_path(self, path):
         self.data_path = path
 
@@ -179,8 +181,14 @@ class SessionBrowser(QtWidgets.QWidget):
             self.on_participant_selection(
                 self.ui.participantComboBox.currentText())
 
+    def on_refresh_clicked(self):
+        self.set_data_path(self.data_path)
+
     def on_participant_selection(self, text):
         pid = str(text)
+        if pid == '':
+            return
+
         self.pid = pid
 
         self.sid_list = filestruct.get_session_list(self.data_path, self.pid)
@@ -193,4 +201,7 @@ class SessionBrowser(QtWidgets.QWidget):
 
     def on_session_selection(self, text):
         sid = str(text)
+        if sid == '':
+            return
+
         self.session_selected.emit(sid)

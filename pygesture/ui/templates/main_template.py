@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/main_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/templates/main_template.ui'
 #
 # Created by: PyQt5 UI code generator 5.4.2
 #

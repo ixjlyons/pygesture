@@ -264,9 +264,10 @@ class TestWidget(QtWidgets.QWidget):
 
     def pause_trial(self):
         self.trial_timeout_timer.stop()
+        self.dwell_timer.stop()
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
-        self.dwell_timer.stop()
+
         self.record_thread.kill()
         self.trial_running = False
 
@@ -285,22 +286,21 @@ class TestWidget(QtWidgets.QWidget):
             self.logger.get_data(),
             self.cfg.daq.rate)
 
-        self.trial_number += 1
-
-        if self.trial_number < len(self.tac_session.trials):
-            self.intertrial_timer.start()
-        else:
+        if self.trial_number == len(self.tac_session.trials):
             self.finish_session()
+        else:
+            self.trial_number += 1
+            self.intertrial_timer.start()
 
     def finish_session(self):
         self.session_finished.emit()
         self.session_running = False
 
         self.ui.sessionInfoBox.setEnabled(True)
-        self.ui.startButton.setEnabled(True)
         self.ui.pauseButton.setEnabled(False)
 
     def on_target_enter(self):
+        self.dwell_timer.stop()
         self.dwell_timer.start()
 
     def dwell_timeout(self):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/session_browser_template.ui'
+# Form implementation generated from reading ui file 'pygesture/ui/templates/session_browser_template.ui'
 #
 # Created by: PyQt5 UI code generator 5.4.2
 #
@@ -22,6 +22,17 @@ class Ui_SessionBrowser(object):
         self.participantComboBox = QtWidgets.QComboBox(SessionBrowser)
         self.participantComboBox.setObjectName("participantComboBox")
         self.hlayout.addWidget(self.participantComboBox)
+        self.refreshButton = QtWidgets.QPushButton(SessionBrowser)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.refreshButton.sizePolicy().hasHeightForWidth())
+        self.refreshButton.setSizePolicy(sizePolicy)
+        self.refreshButton.setText("")
+        icon = QtGui.QIcon.fromTheme("view-refresh")
+        self.refreshButton.setIcon(icon)
+        self.refreshButton.setObjectName("refreshButton")
+        self.hlayout.addWidget(self.refreshButton)
         self.gridLayout.addLayout(self.hlayout, 0, 0, 1, 1)
         self.sessionList = QtWidgets.QListWidget(SessionBrowser)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)

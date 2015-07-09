@@ -31,7 +31,7 @@ window_overlap = 100
 attributes picked up by pygesture.config
 """
 # number of times to repeat each gesture during training
-num_repeats = 3
+num_repeats = 4
 # length of each trial during training [seconds]
 trial_duration = 6
 # gesture onset and offset times for training [seconds]
@@ -120,7 +120,7 @@ post_processor = processing.Processor(
     conditioner=conditioner,
     windower=windower,
     feature_extractor=feature_extractor,
-    rest_bounds=(int(1.0*f_proc), int(1.5*f_proc)),
+    rest_bounds=None,
     gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
 )
 
@@ -131,24 +131,16 @@ controller = control.DBVRController(
 )
 
 tac_sessions = {
-    '3-1 a':
+    '3 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
             simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
-    '3-1 b':
-        experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 2, 3]],
-            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
-    '4-1':
+    '4 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
-    '3-2':
+            simul=1, rep=3, timeout=15, dist=60, tol=10, dwell=2),
+    '4 active, 2 target':
         experiment.TACSession(
-            [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=2, rep=2, timeout=20, dist=60, tol=10, dwell=2),
-    '4-2':
-        experiment.TACSession(
-            [g for g in gestures if g.dof in [0, 2, 3]],
-            simul=2, rep=2, timeout=25, dist=60, tol=10, dwell=2)
+            [g for g in gestures if g.dof is not None],
+            simul=2, rep=1, timeout=20, dist=60, tol=10, dwell=2)
 }
