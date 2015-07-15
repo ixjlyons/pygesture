@@ -106,6 +106,8 @@ class TestWidget(QtWidgets.QWidget):
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
 
+        self.lefty = True if self.base_session.hand == 'left' else False
+
     def init_session_type_combo(self):
         for k, v in sorted(self.cfg.tac_sessions.items()):
             self.ui.sessionTypeComboBox.addItem(k)
@@ -145,6 +147,12 @@ class TestWidget(QtWidgets.QWidget):
             imgpath = pkg_resources.resource_filename(
                 __name__, 'images/'+gesture.description+'.png')
             img = QtGui.QPixmap(imgpath)
+
+            if self.lefty and 'no-contraction' not in imgpath:
+                # flip horizontally
+                t = QtGui.QTransform(-1, 0, 0, 1, 0, 0)
+                img = img.transformed(t)
+
             self.gesture_images[gesture.label] = img
 
         self.update_gesture_view()
@@ -235,11 +243,13 @@ class TestWidget(QtWidgets.QWidget):
             self.state_signal = vrepsim.IntegerSignal(
                 self.simulation.clientId, 'trial_state')
             self.robot = vrepsim.IRB140Arm(
-                self.simulation.clientId)
+                self.simulation.clientId,
+                lefty=self.lefty)
             self.target_robot = vrepsim.IRB140Arm(
                 self.simulation.clientId,
                 suffix='#0',
-                position_controlled=True)
+                position_controlled=True,
+                lefty=self.lefty)
 
             self.robot.set_tolerance(self.tac_session.tol)
 

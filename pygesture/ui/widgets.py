@@ -140,7 +140,9 @@ class NewSessionDialog(QtWidgets.QDialog):
             'task':
                 str(self.ui.taskGroup.checkedButton().text()),
             'configuration':
-                str(self.ui.configurationGroup.checkedButton().text())
+                str(self.ui.configurationGroup.checkedButton().text()),
+            'hand':
+                str(self.ui.handGroup.checkedButton().text())
         }
         return data
 

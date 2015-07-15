@@ -61,6 +61,12 @@ class TrainWidget(QtWidgets.QWidget):
             imgpath = pkg_resources.resource_filename(
                 __name__, 'images/'+gesture.description+'.png')
             img = QtGui.QPixmap(imgpath)
+
+            if self.lefty and 'no-contraction' not in imgpath:
+                # flip horizontally
+                t = QtGui.QTransform(-1, 0, 0, 1, 0, 0)
+                img = img.transformed(t)
+
             self.gesture_images[gesture.label] = img
 
         self.update_gesture_view()
@@ -98,6 +104,8 @@ class TrainWidget(QtWidgets.QWidget):
             self.base_session,
             [g.label for g in self.cfg.gestures],
             self.cfg.num_repeats)
+
+        self.lefty = True if self.base_session.hand == 'left' else False
 
     def start_session(self):
         self.running = True

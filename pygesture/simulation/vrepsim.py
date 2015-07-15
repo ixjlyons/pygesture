@@ -236,11 +236,13 @@ class IRB140Arm(object):
         'open-hand': ('BarrettHand', -100)
     }
 
-    def __init__(self, clientId, suffix='', position_controlled=False):
+    def __init__(self, clientId, suffix='', position_controlled=False,
+                 lefty=False):
         self.clientId = clientId
         self.joints = None
         self.suffix = suffix
         self.position_controlled = position_controlled
+        self.lefty = lefty
 
         self._initialize_joints()
 
@@ -345,11 +347,13 @@ class IRB140Arm(object):
 
         for motion, param in default_actions.items():
             joint_name, v_norm = self.joint_map[motion]
+            if self.lefty and ('elbow' in motion or 'forearm' in motion):
+                v_norm *= -1
             joint = self.joints[joint_name]
             if joint.position_controlled:
                 sign = 1
                 if v_norm < 0:
-                    sign = -1
+                    sign *= -1
                 joint.position += sign*math.radians(param)
             else:
                 joint.velocity += param*math.radians(v_norm)

@@ -80,7 +80,8 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
             data['pid'],
             data['sid'],
             data['task'],
-            data['configuration'])
+            data['configuration'],
+            data['hand'])
 
         # if session exists, make sure the user wants to overwrite it
         try:
@@ -121,12 +122,13 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
 
 class Session(object):
 
-    def __init__(self, data_path, pid, sid, task, configuration):
+    def __init__(self, data_path, pid, sid, task, configuration, hand):
         self.data_path = data_path
         self.pid = pid
         self.sid = sid
         self.task = task
         self.configuration = configuration
+        self.hand = hand
 
     def init_file_structure(self, force=False):
         session_dir, datestr = filestruct.new_session_dir(
@@ -144,8 +146,8 @@ class Session(object):
         self.session_dir = session_dir
 
     def __str__(self):
-        return "pid: %s, sid: %s, task: %s, config: %s" % (
-            self.pid, self.sid, self.task, self.configuration
+        return "pid: %s, sid: %s, task: %s, config: %s, hand: %s" % (
+            self.pid, self.sid, self.task, self.configuration, self.hand
         )
 
 
