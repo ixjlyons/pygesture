@@ -100,7 +100,7 @@ class TestWidget(QtWidgets.QWidget):
         self.pid = self.base_session.pid
         self.ui.trainingList.clear()
         self.sid_list = filestruct.get_session_list(
-            self.cfg.data_path, self.pid)
+            self.cfg.data_path, self.pid, search="train")
         for sid in self.sid_list:
             item = QtWidgets.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)

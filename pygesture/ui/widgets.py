@@ -162,7 +162,16 @@ class SessionBrowser(QtWidgets.QWidget):
         self.ui = Ui_SessionBrowser()
         self.ui.setupUi(self)
 
+        self.session_filter = ""
+
         self.ui.refreshButton.clicked.connect(self.on_refresh_clicked)
+
+    def set_session_filter(self, search):
+        """
+        Allows for filtering of the session list by requiring `search` to be
+        contained in the session ID.
+        """
+        self.session_filter = search
 
     def set_data_path(self, path):
         self.data_path = path
@@ -193,7 +202,8 @@ class SessionBrowser(QtWidgets.QWidget):
 
         self.pid = pid
 
-        self.sid_list = filestruct.get_session_list(self.data_path, self.pid)
+        self.sid_list = filestruct.get_session_list(
+            self.data_path, self.pid, search=self.session_filter)
 
         self.ui.sessionList.clear()
         for sid in self.sid_list:

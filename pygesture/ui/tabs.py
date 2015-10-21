@@ -158,6 +158,7 @@ class RecordingViewerWidget(QtWidgets.QWidget):
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_session_filter("train")
         self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
@@ -261,6 +262,7 @@ class ProcessWidget(QtWidgets.QWidget):
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_session_filter("train")
         self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
