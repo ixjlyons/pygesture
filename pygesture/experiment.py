@@ -56,7 +56,14 @@ class TACSession(object):
             t = list(_gesture_combinations(gestures, k=simul))
 
         self.targets = t
-        self.trials = generate_trials(self.targets, n_repeat=rep)
+        self.reshuffle()
+
+    def reshuffle(self):
+        """
+        Re-generates the trial order, so the same object can be used for
+        repeated "cycles" having the same configuration.
+        """
+        self.trials = generate_trials(self.targets, n_repeat=self.rep)
 
 
 def _gesture_combinations(gestures, k=1):

@@ -213,6 +213,7 @@ class TestWidget(QtWidgets.QWidget):
     def start_session(self):
         self.session_started.emit()
 
+        self.tac_session.reshuffle()
         self.session = Session(self.base_session, self.tac_session)
 
         self.ui.sessionInfoBox.setEnabled(False)
