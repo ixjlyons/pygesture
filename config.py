@@ -42,7 +42,7 @@ inter_trial_timeout = 3
 # path to save/load recordings and feature CSVs
 data_path = os.path.expanduser('~/pygesture-data/tactest')
 # path to v-rep (needed for simulation package)
-vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.1')
+vrep_path = os.path.expanduser('~/usr/vrep/vrep')
 # port that the v-rep is listening on (in remoteApiConnections.txt)
 vrep_port = 20013
 
