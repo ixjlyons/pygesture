@@ -8,7 +8,7 @@ purpose of experimenting with myoelectric gesture recognition.
 
 setup(
     name='pygesture',
-    version='0.1.0',
+    version='1.0',
 
     description='Gesture recording and recognition via surface electromyography',
     long_description=DESCRIPTION,
