@@ -126,17 +126,17 @@ tac_sessions = {
     '3 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+            simul=1, rep=2, timeout=15, dist=60, tol=10, dwell=2),
     '3 active, 2 target':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=2, rep=2, timeout=20, dist=60, tol=10, dwell=2),
+            simul=(1, 2), rep=1, timeout=20, dist=60, tol=10, dwell=2),
     '4 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=1, rep=3, timeout=15, dist=60, tol=10, dwell=2),
+            simul=1, rep=2, timeout=15, dist=60, tol=10, dwell=2),
     '4 active, 2 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=2, rep=1, timeout=20, dist=60, tol=10, dwell=2)
+            simul=(1, 2), rep=1, timeout=20, dist=60, tol=10, dwell=2)
 }
