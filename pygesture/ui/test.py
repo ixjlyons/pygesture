@@ -260,6 +260,8 @@ class TestWidget(QtWidgets.QWidget):
             gestures = self.tac_session.trials[self.trial_number-1]
             target = {g.action: 60 for g in gestures}
             self.state_signal.write(2)
+            self.robot.set_visible(False)
+            self.target_robot.set_visible(False)
             self.target_robot.command(target)
 
     def start_trial(self):
@@ -273,6 +275,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_timeout_timer.start()
         if self.simulation is not None:
             self.state_signal.write(3)
+            self.robot.set_visible(True)
+            self.target_robot.set_visible(True)
 
     def pause_trial(self):
         self.trial_timeout_timer.stop()
