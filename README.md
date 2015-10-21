@@ -46,3 +46,8 @@ I might not notice immediately.
 - [pydaqflex](https://github.com/torfbolt/PyDAQFlex): You don't have to
   explicitly install this one, `setup.py` should handle it and its
   dependencies. Of course only necessary for using the MCC DAQ.
+
+## Versions
+
+- v1.0 : Initial version, including real-time testing (TAC test). Used for the
+  first TAC test experiment.

@@ -13,23 +13,22 @@ setup(
     description='Gesture recording and recognition via surface electromyography',
     long_description=DESCRIPTION,
 
-    url='https://bitbucket.org/ixjlyons',
+    url='https://github.com/ixjlyons/pygesture',
 
     author='Kenneth Lyons',
     author_email='ixjlyons@gmail.com',
 
-    license='BSD',
+    license='new BSD',
 
     classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: X11 Applications :: Qt',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
-
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3'
     ],
