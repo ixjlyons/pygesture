@@ -115,7 +115,11 @@ class MccDaq(Daq):
         """
         Stops the DAQ. It needs to be started again before reading.
         """
-        self.device.send_message("AISCAN:STOP")
+        try:
+            self.device.send_message("AISCAN:STOP")
+        except:
+            print('warning: DAQ could not be stopped')
+            pass
 
     def set_channel_range(self, channel_range):
         self.channel_range = channel_range
