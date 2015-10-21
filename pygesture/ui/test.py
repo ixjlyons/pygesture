@@ -297,6 +297,7 @@ class TestWidget(QtWidgets.QWidget):
         self.prediction = 0
         self.update_gesture_view()
 
+        self.logger.success = success
         self.session.write_trial(
             self.trial_number,
             self.logger.get_data(),
@@ -515,6 +516,7 @@ class Logger(object):
 
     def __init__(self, tac_session, trial_index, training_sessions, boosts):
         self.started = False
+        self.success = False
 
         self.tac_session = tac_session
         self.trial_index = trial_index
@@ -569,7 +571,8 @@ class Logger(object):
             boosts=self.boosts,
             active_classes=self.active_classes,
             trial_data=self.trial_data,
-            target=self.target
+            target=self.target,
+            success=self.success
         )
         log = json.dumps(d, indent=4)
 
