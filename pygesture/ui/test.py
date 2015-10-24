@@ -243,26 +243,20 @@ class TestWidget(QtWidgets.QWidget):
                 self.simulation.clientId, 'target_acquired')
             self.state_signal = vrepsim.IntegerSignal(
                 self.simulation.clientId, 'trial_state')
-            self.robot = vrepsim.IRB140Arm(
-                self.simulation.clientId,
-                lefty=self.lefty)
-            self.target_robot = vrepsim.IRB140Arm(
-                self.simulation.clientId,
-                suffix='#0',
-                position_controlled=True,
-                lefty=self.lefty)
-
-            self.robot.set_tolerance(self.tac_session.tol)
+            self.tol_signal = vrepsim.FloatSignal(
+                self.simulation.clientId, 'tolerance')
+            self.robot = vrepsim.MPL(self.simulation.clientId)
 
         self.trial_start_timer.start()
 
         if self.simulation is not None:
             gestures = self.tac_session.trials[self.trial_number-1]
-            target = {g.action: 60 for g in gestures}
+            target = {g.action: self.tac_session.dist for g in gestures}
+            self.tol_signal.write(self.tac_session.tol)
             self.state_signal.write(2)
             self.robot.set_visible(False)
-            self.target_robot.set_visible(False)
-            self.target_robot.command(target)
+            self.robot.position_controlled = True
+            self.robot.command(target)
 
     def start_trial(self):
         """
@@ -275,8 +269,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_timeout_timer.start()
         if self.simulation is not None:
             self.state_signal.write(3)
+            self.robot.position_controlled = False
             self.robot.set_visible(True)
-            self.target_robot.set_visible(True)
 
     def pause_trial(self):
         self.trial_timeout_timer.stop()
@@ -289,7 +283,6 @@ class TestWidget(QtWidgets.QWidget):
 
         if self.simulation is not None:
             self.robot.stop()
-            self.target_robot.stop()
             self.simulation.stop()
 
     def finish_trial(self, success=False):
@@ -336,7 +329,7 @@ class TestWidget(QtWidgets.QWidget):
         if not self.test:
             self.prediction = label
         else:
-            data = ([0.5], self.prediction)
+            data = ([-0.5], self.prediction)
 
         if self.simulation is not None:
             commands = self.controller.process(data)

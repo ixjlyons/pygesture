@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-"""
-This is a script for testing the example v-rep simulation
-`arm_scene_example.ttt`. The purpose is to demonstrate how the simulation
-works, not necessarily to test the vrepsim module.
-"""
-
 import sys
 import argparse
 import time
@@ -32,36 +26,31 @@ from pygesture.simulation import vrep
 sim = vrepsim.VrepSimulation(cfg.vrep_port)
 sim.start()
 
-target_action = {
-    'elbow-extension': 75,
-    'forearm-supination': 75,
-    'wrist-extension': 75,
-    'open-hand': 50
-}
-
-input_sequence = \
-    [0]*3 + [3]*5 + [0]*3 + [7]*8 + [0]*3 + [8]*4 + [4]*10 + [5]*8 + [0]*10
-
-acquired_signal = vrepsim.IntegerSignal(sim.clientId, 'target_acquired')
-robot = vrepsim.IRB140Arm(sim.clientId)
-ref_robot = vrepsim.IRB140Arm(
-        sim.clientId, suffix='#0', position_controlled=True)
-
-ref_robot.command(target_action)
+arm = vrepsim.MPL(sim.clientId)
+ctrl = cfg.controller
 time.sleep(1)
 
-robot.set_tolerance(30)
-controller = cfg.controller
-for label in input_sequence:
-    robot.command(controller.process((1, label)))
+session = cfg.tac_sessions['4 active, 2 target']
+for trial in session.trials[0:5]:
+    target = {c.action: session.dist for c in trial}
 
-    acq = acquired_signal.read()
-    if acq is not None:
-        print("target acquired: %d" % acq)
+    arm.position_controlled = True
+    arm.command(target)
+    time.sleep(2)
 
-    time.sleep(0.25)
+    arm.position_controlled = False
+    for c in trial:
+        for i in range(5):
+            arm.command(ctrl.process((-1, c.label)))
+            time.sleep(0.25)
 
-ref_robot.stop()
+        arm.command(ctrl.process((0, 0)))
+
+    time.sleep(1)
+
+
+arm.position_controlled = True
+arm.command('no-contraction')
 
 time.sleep(1)
 

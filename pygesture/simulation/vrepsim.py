@@ -170,7 +170,7 @@ class StringSignal(Signal):
             'clear': vrep.simxClearStringSignal
         }
 
-        super(IntegerSignal, self).__init__(clientId, name, functions)
+        super(StringSignal, self).__init__(clientId, name, functions)
 
 
 class FloatSignal(Signal):
@@ -192,7 +192,7 @@ class FloatSignal(Signal):
             'clear': vrep.simxClearFloatSignal
         }
 
-        super(IntegerSignal, self).__init__(clientId, name, functions)
+        super(FloatSignal, self).__init__(clientId, name, functions)
 
 
 class IntegerSignal(Signal):
@@ -373,6 +373,9 @@ class IRB140Arm(object):
 
 class Joint(object):
 
+    VELOCITY_CTRL = 0
+    POSITION_CTRL = 1
+
     def __init__(self, clientId, name, handle, position_controlled=False):
         self.clientId = clientId
         self.name = name
@@ -385,8 +388,7 @@ class Joint(object):
             opmode=vrep.simx_opmode_oneshot_wait)
 
         # set up streaming position input
-        if not self.position_controlled:
-            self._get_position(opmode=vrep.simx_opmode_streaming)
+        self._get_position(opmode=vrep.simx_opmode_streaming)
 
     def update(self, opmode=None):
         if opmode is None:
@@ -406,6 +408,14 @@ class Joint(object):
             self.position = self._get_position(
                 opmode=vrep.simx_opmode_buffer)
 
+    def set_control_mode(self, mode):
+        """
+        Sets the joint mode. Either position controlled or velocity controlled
+        """
+        self.position_controlled = True if mode == Joint.POSITION_CTRL else False
+        ret = vrep.simxSetObjectIntParameter(self.clientId, self.handle, 2001,
+            mode, vrep.simx_opmode_oneshot)
+
     def _get_position(self, opmode=None):
         if opmode is None:
             opmode = vrep.simx_opmode_oneshot
@@ -417,6 +427,146 @@ class Joint(object):
             _validate(res)
 
         return pos
+
+
+class MPL(object):
+    """
+    Modular Prosthetic Limb from Johns Hopkins Applied Physics Lab.
+    """
+
+    joint_map = {
+        'shoulder-horizontal-abduction': ('mpl_shoulder_abad', -100),
+        'shoulder-horizontal-adduction': ('mpl_shoulder_abad', 100),
+        'elbow-extension': ('mpl_elbow', -100),
+        'elbow-flexion': ('mpl_elbow', 100),
+        'forearm-supination': ('mpl_forearm_prosup', 100),
+        'forearm-pronation': ('mpl_forearm_prosup', -100),
+        'ulnar-deviation': ('mpl_wrist_dev', -100),
+        'radial-deviation': ('mpl_wrist_dev', 100),
+        'wrist-extension': ('mpl_wrist_extflex', -100),
+        'wrist-flexion': ('mpl_wrist_extflex', 100),
+        'closed-fist': ('mpl_index1_joint', 100),
+        'open-hand': ('mpl_index1_joint', -100)
+    }
+
+    def __init__(self, clientId, suffix='', position_controlled=True):
+        self.clientId = clientId
+        self.joints = None
+        self.suffix = suffix
+        self._position_controlled = position_controlled
+
+        self._initialize_joints()
+
+    def _initialize_joints(self):
+        res, handles, intData, floatData, names = vrep.simxGetObjectGroupData(
+            self.clientId, vrep.sim_object_joint_type, 0,
+            vrep.simx_opmode_oneshot_wait)
+
+        err, self.base_handle = vrep.simxGetObjectHandle(
+            self.clientId, 'mpl'+self.suffix, vrep.simx_opmode_oneshot_wait)
+
+        self.joints = dict()
+        self.pose = dict()
+        controlled_joints = [t[0]+self.suffix for t in MPL.joint_map.values()]
+        for name, handle in zip(names, handles):
+            if name in controlled_joints:
+                basename = name.strip(self.suffix)
+                j = Joint(
+                    self.clientId,
+                    name,
+                    handle,
+                    position_controlled=self._position_controlled)
+                self.joints[basename] = j
+                self.pose[basename] = j.initial_position
+
+    @property
+    def position_controlled(self):
+        return self._position_controlled
+
+    @position_controlled.setter
+    def position_controlled(self, value):
+        self._position_controlled = value
+        mode = Joint.POSITION_CTRL if value else Joint.VELOCITY_CTRL
+        for j in self.joints.values():
+            j.set_control_mode(mode)
+
+    def set_visible(self, visible):
+        """
+        Sets the visibility of the robot.
+
+        Parameters
+        ----------
+        visible : bool
+            Model is set visible if true, invisible otherwise.
+        """
+        err, prop = vrep.simxGetModelProperty(
+            self.clientId,
+            self.base_handle,
+            vrep.simx_opmode_oneshot_wait)
+
+        if visible:
+            prop &= ~vrep.sim_modelproperty_not_visible
+        else:
+            prop |= vrep.sim_modelproperty_not_visible
+
+        vrep.simxSetModelProperty(
+            self.clientId,
+            self.base_handle,
+            prop,
+            vrep.simx_opmode_oneshot_wait)
+
+    def command(self, action):
+        """
+        Commands the arm to perform an action. The action can be a number of
+        different things.
+
+        The simplest is a string from the `pygesture.control.CAPABILITIES`
+        list. This will make the arm perform that action with a nominal
+        velocity (see `IRB140Arm.joint_map`). All other actions will be turned
+        off.
+
+        Otherwise, you can specify a dictionary with action names (str) as
+        keys and velocity multipliers as values. If contradictory actions (e.g.
+        elbow flexion and elbow extension) are specified, the velocities will
+        be summed.
+        """
+        if type(action) is str:
+            action = {action: 1}
+
+        default_actions = dict.fromkeys(self.joint_map.keys(), 0)
+
+        for j in self.joints.values():
+            if j.position_controlled:
+                j.position = j.initial_position
+            else:
+                j.velocity = 0
+
+        for motion, param in action.items():
+            if motion in default_actions:
+                default_actions[motion] = param
+
+        for motion, param in default_actions.items():
+            joint_name, v_norm = self.joint_map[motion]
+            joint = self.joints[joint_name]
+            if joint.position_controlled:
+                sign = 1
+                if v_norm < 0:
+                    sign *= -1
+                joint.position += sign*math.radians(param)
+            else:
+                joint.velocity += param*math.radians(v_norm)
+
+        # TODO: investigate if wrapping this loop in simxPauseCommunication
+        # calls would be useful here
+        for name in self.joints.keys():
+            self.joints[name].update()
+            self.pose[name] = self.joints[name].position
+
+    def stop(self):
+        """
+        Stops the robot from executing any current commands.
+        """
+        self.command('no-contraction')
 
 
 class BarrettHand(object):
