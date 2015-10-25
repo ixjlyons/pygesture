@@ -131,6 +131,9 @@ class NewSessionDialog(QtWidgets.QDialog):
         self.ui = Ui_NewSessionDialog()
         self.ui.setupUi(self)
 
+    def set_task_list(self, task_list):
+        self.ui.taskComboBox.addItems(task_list)
+
     def get_data(self):
         data = {
             'pid':
@@ -138,7 +141,7 @@ class NewSessionDialog(QtWidgets.QDialog):
             'sid':
                 str(self.ui.sessionLineEdit.text()),
             'task':
-                str(self.ui.taskGroup.checkedButton().text()),
+                str(self.ui.taskComboBox.currentText()),
             'configuration':
                 str(self.ui.configurationGroup.checkedButton().text()),
             'hand':

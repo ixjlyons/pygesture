@@ -150,7 +150,6 @@ class DBVRController(Controller):
             self._vin[i] = self.boosts[i] * mav_avg
             self._vout[self.mapping[i]] = self._gains[i] * self._vin[i]
 
-
         return self._vout.copy()
 
     def _update_gains(self, label):

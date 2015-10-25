@@ -1,4 +1,6 @@
 import os
+import collections
+
 from pygesture import util
 from pygesture import pipeline
 from pygesture import features
@@ -6,6 +8,8 @@ from pygesture import processing
 from pygesture import daq
 from pygesture import control
 from pygesture import experiment
+
+from pygesture import ui
 
 """
 some things for local use
@@ -140,3 +144,7 @@ tac_sessions = {
             [g for g in gestures if g.dof is not None],
             simul=(1, 2), rep=1, timeout=20, dist=60, tol=10, dwell=2)
 }
+
+ui_tabs = collections.OrderedDict()
+ui_tabs['Train'] = ui.train.TrainWidget
+ui_tabs['Test'] = ui.test.TestWidget

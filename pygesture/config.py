@@ -20,7 +20,8 @@ config_options = [
     "daq",
     "gestures",
     "controller",
-    "tac_sessions"
+    "tac_sessions",
+    "ui_tabs"
 ]
 
 

@@ -341,3 +341,10 @@ class SessionProcessorThread(QtCore.QThread):
         self.session.process()
 
         self.finished.emit()
+
+
+class TaskTabDesc(object):
+
+    def __init__(self, name, cls):
+        self.name = name
+        self.cls = cls

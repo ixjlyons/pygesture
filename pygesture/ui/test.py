@@ -234,7 +234,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = True
         self.ui.sessionProgressBar.setValue(self.trial_number)
 
-        self.logger = Logger(self.tac_session, self.trial_number-1,
+        self.logger = Logger(
+            self.tac_session, self.trial_number-1,
             self.training_sessions, self.boosts)
 
         if self.simulation is not None:

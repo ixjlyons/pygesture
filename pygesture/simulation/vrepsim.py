@@ -412,9 +412,10 @@ class Joint(object):
         """
         Sets the joint mode. Either position controlled or velocity controlled
         """
-        self.position_controlled = True if mode == Joint.POSITION_CTRL else False
-        ret = vrep.simxSetObjectIntParameter(self.clientId, self.handle, 2001,
-            mode, vrep.simx_opmode_oneshot)
+        self.position_controlled = \
+            True if mode == Joint.POSITION_CTRL else False
+        vrep.simxSetObjectIntParameter(
+            self.clientId, self.handle, 2001, mode, vrep.simx_opmode_oneshot)
 
     def _get_position(self, opmode=None):
         if opmode is None:
