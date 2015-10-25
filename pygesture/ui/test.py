@@ -330,6 +330,7 @@ class TestWidget(QtWidgets.QWidget):
         if not self.test:
             self.prediction = label
         else:
+            # negative input because user reverses target movements
             data = ([-0.5], self.prediction)
 
         if self.simulation is not None:
