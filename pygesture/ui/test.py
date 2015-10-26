@@ -434,19 +434,7 @@ class TestWidget(QtWidgets.QWidget):
             ramp_length=self.cfg.controller.ramp_length,
             boosts=1 if self.test else boosts)
 
-        clf_type = self.ui.classifierComboBox.currentText()
-        if clf_type == 'LDA':
-            clf = LDA()
-        elif clf_type == 'SVM':
-            clf = SVC(C=50, kernel='linear')
-        else:
-            clf = LDA()
-
-        preproc = StandardScaler()
-        skpipeline = Pipeline([('preproc', preproc), ('clf', clf)])
-
-        classifier = pipeline.Classifier(skpipeline)
-        classifier.fit(*training_data)
+        self.cfg.learner.fit(*training_data)
 
         pl = pipeline.Pipeline(
             [
@@ -458,7 +446,7 @@ class TestWidget(QtWidgets.QWidget):
                         len(self.cfg.channels)),
                     [
                         self.cfg.feature_extractor,
-                        classifier
+                        self.cfg.learner
                     ],
                 )
             ]

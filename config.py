@@ -1,6 +1,10 @@
 import os
 import collections
 
+from sklearn.lda import LDA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
 from pygesture import util
 from pygesture import pipeline
 from pygesture import features
@@ -9,7 +13,8 @@ from pygesture import daq
 from pygesture import control
 from pygesture import experiment
 
-from pygesture import ui
+from pygesture.ui import train
+from pygesture.ui import test
 
 """
 some things for local use
@@ -112,6 +117,11 @@ feature_extractor = features.FeatureExtractor(
     len(channels)
 )
 
+learner = pipeline.Classifier(
+        Pipeline([
+            ('preproc', StandardScaler()),
+            ('clf', LDA())]))
+
 post_processor = processing.Processor(
     conditioner=conditioner,
     windower=windower,
@@ -124,6 +134,21 @@ controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
     ramp_length=10,
     boosts=0.5
+)
+
+processor = pipeline.Pipeline(
+    [
+        conditioner,
+        windower,
+        (
+            features.FeatureExtractor([features.MAV()], len(channels)),
+            [
+                feature_extractor,
+                learner
+            ],
+        ),
+        controller
+    ]
 )
 
 tac_sessions = {
@@ -146,5 +171,5 @@ tac_sessions = {
 }
 
 ui_tabs = collections.OrderedDict()
-ui_tabs['Train'] = ui.train.TrainWidget
-ui_tabs['Test'] = ui.test.TestWidget
+ui_tabs['Train'] = train.TrainWidget
+ui_tabs['Test'] = test.TestWidget

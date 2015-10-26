@@ -13,6 +13,7 @@ config_options = [
     "conditioner",
     "windower",
     "feature_extractor",
+    "learner",
     "post_processor",
     "sensors",
     "channels",
