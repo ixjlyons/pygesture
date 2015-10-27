@@ -1,6 +1,11 @@
 import time
+import socket
 import numpy as np
-import daqflex
+
+try:
+    import daqflex
+except ImportError:
+    pass
 
 
 class Daq(object):
@@ -53,12 +58,12 @@ class MccDaq(Daq):
     This is a basic example of how to set up the DAQ, read some data, and
     finish.
 
-    >>> import mccdaq
-    >>> daq = mccdaq.MccDaq(2048, 1, (0, 1), 1024)
-    >>> daq.initialize()
-    >>> daq.start()
-    >>> data = daq.read()
-    >>> daq.close()
+    >>> from pygesture import daq
+    >>> dev = daq.MccDaq(2048, 1, (0, 1), 1024)
+    >>> dev.initialize()
+    >>> dev.start()
+    >>> data = dev.read()
+    >>> dev.close()
     """
 
     def __init__(self, rate, input_range, channel_range, samples_per_read):
@@ -134,3 +139,60 @@ class MccDaq(Daq):
             "AISCAN:LOWCHAN={0}".format(channel_range[0]))
         self.device.send_message(
             "AISCAN:HIGHCHAN={0}".format(channel_range[1]))
+
+
+class TrignoDaq(object):
+    """
+    Access to data served by Trigno Control Utility for the Delsys Trigno
+    wireless EMG system. TCU is Windows-only, but this class can be used to
+    stream data from it on another machine. TCU runs a TCP/IP server, with EMG
+    data from the sensors on one port and accelerometer data on another. Only
+    EMG data retrieval is currently implemented.
+
+    Parameters
+    ----------
+    addr : str
+        IP address the TCU server is running on
+    channel_range : tuple with 2 ints
+        Sensor channels to use, e.g. (lowchan, highchan) obtains data from
+        channels lowchan through highchan
+    samples_per_read : int
+        Number of samples per channel to read in each read operation
+
+    Examples
+    --------
+    This is a basic example of how to set up the DAQ, read some data, and
+    finish.
+
+    >>> from pygesture import daq
+    >>> dev = daq.TrignoDaq('127.0.0.1', (0, 1), 1024)
+    >>> dev.initialize()
+    >>> dev.start()
+    >>> data = dev.read()
+    >>> dev.close()
+    """
+
+    """EMG data sample rate. Cannot be changed."""
+    RATE = 2000
+    """Port the EMG server runs on, specified by TCU."""
+    PORT = 50041
+    """Minimum recv size in bytes (16 sensors * 4 bytes/channel)."""
+    MIN_RECV_SIZE = 64
+    """Command string termination."""
+    COMM_TERM = '\r\n\r\n'
+
+    def __init__(self, addr, channel_range, samples_per_read):
+        self.addr = addr
+        self.channel_range = channel_range
+        self.samples_per_read = samples_per_read
+
+    def start(self):
+        self.socket = socket.create_connection((self.addr, self.PORT))
+
+        self.socket.send(TrignoDaq._cmd('START'))
+        reply = self.socket.recv(128)
+
+    @staticmethod
+    def _cmd(command):
+        return "{}{}".format(command, COMM_TERM)
+

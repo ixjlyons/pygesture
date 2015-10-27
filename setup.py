@@ -42,8 +42,7 @@ setup(
         'scipy',
         'matplotlib',
         'scikit-learn',
-        'pyqtgraph',
-        'pydaqflex'
+        'pyqtgraph'
     ],
 
     extras_require={},
