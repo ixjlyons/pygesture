@@ -119,8 +119,7 @@ class TestWidget(QtWidgets.QWidget):
         self.ui.sessionProgressBar.setValue(0)
 
     def init_simulation(self):
-        vrepsim.set_path(self.cfg.vrep_path)
-        self.sim_connect_thread = SimulationConnectThread(self.cfg.vrep_port)
+        self.sim_connect_thread = SimulationConnectThread()
         self.sim_connect_thread.finished.connect(
             self.on_simulation_connected)
         self.sim_connect_thread.start()
@@ -566,13 +565,12 @@ class SimulationConnectThread(QtCore.QThread):
 
     finished = QtCore.pyqtSignal(object)
 
-    def __init__(self, port):
+    def __init__(self):
         super(SimulationConnectThread, self).__init__()
-        self.port = port
 
     def run(self):
         try:
-            sim = vrepsim.VrepSimulation(self.port)
+            sim = vrepsim.VrepSimulation()
         except:
             sim = None
 

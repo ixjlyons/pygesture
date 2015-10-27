@@ -20,6 +20,17 @@ another area which should be easy to expand
 to the simulation options).
 
 
+## Setting up v-rep
+
+To get v-rep working, you need to set an environment variable `VREP` with the
+full path to v-rep's installed location. On Linux, this is wherever you extract
+the tarball v-rep distributes. You might want to put an appropriate entry in
+your bashrc, for example: `export VREP='~/usr/vrep/vrep-3.2.2'`. On Windows, it
+installs to somewhere like `C:\Program Files (x86)\V-REP3\V-REP_PRO_EDU`. Find
+this location (you should see lots of dlls) and add a `VREP` system environment
+variable.
+
+
 ## Dependencies
 
 The direct dependencies are all Python packages (yay!), though many of them
@@ -49,6 +60,7 @@ Optional:
   clusters of points in feature space are more easily explored.
 - [matplotlib](http://matplotlib.org/): The `plot_recordings` example script
   uses matplotlib.
+
 
 ## Versions
 
