@@ -190,9 +190,8 @@ class TrignoDaq(object):
         self.socket = socket.create_connection((self.addr, self.PORT))
 
         self.socket.send(TrignoDaq._cmd('START'))
-        reply = self.socket.recv(128)
+        self.socket.recv(128)
 
     @staticmethod
     def _cmd(command):
-        return "{}{}".format(command, COMM_TERM)
-
+        return "{}{}".format(command, TrignoDaq.COMM_TERM)

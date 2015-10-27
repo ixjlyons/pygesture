@@ -118,9 +118,9 @@ feature_extractor = features.FeatureExtractor(
 )
 
 learner = pipeline.Classifier(
-        Pipeline([
-            ('preproc', StandardScaler()),
-            ('clf', LDA())]))
+    Pipeline([
+        ('preproc', StandardScaler()),
+        ('clf', LDA())]))
 
 post_processor = processing.Processor(
     conditioner=conditioner,

@@ -24,10 +24,6 @@ import json
 import pkg_resources
 
 import numpy as np
-from sklearn.lda import LDA
-from sklearn.svm import SVC
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
 
 from pygesture import filestruct
 from pygesture import processing
