@@ -12,7 +12,12 @@ from .templates.recording_viewer_template import Ui_RecordingViewerWidget
 from .templates.process_widget_template import Ui_ProcessWidget
 
 import pyqtgraph as pg
-import pyqtgraph.opengl as gl
+try:
+    import pyqtgraph.opengl as gl
+    USE_GL = True
+except:
+    USE_GL = False
+    pass
 
 
 class SignalWidget(QtWidgets.QWidget):
@@ -250,9 +255,12 @@ class ProcessWidget(QtWidgets.QWidget):
         self.ui.processButton.clicked.connect(self.process_button_callback)
 
     def init_plot(self):
-        self.plotWidget = gl.GLViewWidget()
-        g = gl.GLGridItem()
-        self.plotWidget.addItem(g)
+        if USE_GL:
+            self.plotWidget = gl.GLViewWidget()
+            g = gl.GLGridItem()
+            self.plotWidget.addItem(g)
+        else:
+            self.plotWidget = pg.PlotWidget()
 
     def init_layout(self):
         self.ui.verticalLayout.addWidget(self.plotWidget)
@@ -271,6 +279,7 @@ class ProcessWidget(QtWidgets.QWidget):
     def on_session_selected(self, sid):
         self.sid = sid
         self.ui.processButton.setEnabled(True)
+
         try:
             f = filestruct.find_feature_file(
                 self.cfg.data_path, self.pid, self.sid)
@@ -308,14 +317,19 @@ class ProcessWidget(QtWidgets.QWidget):
         score = np.mean(scores)
         self.ui.titleLabel.setText("Accuracy: %.2f" % score)
 
-        # project the data to 3D for visualization
+        # project the data for visualization
         clf = LDA(n_components=3)
         X_proj = clf.fit(X, y).transform(X)
 
         labels = sorted(np.unique(y))
         for i in labels:
-            plot = gl.GLScatterPlotItem(
-                pos=X_proj[y == i], color=pg.glColor(pg.intColor(i)))
+            if USE_GL:
+                plot = gl.GLScatterPlotItem(
+                    pos=X_proj[y == i], color=pg.glColor(pg.intColor(i)))
+            else:
+                plot = pg.ScatterPlotItem(
+                    pos=X_proj[y == i, :2],
+                    brush=pg.mkBrush(pg.intColor(i)))
             self.plotWidget.addItem(plot)
             self.plot_items.append(plot)
 

@@ -1,5 +1,6 @@
 # pygesture
 
+
 ## Description
 
 pygesture is a collection of code for recording multi-channel EMG for the
@@ -18,6 +19,7 @@ another area which should be easy to expand
 ([morse](https://github.com/morse-simulator/morse) seems like a good addition
 to the simulation options).
 
+
 ## Dependencies
 
 The direct dependencies are all Python packages (yay!), though many of them
@@ -28,24 +30,25 @@ sufficiently up-to-date versions. Python 2 and 3 should both be supported.
 I work primarily with Python 3, so if something breaks Python 2 support,
 I might not notice immediately.
 
-- [PyQt](http://www.riverbankcomputing.com/software/pyqt/intro): PyQt4 or PyQt5
-  should work (PySide should also work, for that matter), but PyQt5 is what is
-  supported here by default. Not necessary if using `pygesture` as
-  an analysis library (i.e. not using the `ui` subpackage at all).
+- [PyQt](http://www.riverbankcomputing.com/software/pyqt/intro): PyQt5 is
+  required. I'd eventually like to relax this (in the style of `pyqtgraph`).
+  It's not necessary if using `pygesture` as an analysis library (i.e. not
+  using the `ui` subpackage at all).
 - [scipy and numpy](http://www.scipy.org/): Integral to the package.
 - [scikit-learn](http://scikit-learn.org/stable/): Just about as important as
   scipy and numpy.
-- [matplotlib](http://matplotlib.org/): This is becoming less and less of
-  a dependency, and it should eventually be optional (i.e. removed from the
-  `classification` module). It is definitely suitable as an optional dependency
-  for analysis.
 - [pyqtgraph](http://pyqtgraph.org/): Install from the git repo to use PyQt5,
-  as PyQt5 support is fairly new. Otherwise, the current stable release should
-  be fine. The 3D plotting features are used in the main GUI (this should
-  eventually be optional), so do follow instructions for pyopengl etc.
-- [pydaqflex](https://github.com/torfbolt/PyDAQFlex): You don't have to
-  explicitly install this one, `setup.py` should handle it and its
-  dependencies. Of course only necessary for using the MCC DAQ.
+  as PyQt5 support is fairly new.
+
+Optional:
+
+- [pydaqflex](https://github.com/torfbolt/PyDAQFlex): Needed for use of
+  a Measurement Computing DAQ.
+- [PyOpenGL](http://pyopengl.sourceforge.net/): If installed, the processing
+  widget in the UI takes advantage of `pyqtgraph` 3D plotting functionality, so
+  clusters of points in feature space are more easily explored.
+- [matplotlib](http://matplotlib.org/): The `plot_recordings` example script
+  uses matplotlib.
 
 ## Versions
 

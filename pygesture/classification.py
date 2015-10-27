@@ -24,9 +24,6 @@ from sklearn.lda import LDA
 from sklearn.metrics import confusion_matrix
 from sklearn.cross_validation import LeavePOut
 
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
-
 from pygesture import processing
 
 
@@ -257,45 +254,6 @@ def condition_data(X_train, X_test):
     return (X_train, X_test)
 
 
-def generate_plot(cm, acc, labels, title, fig=None, savepath=None):
-    if fig is None:
-        fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.matshow(cm, cmap='hot_r')
-
-    lbls = []
-    for idx, label in enumerate(labels):
-        num = round(cm[idx, idx], 2)
-        if num > 0.5:
-            color = 'w'
-        else:
-            color = 'k'
-        ax.text(idx, idx, str(num), color=color, va='center', ha='center')
-        lbls.append(label)
-
-    notes = np.where(cm > 0.01)
-    for i in range(np.size(notes[0])):
-        x, y = notes[0][i], notes[1][i]
-        if x != y:
-            num = round(cm[x, y], 2)
-            if num > 0.5:
-                color = 'w'
-            else:
-                color = 'k'
-            ax.text(y, x, str(num), color=color, va='center', ha='center')
-
-    ax.set_title(title + (': %.2f' % (acc*100)) + '% accuracy')
-    ml = MultipleLocator(1)
-    ax.xaxis.set_major_locator(ml)
-    ax.yaxis.set_major_locator(ml)
-    ax.set_xticklabels(['']+lbls)
-    ax.set_yticklabels(['']+lbls)
-    if savepath:
-        plt.savefig(savepath + '/' + title + '.pdf', bbox_inches='tight')
-    else:
-        plt.show()
-
-
 class ConfusionMatrix():
 
     def __init__(self, mat, labels, name="confusion matrix"):
@@ -313,10 +271,6 @@ class ConfusionMatrix():
         num_instances = np.sum(self.data, (0, 1))
         num_correct = np.sum(self.data.diagonal(0))
         return num_correct / float(num_instances)
-
-    def show(self, fig=None):
-        generate_plot(self.data_norm, self.accuracy, self.labels, self.name,
-                      fig=fig)
 
     def print_avg(self, normalized=True):
         print("--")
