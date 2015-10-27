@@ -1,12 +1,6 @@
 default:
-	@echo "'make check'" to run tests
 	@echo "'make lint'" to run flake8 checks
 	@echo "'make ui'" to compile ui files
-
-
-.PHONY: check
-check:
-	nosetests -v pygesture
 
 
 .PHONY: lint

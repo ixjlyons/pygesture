@@ -57,4 +57,7 @@ setup(
             'pygesture=pygesture.ui.main:main'
          ],
     },
+
+    tests_require=['nose'],
+    test_suite='nose.collector',
 )
