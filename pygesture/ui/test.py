@@ -160,10 +160,10 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_start_timer.setSingleShot(True)
         self.trial_start_timer.timeout.connect(self.start_trial)
 
-        # timer which enforces the timeout of a trial
-        self.trial_timeout_timer = QtCore.QTimer(self)
-        self.trial_timeout_timer.setSingleShot(True)
-        self.trial_timeout_timer.timeout.connect(self.finish_trial)
+        # manually keep track of trial timing
+        self.seconds_per_read = \
+            self.cfg.daq.samples_per_read / self.cfg.daq.rate
+        self.reads_per_trial = 0 # will be set on trial start
 
         # timer to wait between trials
         self.intertrial_timer = QtCore.QTimer(self)
@@ -218,7 +218,8 @@ class TestWidget(QtWidgets.QWidget):
 
         self.trial_number = 1
         self.dwell_timer.setInterval(self.tac_session.dwell*1000)
-        self.trial_timeout_timer.setInterval(self.tac_session.timeout*1000)
+        self.reads_per_trial = int(
+                self.tac_session.timeout / self.seconds_per_read)
         self.initialize_trial()
         self.session_running = True
 
@@ -263,14 +264,13 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = False
         self.trial_running = True
         self.record_thread.start()
-        self.trial_timeout_timer.start()
+        self.current_read_count = 0
         if self.simulation is not None:
             self.state_signal.write(3)
             self.robot.position_controlled = False
             self.robot.set_visible(True)
 
     def pause_trial(self):
-        self.trial_timeout_timer.stop()
         self.dwell_timer.stop()
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
@@ -343,6 +343,10 @@ class TestWidget(QtWidgets.QWidget):
             self.logger.log(self.prediction, commands, self.robot.pose, acq)
 
         self.update_gesture_view()
+
+        self.current_read_count += 1
+        if self.current_read_count > self.reads_per_trial:
+            self.finish_trial()
 
     def record_callback(self, data):
         """Called by the `RecordThread` when it gets new recording data."""
