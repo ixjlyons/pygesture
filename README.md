@@ -6,18 +6,23 @@
 pygesture is a collection of code for recording multi-channel EMG for the
 purpose of experimenting with myoelectric gesture recognition.
 
-Currently, a Measurement Computing USB data acquisition unit (USB-1608G) is
-used for obtaining EMG data, though it should be fairly straightforward to add
-support for other devices through the `daq` module.
+Several signal input sources are supported:
+
+* Delsys Trigno wireless EMG system, via TCP connection to the Trigno Control
+  Utility.
+
+* Measurement Computing USB data acquisition unit(s). Right now, only the
+  USB-1608G is implemented/tested, but additional MCC DAQs can be easily
+  supported (thanks to pyusb and pydaqflex).
 
 The top-level code is primarily for handling EMG data -- filtering, feature
 extraction, classification, etc. There is also a Qt GUI for recording data,
 viewing and processing it, and using it for real-time gesture recogition.
 Finally, there is also code for interfacing with
-[v-rep](http://coppeliarobotics.com/) for robot control simulation. This is
-another area which should be easy to expand
-([morse](https://github.com/morse-simulator/morse) seems like a good addition
-to the simulation options).
+[v-rep](http://coppeliarobotics.com/) for robot control simulation. This is an
+area that I would like to expand on a bit.
+[morse](https://github.com/morse-simulator/morse) seems like a good candidate
+for addition to the simulation options.
 
 
 ## Setting up v-rep

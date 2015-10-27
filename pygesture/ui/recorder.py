@@ -5,6 +5,7 @@ from pygesture.ui.qt import QtCore
 
 class RecordThread(QtCore.QThread):
 
+    ready_sig = QtCore.pyqtSignal()
     update_sig = QtCore.pyqtSignal(np.ndarray)
     finished_sig = QtCore.pyqtSignal(np.ndarray)
     prediction_sig = QtCore.pyqtSignal(object)
@@ -19,8 +20,6 @@ class RecordThread(QtCore.QThread):
         self.pipeline = None
 
     def run(self):
-        self.running = True
-
         if self.continuous:
             self.run_continuous()
         else:
@@ -28,9 +27,17 @@ class RecordThread(QtCore.QThread):
 
     def run_continuous(self):
         self.daq.start()
+        # discard first read
+        self.daq.read()
+        self.running = True
+        self.ready_sig.emit()
 
-        while self.running:
+        while True:
+            if not self.running:
+                break
+
             d = self.daq.read()
+
             if self.pipeline is not None:
                 y = self.pipeline.process(d.T)
                 self.prediction_sig.emit(y)
@@ -43,6 +50,11 @@ class RecordThread(QtCore.QThread):
         spr = self.daq.samples_per_read
         data = np.zeros((self.daq.num_channels, spr*self.triggers_per_record))
         self.daq.start()
+        # discard first read
+        self.daq.read()
+        self.running = True
+        self.ready_sig.emit()
+
         for i in range(self.triggers_per_record):
             d = self.daq.read()
 

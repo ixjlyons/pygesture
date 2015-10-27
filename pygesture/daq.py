@@ -1,5 +1,6 @@
 import time
 import socket
+import struct
 import numpy as np
 
 try:
@@ -60,10 +61,9 @@ class MccDaq(Daq):
 
     >>> from pygesture import daq
     >>> dev = daq.MccDaq(2048, 1, (0, 1), 1024)
-    >>> dev.initialize()
     >>> dev.start()
     >>> data = dev.read()
-    >>> dev.close()
+    >>> dev.stop()
     """
 
     def __init__(self, rate, input_range, channel_range, samples_per_read):
@@ -72,9 +72,9 @@ class MccDaq(Daq):
         self.channel_range = channel_range
         self.samples_per_read = samples_per_read
 
-        self.initialize()
+        self._initialize()
 
-    def initialize(self):
+    def _initialize(self):
         self.device = daqflex.USB_1608G()
 
         self.device.send_message("AISCAN:XFRMODE=BLOCKIO")
@@ -147,17 +147,20 @@ class TrignoDaq(object):
     wireless EMG system. TCU is Windows-only, but this class can be used to
     stream data from it on another machine. TCU runs a TCP/IP server, with EMG
     data from the sensors on one port and accelerometer data on another. Only
-    EMG data retrieval is currently implemented.
+    EMG data retrieval is currently implemented. The TCU must be running before
+    a TrignoDaq object can be instantiated. The signal range of the Trigno
+    wireless sensors is 11 mV (according to the user's guide), so scaling is
+    performed on the signal to achieve an output ranging from -1 to 1.
 
     Parameters
     ----------
-    addr : str
-        IP address the TCU server is running on
     channel_range : tuple with 2 ints
         Sensor channels to use, e.g. (lowchan, highchan) obtains data from
         channels lowchan through highchan
     samples_per_read : int
         Number of samples per channel to read in each read operation
+    addr : str, default='localhost'
+        IP address the TCU server is running on.
 
     Examples
     --------
@@ -166,7 +169,6 @@ class TrignoDaq(object):
 
     >>> from pygesture import daq
     >>> dev = daq.TrignoDaq('127.0.0.1', (0, 1), 1024)
-    >>> dev.initialize()
     >>> dev.start()
     >>> data = dev.read()
     >>> dev.close()
@@ -174,24 +176,89 @@ class TrignoDaq(object):
 
     """EMG data sample rate. Cannot be changed."""
     RATE = 2000
+    """Port the command server runs on, specified by TCU."""
+    CMD_PORT = 50040
     """Port the EMG server runs on, specified by TCU."""
-    PORT = 50041
+    EMG_PORT = 50041
+    """Number of bytes per sample per channel."""
+    BYTES_PER_CHANNEL = 4
+    """Number of channels in the system."""
+    NUM_CHANNELS = 16
     """Minimum recv size in bytes (16 sensors * 4 bytes/channel)."""
-    MIN_RECV_SIZE = 64
+    MIN_RECV_SIZE = NUM_CHANNELS * BYTES_PER_CHANNEL
     """Command string termination."""
     COMM_TERM = '\r\n\r\n'
+    """Scaling factor to apply to output to get a (-1, 1) range."""
+    SCALE = 1 / 0.011
 
-    def __init__(self, addr, channel_range, samples_per_read):
-        self.addr = addr
+    def __init__(self, channel_range, samples_per_read, addr='localhost'):
         self.channel_range = channel_range
         self.samples_per_read = samples_per_read
+        self.addr = addr
+
+        self.input_range = 1
+        self.rate = self.RATE
+
+        self._initialize()
+
+    def _initialize(self):
+        self.set_channel_range(self.channel_range)
+
+        # create command socket and consume the servers initial response
+        self.comm_socket = socket.create_connection(
+            (self.addr, self.CMD_PORT), 2)
+        self.comm_socket.recv(1024)
+
+        # create the EMG data socket
+        self.emg_socket = socket.create_connection(
+            (self.addr, self.EMG_PORT), 2)
 
     def start(self):
-        self.socket = socket.create_connection((self.addr, self.PORT))
+        self._send_cmd('START')
 
-        self.socket.send(TrignoDaq._cmd('START'))
-        self.socket.recv(128)
+    def read(self):
+        l_des = self.samples_per_read * self.MIN_RECV_SIZE
+        l = 0
+        packet = bytes()
+        while l < l_des:
+            packet += self.emg_socket.recv(l_des - l)
+            l = len(packet)
+
+        data = np.asarray(
+            struct.unpack(
+                '<'+'f'*self.NUM_CHANNELS*self.samples_per_read, packet))
+        data = np.transpose(data.reshape((-1, self.NUM_CHANNELS)))
+        data = data[self.channel_range[0]:self.channel_range[1]+1, :]
+        data *= self.SCALE
+        return data
+
+    def stop(self):
+        self._send_cmd('STOP')
+
+    def __del__(self):
+        try:
+            self.comm_socket.send(self._cmd('STOP'))
+            resp = self.comm_socket.recv(128)
+            self._validate(resp)
+            self.comm_socket.close()
+        except:
+            pass
+
+    def set_channel_range(self, channel_range):
+        self.channel_range = channel_range
+        self.num_channels = channel_range[1] - channel_range[0] + 1
+
+    def _send_cmd(self, command):
+        self.comm_socket.send(self._cmd(command))
+        resp = self.comm_socket.recv(128)
+        self._validate(resp)
 
     @staticmethod
     def _cmd(command):
-        return "{}{}".format(command, TrignoDaq.COMM_TERM)
+        return bytes("{}{}".format(command, TrignoDaq.COMM_TERM), encoding='ascii')
+
+    @staticmethod
+    def _validate(response):
+        s = str(response)
+        if 'OK' not in s:
+            print("warning: TrignoDaq command failed: {}".format(s))

@@ -128,11 +128,13 @@ class TestWidget(QtWidgets.QWidget):
         self.record_thread.set_continuous()
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
+        self.record_thread.ready_sig.connect(self.on_recorder_ready)
         self.record_thread.prediction_sig.connect(self.prediction_callback)
         self.record_thread.update_sig.connect(self.record_callback)
 
     def dispose_record_thread(self):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
+        self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
         self.record_thread.pipeline = None
         self.record_thread.kill()
 
@@ -263,6 +265,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = False
         self.trial_running = True
         self.record_thread.start()
+
+    def on_recorder_ready(self):
         self.current_read_count = 0
         if self.simulation is not None:
             self.state_signal.write(3)

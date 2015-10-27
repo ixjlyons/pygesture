@@ -46,11 +46,13 @@ class TrainWidget(QtWidgets.QWidget):
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.set_fixed(triggers_per_record=tpr)
+        self.record_thread.ready_sig.connect(self.on_recorder_ready)
         self.record_thread.finished_sig.connect(self.record_finished)
 
     def dispose_record_thread(self):
         try:
             self.record_thread.finished_sig.disconnect(self.record_finished)
+            self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
         except TypeError:
             pass
         self.record_thread.kill()
@@ -114,12 +116,14 @@ class TrainWidget(QtWidgets.QWidget):
         self.session_started.emit()
 
     def start_recording(self):
-        trial, gesture = self.session.start_trial()
-        self.ui.sessionProgressBar.setValue(trial)
-        self.update_gesture_view(imgkey=gesture)
-        self.ui.pauseButton.setEnabled(False)
         self.record_thread.start()
+        self.ui.pauseButton.setEnabled(False)
+
+    def on_recorder_ready(self):
+        trial, gesture = self.session.start_trial()
         self.prompt_anim.start()
+        self.update_gesture_view(imgkey=gesture)
+        self.ui.sessionProgressBar.setValue(trial)
 
     def record_finished(self, data):
         self.session.write_recording(data, self.cfg.daq.rate)

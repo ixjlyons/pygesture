@@ -19,16 +19,14 @@ from pygesture.ui import test
 """
 some things for local use
 """
-# sampling frequency for the DAQ [Hz]
-f_samp = 5120
-# frequency of signals for processing [Hz]
-f_proc = 2560
-# cutoff frequencies for bandpass conditioning filter [Hz]
-f_cutoff = [8, 512]
-# order of conditioning filter
+## sampling frequency for the DAQ [Hz]
+f_samp = daq.TrignoDaq.RATE
+## frequency of signals for processing [Hz]
+f_proc = f_samp
+## cutoff frequencies for bandpass conditioning filter [Hz]
+f_cutoff = [f_proc/20, f_proc/4]
+## order of conditioning filter
 filt_order = 4
-# voltage input range for the DAQ
-input_range = 2
 
 # length of sliding window [ms]
 window_length = 150
@@ -63,7 +61,7 @@ sensors = [
 ]
 
 channels = [s.channel for s in sensors]
-probe_channel = 6
+probe_channel = 0
 
 gestures = [
     util.Gesture(0, "NC", "no-contraction"),
@@ -78,16 +76,14 @@ gestures = [
 ]
 
 try:
-    daq = daq.MccDaq(
-        rate=f_samp,
-        input_range=input_range,
+    daq = daq.TrignoDaq(
         channel_range=(min(channels), max(channels)),
         samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
     )
-except ValueError:
+except:
     daq = daq.Daq(
         rate=f_samp,
-        input_range=input_range,
+        input_range=1,
         channel_range=(min(channels), max(channels)),
         samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
     )
@@ -124,13 +120,12 @@ post_processor = processing.Processor(
     windower=windower,
     feature_extractor=feature_extractor,
     rest_bounds=None,
-    gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
+    gesture_bounds=(int((prompt_times[0]+0.5)*f_proc), int((prompt_times[1]-0.5)*f_proc))
 )
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=10,
-    boosts=0.5
+    ramp_length=15
 )
 
 processor = pipeline.Pipeline(
