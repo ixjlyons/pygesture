@@ -255,7 +255,8 @@ class TrignoDaq(object):
 
     @staticmethod
     def _cmd(command):
-        return bytes("{}{}".format(command, TrignoDaq.COMM_TERM), encoding='ascii')
+        return bytes("{}{}".format(
+            command, TrignoDaq.COMM_TERM), encoding='ascii')
 
     @staticmethod
     def _validate(response):

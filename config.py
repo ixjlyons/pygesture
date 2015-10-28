@@ -19,13 +19,13 @@ from pygesture.ui import test
 """
 some things for local use
 """
-## sampling frequency for the DAQ [Hz]
+# sampling frequency for the DAQ [Hz]
 f_samp = daq.TrignoDaq.RATE
-## frequency of signals for processing [Hz]
+# frequency of signals for processing [Hz]
 f_proc = f_samp
-## cutoff frequencies for bandpass conditioning filter [Hz]
+# cutoff frequencies for bandpass conditioning filter [Hz]
 f_cutoff = [f_proc/20, f_proc/4]
-## order of conditioning filter
+# order of conditioning filter
 filt_order = 4
 
 # length of sliding window [ms]
@@ -120,7 +120,8 @@ post_processor = processing.Processor(
     windower=windower,
     feature_extractor=feature_extractor,
     rest_bounds=None,
-    gesture_bounds=(int((prompt_times[0]+0.5)*f_proc), int((prompt_times[1]-0.5)*f_proc))
+    gesture_bounds=(int((prompt_times[0]+0.5)*f_proc),
+                    int((prompt_times[1]-0.5)*f_proc))
 )
 
 controller = control.DBVRController(

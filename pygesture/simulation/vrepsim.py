@@ -1,7 +1,4 @@
 import math
-import os
-import platform
-import importlib
 
 from pygesture.simulation import vrep
 

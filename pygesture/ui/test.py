@@ -164,7 +164,7 @@ class TestWidget(QtWidgets.QWidget):
         # manually keep track of trial timing
         self.seconds_per_read = \
             self.cfg.daq.samples_per_read / self.cfg.daq.rate
-        self.reads_per_trial = 0 # will be set on trial start
+        self.reads_per_trial = 0  # will be set on trial start
 
         # timer to wait between trials
         self.intertrial_timer = QtCore.QTimer(self)
@@ -220,7 +220,7 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_number = 1
         self.dwell_timer.setInterval(self.tac_session.dwell*1000)
         self.reads_per_trial = int(
-                self.tac_session.timeout / self.seconds_per_read)
+            self.tac_session.timeout / self.seconds_per_read)
         self.initialize_trial()
         self.session_running = True
 
