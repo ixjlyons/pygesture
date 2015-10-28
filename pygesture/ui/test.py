@@ -27,10 +27,9 @@ import numpy as np
 
 from pygesture import filestruct
 from pygesture import processing
-from pygesture import pipeline
 from pygesture import features
 from pygesture import wav
-from pygesture import control
+from pygesture import pipeline
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
@@ -232,6 +231,8 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = True
         self.ui.sessionProgressBar.setValue(self.trial_number)
 
+        self.record_thread.set_pipeline(self.pipeline)
+
         self.logger = Logger(
             self.tac_session, self.trial_number-1,
             self.training_sessions, self.boosts)
@@ -432,30 +433,25 @@ class TestWidget(QtWidgets.QWidget):
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
         self.boosts = boosts
 
-        self.controller = control.DBVRController(
-            mapping=mapping,
-            ramp_length=self.cfg.controller.ramp_length,
-            boosts=1 if self.test else boosts)
+        self.controller = self.cfg.controller
+        self.controller.boosts = boosts
 
         self.cfg.learner.fit(*training_data)
 
-        pl = pipeline.Pipeline(
-            [
-                self.cfg.conditioner,
-                self.cfg.windower,
-                (
-                    features.FeatureExtractor(
-                        [features.MAV()],
-                        len(self.cfg.channels)),
-                    [
-                        self.cfg.feature_extractor,
-                        self.cfg.learner
-                    ],
-                )
-            ]
-        )
+        self.pipeline = pipeline.Pipeline([
+            self.cfg.conditioner,
+            self.cfg.windower,
+            (
+                features.FeatureExtractor(
+                    [features.MAV()], len(self.cfg.channels)),
+                [
+                    self.cfg.feature_extractor,
+                    self.cfg.learner
+                ],
+            )
+        ])
 
-        self.record_thread.set_pipeline(pl)
+        self.record_thread.set_pipeline(self.pipeline)
 
 
 class Session(object):

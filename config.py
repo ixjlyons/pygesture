@@ -129,21 +129,6 @@ controller = control.DBVRController(
     ramp_length=15
 )
 
-processor = pipeline.Pipeline(
-    [
-        conditioner,
-        windower,
-        (
-            features.FeatureExtractor([features.MAV()], len(channels)),
-            [
-                feature_extractor,
-                learner
-            ],
-        ),
-        controller
-    ]
-)
-
 tac_sessions = {
     '3 active, 1 target':
         experiment.TACSession(
