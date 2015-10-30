@@ -29,6 +29,7 @@ from pygesture import filestruct
 from pygesture import processing
 from pygesture import features
 from pygesture import wav
+from pygesture import control
 from pygesture import pipeline
 from pygesture.simulation import vrepsim
 
@@ -433,8 +434,11 @@ class TestWidget(QtWidgets.QWidget):
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
         self.boosts = boosts
 
-        self.controller = self.cfg.controller
-        self.controller.boosts = boosts
+        # re-create the controller to make sure it has the correct mapping
+        self.controller = control.DBVRController(
+            mapping=mapping,
+            ramp_length=self.cfg.controller.ramp_length,
+            boosts=1 if self.test else boosts)
 
         self.cfg.learner.fit(*training_data)
 

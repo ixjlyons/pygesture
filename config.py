@@ -48,7 +48,7 @@ inter_trial_timeout = 3
 
 # path to save/load recordings and feature CSVs
 data_path = os.path.expanduser(
-    os.path.join('~', 'pygesture-data', 'tactest'))
+    os.path.join('~', 'pygesture-data', 'tactest2'))
 
 # sensor mappings
 sensors = [
