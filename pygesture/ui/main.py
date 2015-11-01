@@ -26,6 +26,7 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.record_thread = recorder.RecordThread(self.cfg.daq)
+        self.init_paths()
         self.init_tabs()
 
         self.statusbar_label = QtWidgets.QLabel("not signed in")
@@ -36,6 +37,10 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if self.record_thread is not None:
             self.record_thread.kill()
+
+    def init_paths(self):
+        if not os.path.isdir(self.cfg.data_path):
+            os.makedirs(self.cfg.data_path)
 
     def init_tabs(self):
         self.permanent_tabs = [
