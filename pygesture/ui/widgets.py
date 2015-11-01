@@ -85,6 +85,9 @@ class PromptWidget(QtWidgets.QProgressBar):
         self.draw_ticks(painter)
         painter.end()
 
+    def reset(self):
+        self.setValue(0)
+
     def draw_ticks(self, painter):
         w = self.width()
         h = self.height()

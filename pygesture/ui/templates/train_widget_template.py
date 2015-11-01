@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/templates/train_widget_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.2
+# Created by: PyQt5 UI code generator 5.5.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -69,7 +69,7 @@ class Ui_TrainWidget(object):
         self.sessionProgressBar = QtWidgets.QProgressBar(self.statusBox)
         self.sessionProgressBar.setProperty("value", 24)
         self.sessionProgressBar.setObjectName("sessionProgressBar")
-        self.gridLayout_5.addWidget(self.sessionProgressBar, 1, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.sessionProgressBar, 2, 0, 1, 1)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.startButton = QtWidgets.QPushButton(self.statusBox)
@@ -94,6 +94,12 @@ class Ui_TrainWidget(object):
         self.pauseButton.setObjectName("pauseButton")
         self.horizontalLayout.addWidget(self.pauseButton)
         self.gridLayout_5.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.redoButton = QtWidgets.QPushButton(self.statusBox)
+        self.redoButton.setEnabled(False)
+        icon = QtGui.QIcon.fromTheme("edit-undo")
+        self.redoButton.setIcon(icon)
+        self.redoButton.setObjectName("redoButton")
+        self.gridLayout_5.addWidget(self.redoButton, 1, 0, 1, 1)
         self.gridLayout_3.addWidget(self.statusBox, 0, 0, 1, 1)
         self.horizontalLayout_2.addWidget(self.frame)
 
@@ -107,5 +113,6 @@ class Ui_TrainWidget(object):
         self.sessionProgressBar.setFormat(_translate("TrainWidget", "Trial: %v / %m"))
         self.startButton.setText(_translate("TrainWidget", "Start"))
         self.pauseButton.setText(_translate("TrainWidget", "Pause"))
+        self.redoButton.setText(_translate("TrainWidget", "Redo"))
 
 from pygesture.ui.widgets import GestureView, PromptWidget

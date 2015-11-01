@@ -54,15 +54,21 @@ class RecordThread(QtCore.QThread):
         self.daq.read()
         self.running = True
         self.ready_sig.emit()
+        killed = False
 
         for i in range(self.triggers_per_record):
+            if not self.running:
+                killed = True
+                break
+
             d = self.daq.read()
 
             data[:, i*spr:(i+1)*spr] = d
             self.update_sig.emit(d)
 
         self.daq.stop()
-        self.finished_sig.emit(data)
+        if not killed:
+            self.finished_sig.emit(data)
 
     def set_continuous(self):
         self.continuous = True

@@ -93,8 +93,9 @@ class TrainWidget(QtWidgets.QWidget):
         self.ui.sessionProgressBar.setValue(0)
 
     def init_buttons(self):
-        self.ui.startButton.clicked.connect(self.start_session)
-        self.ui.pauseButton.clicked.connect(self.pause_session)
+        self.ui.startButton.clicked.connect(self.on_start_clicked)
+        self.ui.pauseButton.clicked.connect(self.on_pause_clicked)
+        self.ui.redoButton.clicked.connect(self.on_redo_clicked)
 
     def init_intertrial_timer(self):
         self.intertrial_timer = QtCore.QTimer(self)
@@ -109,47 +110,70 @@ class TrainWidget(QtWidgets.QWidget):
 
         self.lefty = True if self.base_session.hand == 'left' else False
 
+    def on_start_clicked(self):
+        self.start_session()
+
+    def on_pause_clicked(self):
+        if self.running:
+            self.pause_session()
+        else:
+            self.resume_session()
+
+    def on_redo_clicked(self):
+        if self.running:
+            self.pause_session()
+        self.session.redo_trial()
+        self.resume_session()
+
     def start_session(self):
         self.running = True
         self.ui.startButton.setEnabled(False)
+        self.ui.pauseButton.setEnabled(True)
         self.start_recording()
         self.session_started.emit()
 
     def start_recording(self):
         self.record_thread.start()
-        self.ui.pauseButton.setEnabled(False)
 
     def on_recorder_ready(self):
         trial, gesture = self.session.start_trial()
         self.prompt_anim.start()
         self.update_gesture_view(imgkey=gesture)
         self.ui.sessionProgressBar.setValue(trial)
+        self.ui.redoButton.setEnabled(False)
 
     def record_finished(self, data):
         self.session.write_recording(data, self.cfg.daq.rate)
+        self.session.finish_trial()
 
         self.update_gesture_view()
-        self.ui.pauseButton.setEnabled(True)
 
-        if self.session.current_trial == self.session.num_trials:
+        if self.session.finished:
             self.finish_session()
             return
 
         if self.running:
             self.intertrial_timer.start(1000*self.cfg.inter_trial_timeout)
 
+        self.ui.redoButton.setEnabled(True)
+
     def pause_session(self):
-        if self.running:
-            if self.intertrial_timer.isActive():
-                self.intertrial_timer.stop()
-            self.running = False
-            self.ui.pauseButton.setText('Resume')
-            self.session_paused.emit()
-        else:
-            self.running = True
-            self.start_recording()
-            self.ui.pauseButton.setText('Pause')
-            self.session_resumed.emit()
+        if self.intertrial_timer.isActive():
+            self.intertrial_timer.stop()
+        if self.record_thread.running:
+            self.record_thread.kill()
+        self.prompt_anim.stop()
+        self.ui.promptWidget.reset()
+        self.update_gesture_view()
+        self.running = False
+        self.ui.pauseButton.setText('Resume')
+        self.session_paused.emit()
+
+    def resume_session(self):
+        self.running = True
+        self.start_recording()
+        self.ui.pauseButton.setText('Pause')
+        self.session_resumed.emit()
 
     def finish_session(self):
         self.running = False
@@ -164,7 +188,8 @@ class Session(object):
         self.gesture_order = experiment.generate_trials(
             labels, n_repeat=n_repeat)
         self.num_trials = len(self.gesture_order)
-        self.current_trial = 0
+        self.current_trial = 1
+        self.finished = False
 
         self.init_file_structure()
 
@@ -174,9 +199,19 @@ class Session(object):
         os.makedirs(self.recording_dir)
 
     def start_trial(self):
-        self.current_trial += 1
         self.current_gesture = self.gesture_order[self.current_trial-1]
         return (self.current_trial, self.current_gesture)
+
+    def redo_trial(self):
+        self.current_trial -= 1
+        self.update_finished()
+
+    def finish_trial(self):
+        self.current_trial += 1
+        self.update_finished()
+
+    def update_finished(self):
+        self.finished = self.current_trial > self.num_trials
 
     def write_recording(self, data, fs):
         rec_file = filestruct.get_recording_file(
