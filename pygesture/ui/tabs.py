@@ -91,10 +91,10 @@ class SignalWidget(QtWidgets.QWidget):
 
         self.plot_items = []
         self.plot_data_items = []
+        pen = MultiPen(self.n_channels)
         for i in range(self.n_channels):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
-            plot_data_item = plot_item.plot(
-                pen=(i, self.n_channels), antialias=True)
+            plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
             plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
@@ -130,6 +130,23 @@ class SignalWidget(QtWidgets.QWidget):
 
         for i in range(self.n_channels):
             self.plot_data_items[i].setData(self.buf[i, :])
+
+
+class MultiPen(object):
+
+    MIN_HUE = 160
+    HUE_INC = 20
+    VAL = 200
+
+    def __init__(self, n_colors):
+        self.n_colors = n_colors
+        self.max_hue = self.MIN_HUE + n_colors*self.HUE_INC
+
+    def get_pen(self, index):
+        return pg.intColor(
+            index, hues=self.n_colors,
+            minHue=self.MIN_HUE, maxHue=self.max_hue,
+            minValue=self.VAL, maxValue=self.VAL)
 
 
 class RecordingViewerWidget(QtWidgets.QWidget):
@@ -214,10 +231,10 @@ class RecordingViewerWidget(QtWidgets.QWidget):
 
         self.plot_items = []
         self.plot_data_items = []
+        pen = MultiPen(num_channels)
         for i in range(num_channels):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
-            plot_data_item = plot_item.plot(
-                pen=(i, num_channels), antialias=True)
+            plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
             plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
