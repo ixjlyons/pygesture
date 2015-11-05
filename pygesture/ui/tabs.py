@@ -1,6 +1,5 @@
 import numpy as np
 
-from sklearn.lda import LDA
 from sklearn import cross_validation
 
 from pygesture import filestruct
@@ -329,20 +328,19 @@ class ProcessWidget(QtWidgets.QWidget):
         self.clear_plot()
 
         # get the simple cross validation score
-        clf = LDA()
+        clf = self.cfg.learner.clf
         scores = cross_validation.cross_val_score(clf, X, y, cv=5)
         score = np.mean(scores)
         self.ui.titleLabel.setText("Accuracy: %.2f" % score)
 
         # project the data for visualization
-        clf = LDA(n_components=3)
         X_proj = clf.fit(X, y).transform(X)
 
         labels = sorted(np.unique(y))
         for i in labels:
             if USE_GL:
                 plot = gl.GLScatterPlotItem(
-                    pos=X_proj[y == i], color=pg.glColor(pg.intColor(i)))
+                    pos=X_proj[y == i, :3], color=pg.glColor(pg.intColor(i)))
             else:
                 plot = pg.ScatterPlotItem(
                     pos=X_proj[y == i, :2],

@@ -237,9 +237,6 @@ class TrignoDaq(object):
 
     def __del__(self):
         try:
-            self.comm_socket.send(self._cmd('STOP'))
-            resp = self.comm_socket.recv(128)
-            self._validate(resp)
             self.comm_socket.close()
         except:
             pass

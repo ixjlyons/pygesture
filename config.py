@@ -28,10 +28,10 @@ f_cutoff = [f_proc/20, f_proc/4]
 # order of conditioning filter
 filt_order = 4
 
-# length of sliding window [ms]
-window_length = 150
-# amount of overlap between adjacent windows [ms]
-window_overlap = 100
+# length of sliding window [samp] (should be multiple of 27 for Delsys Trigno)
+window_length = 432
+# amount of overlap between adjacent windows [samp]
+window_overlap = int(window_length / 2)
 
 
 """
@@ -78,14 +78,14 @@ gestures = [
 try:
     daq = daq.TrignoDaq(
         channel_range=(min(channels), max(channels)),
-        samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
+        samples_per_read=window_length-window_overlap
     )
 except:
     daq = daq.Daq(
         rate=f_samp,
         input_range=1,
         channel_range=(min(channels), max(channels)),
-        samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
+        samples_per_read=window_length-window_overlap
     )
 
 conditioner = pipeline.Conditioner(
@@ -96,8 +96,8 @@ conditioner = pipeline.Conditioner(
 )
 
 windower = pipeline.Windower(
-    length=int(f_proc*window_length/1000),
-    overlap=int(f_proc*window_overlap/1000)
+    length=window_length,
+    overlap=window_overlap
 )
 
 feature_extractor = features.FeatureExtractor(
@@ -113,7 +113,8 @@ feature_extractor = features.FeatureExtractor(
 learner = pipeline.Classifier(
     Pipeline([
         ('preproc', StandardScaler()),
-        ('clf', LDA())]))
+        ('clf', LDA())])
+)
 
 post_processor = processing.Processor(
     conditioner=conditioner,
@@ -126,7 +127,7 @@ post_processor = processing.Processor(
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=15
+    ramp_length=5
 )
 
 tac_sessions = {
