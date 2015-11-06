@@ -280,12 +280,12 @@ class TestWidget(QtWidgets.QWidget):
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
 
-        self.record_thread.kill()
-        self.trial_running = False
-
         if self.simulation is not None:
             self.robot.stop()
             self.simulation.stop()
+
+        self.record_thread.kill()
+        self.trial_running = False
 
     def finish_trial(self, success=False):
         self.pause_trial()

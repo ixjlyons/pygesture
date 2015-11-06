@@ -221,7 +221,10 @@ class TrignoDaq(object):
         l = 0
         packet = bytes()
         while l < l_des:
-            packet += self.emg_socket.recv(l_des - l)
+            try:
+                packet += self.emg_socket.recv(l_des - l)
+            except socket.timeout:
+                break
             l = len(packet)
 
         data = np.asarray(
