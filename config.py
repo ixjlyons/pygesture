@@ -26,7 +26,7 @@ f_proc = f_samp
 # cutoff frequencies for bandpass conditioning filter [Hz]
 f_cutoff = [f_proc/20, f_proc/4]
 # order of conditioning filter
-filt_order = 4
+filt_order = 2
 
 # length of sliding window [samp] (should be multiple of 27 for Delsys Trigno)
 window_length = 432
@@ -127,7 +127,7 @@ post_processor = processing.Processor(
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=5
+    ramp_length=10
 )
 
 tac_sessions = {
