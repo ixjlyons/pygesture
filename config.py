@@ -15,6 +15,7 @@ from pygesture import experiment
 
 from pygesture.ui import train
 from pygesture.ui import test
+from pygesture.ui import cursor
 
 """
 some things for local use
@@ -152,3 +153,4 @@ tac_sessions = {
 ui_tabs = collections.OrderedDict()
 ui_tabs['Train'] = train.TrainWidget
 ui_tabs['Test'] = test.TestWidget
+ui_tabs['Cursor'] = cursor.CursorWidget
