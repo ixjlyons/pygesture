@@ -26,11 +26,11 @@ import pkg_resources
 import numpy as np
 
 from pygesture import filestruct
-from pygesture import processing
 from pygesture import features
 from pygesture import wav
 from pygesture import control
 from pygesture import pipeline
+from pygesture.analysis import processing
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets

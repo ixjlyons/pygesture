@@ -1,0 +1,100 @@
+#!/usr/bin/env python
+
+"""
+Generates a CSV file summarizing TAC test performance. By default, all
+participants found in the data path are included, and all sessions containing
+"test" in the sid are included.
+"""
+
+import sys
+import os
+import json
+import argparse
+import json
+import pickle
+import pandas as pd
+
+try:
+    from pygesture import config
+except:
+    sys.path.insert(0, '..')
+    from pygesture import config
+from pygesture import filestruct
+from pygesture.analysis import tac
+
+columns = ['pid', 'sid', 'trial', 'limb', 'complexity', 'dof', 'target',
+           'success', 'completion_time', 'path_efficiency', 'initiation_time']
+default_outfile = "data.csv"
+
+def main(args):
+    cfg = config.Config(args.config)
+    pids = filestruct.get_participant_list(cfg.data_path)
+
+    d = []
+    for pid in pids:
+        sids = filestruct.get_session_list(cfg.data_path, pid, search="test")
+        for sid in sids:
+            session_dir = filestruct.find_session_dir(cfg.data_path, pid, sid)
+            log_dir = filestruct.get_log_dir(session_dir)
+            log_files = filestruct.get_log_file_list(log_dir)
+            for f in log_files:
+                data = tac.loadfile(f)
+                trial = filestruct.parse_trial_number(f)
+                limb = get_limb(sid)
+                target = '+'.join(tac.get_target(data))
+
+                d.append([
+                    pid,
+                    sid,
+                    trial,
+                    limb,
+                    tac.get_complexity(data),
+                    tac.get_dofs(data),
+                    target,
+                    tac.check_success(data),
+                    tac.completion_time(data),
+                    tac.path_efficiency(data),
+                    tac.movement_initiation(data)
+                ])
+
+    df = pd.DataFrame(d, columns=columns)
+    df.to_csv(args.outfile)
+
+
+def get_limb(sid):
+    if 'arm' in sid:
+        return 'arm'
+    elif 'leg' in sid:
+        return 'leg'
+    else:
+        return 'unknown'
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate summary of TAC test performance.")
+    parser.add_argument(
+        '-c', '--config',
+        dest='config',
+        default='config.py',
+        help="Config file. Default is `config.py` (current directory).")
+    parser.add_argument(
+        '-o', '--outfile',
+        help="Output file. Default is `{}`".format(default_outfile))
+    parser.add_argument(
+        '-f', '--force-output',
+        action='store_true',
+        help="Force output, overwriting output file if it exists.")
+    args = parser.parse_args()
+
+    if args.outfile is None:
+        args.outfile = default_outfile
+
+    if os.path.isfile(args.outfile) and not args.force_output:
+        sys.exit("Output file exists. Use `--force` to overwrite.")
+
+    return args
+
+
+if __name__ == '__main__':
+    main(parse_args())

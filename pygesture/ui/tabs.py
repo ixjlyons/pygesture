@@ -3,7 +3,7 @@ import numpy as np
 from sklearn import cross_validation
 
 from pygesture import filestruct
-from pygesture import processing
+from pygesture.analysis import processing
 
 from pygesture.ui.qt import QtCore, QtWidgets
 from .templates.signal_widget_template import Ui_SignalWidget

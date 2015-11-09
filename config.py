@@ -8,10 +8,10 @@ from sklearn.pipeline import Pipeline
 from pygesture import util
 from pygesture import pipeline
 from pygesture import features
-from pygesture import processing
 from pygesture import daq
 from pygesture import control
 from pygesture import experiment
+from pygesture.analysis import processing
 
 from pygesture.ui import train
 from pygesture.ui import test

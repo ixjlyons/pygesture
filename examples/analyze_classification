@@ -36,8 +36,8 @@ except:
     sys.path.insert(0, '..')
     from pygesture import config
 
-from pygesture import classification
 from pygesture import filestruct
+from pygesture.analysis import classification
 
 
 def main():
