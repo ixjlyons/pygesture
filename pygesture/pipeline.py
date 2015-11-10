@@ -245,9 +245,9 @@ class BandpassFilter(PipelineBlock):
 
     def process(self, data):
         if self.zi is None:
-            # initial pass, get ICs from filter coefficients
-            zi = signal.lfilter_zi(self.b, self.a)
-            self.zi = np.tile(zi, (data.shape[1], 1)).T
+            # first pass has no initial conditions
+            out = signal.lfilter(
+                self.b, self.a, data, axis=0)
         else:
             # subsequent passes get ICs from previous input/output
             num_ch = data.shape[1]
@@ -261,8 +261,8 @@ class BandpassFilter(PipelineBlock):
                     self.y_prev[-(self.overlap+1)::-1, c],
                     self.x_prev[-(self.overlap+1)::-1, c])
 
-        out, zf = signal.lfilter(
-            self.b, self.a, data, axis=0, zi=self.zi)
+            out, zf = signal.lfilter(
+                self.b, self.a, data, axis=0, zi=self.zi)
 
         self.x_prev = data
         self.y_prev = out

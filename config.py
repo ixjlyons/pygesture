@@ -43,7 +43,7 @@ mcc_daq = {
     'input_range': 2,
     'window_length': 512,
     'window_overlap': 256,
-    'probe_channel': 7
+    'probe_channel': 6
 }
 
 
@@ -105,6 +105,7 @@ except:
                 daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
         )
     except:
+        daq_st = trigno_daq
         daq = daq.Daq(
             rate=daq_st['f_samp'],
             input_range=daq_st['input_range'],

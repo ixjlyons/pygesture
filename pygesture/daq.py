@@ -206,12 +206,12 @@ class TrignoDaq(object):
 
         # create command socket and consume the servers initial response
         self.comm_socket = socket.create_connection(
-            (self.addr, self.CMD_PORT), 2)
+            (self.addr, self.CMD_PORT), 5)
         self.comm_socket.recv(1024)
 
         # create the EMG data socket
         self.emg_socket = socket.create_connection(
-            (self.addr, self.EMG_PORT), 2)
+            (self.addr, self.EMG_PORT), 5)
 
     def start(self):
         self._send_cmd('START')
@@ -224,6 +224,9 @@ class TrignoDaq(object):
             try:
                 packet += self.emg_socket.recv(l_des - l)
             except socket.timeout:
+                l = len(packet)
+                packet += b'\x00' * (l_des - l) * 4
+                self._initialize()
                 break
             l = len(packet)
 
