@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pygesture/ui/templates/recording_viewer_template.ui'
+# Form implementation generated from reading ui file 'recording_viewer_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.2
+# Created by: PyQt5 UI code generator 5.5
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -71,6 +71,9 @@ class Ui_RecordingViewerWidget(object):
         self.sessionBrowser = SessionBrowser(self.groupBox)
         self.sessionBrowser.setObjectName("sessionBrowser")
         self.gridLayout.addWidget(self.sessionBrowser, 0, 0, 1, 1)
+        self.conditionedCheckBox = QtWidgets.QCheckBox(self.groupBox)
+        self.conditionedCheckBox.setObjectName("conditionedCheckBox")
+        self.gridLayout.addWidget(self.conditionedCheckBox, 1, 0, 1, 1)
         self.gridLayout_2.addWidget(self.groupBox, 0, 1, 1, 1)
 
         self.retranslateUi(RecordingViewerWidget)
@@ -82,6 +85,7 @@ class Ui_RecordingViewerWidget(object):
         self.previousButton.setText(_translate("RecordingViewerWidget", "Prev"))
         self.nextButton.setText(_translate("RecordingViewerWidget", "Next"))
         self.groupBox.setTitle(_translate("RecordingViewerWidget", "Sessions"))
+        self.conditionedCheckBox.setText(_translate("RecordingViewerWidget", "Conditioned"))
 
 from pygesture.ui.widgets import SessionBrowser
 from pyqtgraph import GraphicsLayoutWidget

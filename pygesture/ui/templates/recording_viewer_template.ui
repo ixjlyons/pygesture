@@ -106,6 +106,13 @@
       <item row="0" column="0">
        <widget class="SessionBrowser" name="sessionBrowser" native="true"/>
       </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="conditionedCheckBox">
+        <property name="text">
+         <string>Conditioned</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

@@ -1,8 +1,10 @@
+import os
 import numpy as np
 
 from sklearn import cross_validation
 
 from pygesture import filestruct
+from pygesture import pipeline
 from pygesture.analysis import processing
 
 from pygesture.ui.qt import QtCore, QtWidgets
@@ -44,21 +46,26 @@ class SignalWidget(QtWidgets.QWidget):
         self.ui = Ui_SignalWidget()
         self.ui.setupUi(self)
 
+        self.pipeline = pipeline.Pipeline(self.cfg.conditioner)
+
         self.init_plot()
         self.init_button_group()
 
     def showEvent(self, event):
-        self.record_thread.set_continuous()
-        self.record_thread.update_sig.connect(self.update_plot)
+        self.init_record_thread()
         self.set_mode_callback()
 
     def hideEvent(self, event):
-        try:
-            self.record_thread.update_sig.disconnect(self.update_plot)
-        except TypeError:
-            # thrown if the signal isn't connected yet
-            pass
+        self.dispose_record_thread()
 
+    def init_record_thread(self):
+        self.record_thread.set_continuous()
+        self.record_thread.set_pipeline(self.pipeline)
+        self.record_thread.prediction_sig.connect(self.update_plot)
+
+    def dispose_record_thread(self):
+        self.record_thread.prediction_sig.disconnect(self.update_plot)
+        self.record_thread.pipeline = None
         self.record_thread.kill()
 
     def init_plot(self):
@@ -87,6 +94,7 @@ class SignalWidget(QtWidgets.QWidget):
 
     def update_num_channels(self):
         self.ui.plotWidget.clear()
+        self.cfg.conditioner.clear()
 
         self.plot_items = []
         self.plot_data_items = []
@@ -116,6 +124,7 @@ class SignalWidget(QtWidgets.QWidget):
         self.buf = np.zeros((self.n_channels, self.hist*self.samp_per_read))
 
     def update_plot(self, data):
+        data = data.T
         n_channels, spr = data.shape
         if self.n_channels != n_channels:
             return
@@ -173,6 +182,10 @@ class RecordingViewerWidget(QtWidgets.QWidget):
     def init_buttons(self):
         self.ui.nextButton.clicked.connect(self.next_plot_callback)
         self.ui.previousButton.clicked.connect(self.prev_plot_callback)
+        self.ui.conditionedCheckBox.stateChanged.connect(
+            self.condition_callback)
+        self.condition = \
+            self.ui.conditionedCheckBox.checkState() == QtCore.Qt.Checked
 
     def init_browser(self):
         self.ui.sessionBrowser.participant_selected.connect(
@@ -186,18 +199,25 @@ class RecordingViewerWidget(QtWidgets.QWidget):
         self.pid = pid
 
     def on_session_selected(self, sid):
+        self.sid = sid
         session = processing.Session(self.cfg.data_path, self.pid, sid, None)
+        file_list = filestruct.get_recording_file_list(session.rawdir)
 
-        if not session.recording_file_list:
+        if not file_list:
             return
 
         self.data_list = []
-        for f in session.recording_file_list:
+        for f in file_list:
             rec = processing.Recording(f, self.cfg.post_processor)
+            data = rec.raw_data
+
+            if self.condition:
+                self.cfg.conditioner.clear()
+                data = self.cfg.conditioner.process(data)
+
             n_samples, n_channels = rec.raw_data.shape
             rate = rec.fs_raw
             t = np.arange(0, n_samples/rate, 1/float(rate))
-            data = rec.raw_data
             self.data_list.append(
                 (t, data, rec.trial_number, rec.label))
 
@@ -225,6 +245,15 @@ class RecordingViewerWidget(QtWidgets.QWidget):
 
         self.set_data(self.data_list[self.trial_index])
 
+    def condition_callback(self, state):
+        if state == QtCore.Qt.Checked:
+            self.condition = True
+        else:
+            self.condition = False
+
+        if self.sid is not None:
+            self.on_session_selected(self.sid)
+
     def update_num_channels(self, num_channels):
         self.ui.plotWidget.clear()
 
@@ -235,9 +264,9 @@ class RecordingViewerWidget(QtWidgets.QWidget):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
             plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
-            plot_item.showAxis('bottom', False)
+            #plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
-            plot_item.setYRange(-1, 1)
+            plot_item.setYRange(-0.2, 0.2)
             plot_item.setMouseEnabled(x=False)
 
             if i > 0:

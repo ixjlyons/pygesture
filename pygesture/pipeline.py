@@ -36,12 +36,6 @@ class Pipeline(object):
     def __init__(self, blocks):
         self.blocks = blocks
 
-    def add_block(self, block):
-        """
-        Adds a block to the end of the pipeline in series.
-        """
-        self.blocks.append(block)
-
     def process(self, data):
         out = _call_block('process', self.blocks, data)
         return out
@@ -57,7 +51,7 @@ def _call_block(fname, block, data=None):
         out = _call_tuple(fname, block, data)
     else:
         f = getattr(block, fname)
-        if data:
+        if data is not None:
             out = f(data)
         else:
             out = f()
@@ -188,7 +182,7 @@ class Conditioner(PipelineBlock):
 
         self.f_samp = f_samp
 
-        self.filter = BandpassFilter(order, f_cut, f_samp, overlap)
+        self.filt = BandpassFilter(order, f_cut, f_samp, overlap)
 
         if f_down is None:
             f_down = f_samp
@@ -198,9 +192,12 @@ class Conditioner(PipelineBlock):
 
     def process(self, data):
         data_centered = data - np.mean(data, axis=0)
-        data_filtered = self.filter.process(data_centered)
+        data_filtered = self.filt.process(data_centered)
         data_downsampled = data_filtered[::self.m, :]
         return data_downsampled
+
+    def clear(self):
+        self.filt.clear()
 
     def __repr__(self):
         return "%s.%s(n=%s, fc=%s, fs=%s)" % (
