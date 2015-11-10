@@ -19,19 +19,32 @@ from pygesture.ui import test
 """
 some things for local use
 """
-# sampling frequency for the DAQ [Hz]
-f_samp = daq.TrignoDaq.RATE
-# frequency of signals for processing [Hz]
-f_proc = f_samp
-# cutoff frequencies for bandpass conditioning filter [Hz]
-f_cutoff = [f_proc/20, f_proc/4]
-# order of conditioning filter
-filt_order = 2
 
-# length of sliding window [samp] (should be multiple of 27 for Delsys Trigno)
-window_length = 432
-# amount of overlap between adjacent windows [samp]
-window_overlap = int(window_length / 2)
+# default data acquisition system parameters
+trigno_daq = {
+    'f_samp': 2000,
+    'f_proc': 2000,
+    'm': 1,
+    'f_cutoff': [10, 500],
+    'filt_order': 2,
+    'input_range': 1,
+    'window_length': 432,
+    'window_overlap': 216,
+    'probe_channel': 0
+}
+
+# fallback data acquistion system parameters
+mcc_daq = {
+    'f_samp': 5120,
+    'f_proc': 2560,
+    'm': 2,
+    'f_cutoff': [8, 512],
+    'filt_order': 2,
+    'input_range': 2,
+    'window_length': 512,
+    'window_overlap': 256,
+    'probe_channel': 7
+}
 
 
 """
@@ -61,7 +74,6 @@ sensors = [
 ]
 
 channels = [s.channel for s in sensors]
-probe_channel = 0
 
 gestures = [
     util.Gesture(0, "NC", "no-contraction"),
@@ -76,28 +88,43 @@ gestures = [
 ]
 
 try:
+    daq_st = trigno_daq
     daq = daq.TrignoDaq(
         channel_range=(min(channels), max(channels)),
-        samples_per_read=window_length-window_overlap
+        samples_per_read=
+            daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
     )
 except:
-    daq = daq.Daq(
-        rate=f_samp,
-        input_range=1,
-        channel_range=(min(channels), max(channels)),
-        samples_per_read=window_length-window_overlap
-    )
+    try:
+        daq_st = mcc_daq
+        daq = daq.MccDaq(
+            rate=daq_st['f_samp'],
+            input_range=daq_st['input_range'],
+            channel_range=(min(channels), max(channels)),
+            samples_per_read=
+                daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
+        )
+    except:
+        daq = daq.Daq(
+            rate=daq_st['f_samp'],
+            input_range=daq_st['input_range'],
+            channel_range=(min(channels), max(channels)),
+            samples_per_read=
+                daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
+        )
+
+probe_channel = daq_st['probe_channel']
 
 conditioner = pipeline.Conditioner(
-    order=filt_order,
-    f_cut=f_cutoff,
-    f_samp=f_samp,
-    f_down=f_proc
+    order=daq_st['filt_order'],
+    f_cut=daq_st['f_cutoff'],
+    f_samp=daq_st['f_samp'],
+    f_down=daq_st['f_proc']
 )
 
 windower = pipeline.Windower(
-    length=window_length,
-    overlap=window_overlap
+    length=daq_st['window_length'],
+    overlap=daq_st['window_overlap']
 )
 
 feature_extractor = features.FeatureExtractor(
@@ -121,8 +148,8 @@ post_processor = processing.Processor(
     windower=windower,
     feature_extractor=feature_extractor,
     rest_bounds=None,
-    gesture_bounds=(int((prompt_times[0]+0.5)*f_proc),
-                    int((prompt_times[1]-0.5)*f_proc))
+    gesture_bounds=(int((prompt_times[0]+0.5)*daq_st['f_proc']),
+                    int((prompt_times[1]-0.5)*daq_st['f_proc']))
 )
 
 controller = control.DBVRController(
