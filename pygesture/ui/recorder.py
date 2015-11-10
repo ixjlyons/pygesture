@@ -26,6 +26,9 @@ class RecordThread(QtCore.QThread):
             self.run_fixed()
 
     def run_continuous(self):
+        if self.pipeline is not None:
+            self.pipeline.clear()
+
         self.daq.start()
         # discard first read
         self.daq.read()

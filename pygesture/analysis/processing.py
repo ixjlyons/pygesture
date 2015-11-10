@@ -186,6 +186,7 @@ class Recording:
         self.label = filestruct.parse_label(filename)
 
     def process(self):
+        self.conditioner.clear()
         cd = self.conditioner.process(self.raw_data)
 
         num_gestures = len(self.rest_ind) + len(self.gest_ind)

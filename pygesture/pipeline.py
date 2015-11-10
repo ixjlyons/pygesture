@@ -43,33 +43,40 @@ class Pipeline(object):
         self.blocks.append(block)
 
     def process(self, data):
-        out = _process_block(self.blocks, data)
+        out = _call_block('process', self.blocks, data)
         return out
 
+    def clear(self):
+        _call_block('clear', self.blocks)
 
-def _process_block(block, data):
+
+def _call_block(fname, block, data=None):
     if type(block) is list:
-        out = _process_list(block, data)
+        out = _call_list(fname, block, data)
     elif type(block) is tuple:
-        out = _process_tuple(block, data)
+        out = _call_tuple(fname, block, data)
     else:
-        out = block.process(data)
+        f = getattr(block, fname)
+        if data:
+            out = f(data)
+        else:
+            out = f()
 
     return out
 
 
-def _process_list(block, data):
+def _call_list(fname, block, data):
     out = data
     for b in block:
-        out = _process_block(b, out)
+        out = _call_block(fname, b, out)
 
     return out
 
 
-def _process_tuple(block, data):
+def _call_tuple(fname, block, data):
     out = []
     for b in block:
-        out.append(_process_block(b, data))
+        out.append(_call_block(fname, b, data))
 
     return out
 
@@ -90,6 +97,9 @@ class PipelineBlock(object):
     def process(self, data):
         out = data  # usually some function
         return out
+
+    def clear(self):
+        pass
 
     def __repr__(self):
         return "%s.%s()" % (
@@ -117,6 +127,9 @@ class Windower(PipelineBlock):
         self.length = length
         self.overlap = overlap
 
+        self.clear()
+
+    def clear(self):
         self._out = None
 
     def process(self, data):
@@ -224,11 +237,14 @@ class BandpassFilter(PipelineBlock):
         self.overlap = overlap
 
         self._build_filter()
-        self.zi = None
+        self.clear()
 
     def _build_filter(self):
         wc = [f / (self.f_samp/2.0) for f in self.f_cut]
         self.b, self.a = signal.butter(self.order, wc, 'bandpass')
+
+    def clear(self):
+        self.zi = None
 
     def process(self, data):
         if self.zi is None:
