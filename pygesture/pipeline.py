@@ -241,10 +241,11 @@ class BandpassFilter(PipelineBlock):
         self.b, self.a = signal.butter(self.order, wc, 'bandpass')
 
     def clear(self):
-        self.zi = None
+        self.x_prev = None
+        self.y_prev = None
 
     def process(self, data):
-        if self.zi is None:
+        if self.x_prev is None:
             # first pass has no initial conditions
             out = signal.lfilter(
                 self.b, self.a, data, axis=0)

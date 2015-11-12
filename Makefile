@@ -8,8 +8,8 @@ lint:
 	flake8 --config=tools/flake8.cfg \
 		pygesture/ \
 		config.py \
-		examples/analyze \
-		examples/process
+		examples/analyze_classification \
+		examples/analyze_tactest
 
 
 PYUIC=pyuic5

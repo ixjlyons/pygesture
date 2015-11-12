@@ -53,13 +53,11 @@ def cumulative_completion_rate(completion_times, inc, top):
     counts : ndarray
         The number of trials completed faster than the corresponding cutoff.
     """
-    ts = np.array(ts)
+    ts = np.array(completion_times)
     cutoffs = np.arange(0, top+inc, inc)
     counts = np.zeros(cutoffs.shape)
     for i, t in enumerate(cutoffs):
         counts[i] = np.sum(ts < t)
-
-    end = np.argmax(counts)
 
     return cutoffs, counts
 

@@ -118,100 +118,205 @@ def get_session_data(rootdir, pid, sid_list):
 
 
 class Session:
+    """
+    Processor of a group of recordings that were taken consecutively.
 
+    Parameters
+    ----------
+    rootdir : str
+        Root directory of the data (see pygesture.filestruct).
+    pid : str
+        ID of the participant who generated the data.
+    sid : str
+        ID of the session.
+    processor : pygesture.analysis.processing.Processor
+        Processor used to transform the raw data to conditioned data and
+        feature data.
+
+    Attributes
+    ----------
+    sessdir : str
+        Path to the session directory.
+    rawdir : str
+        Path to the directory containing the raw recording files.
+    procdir : str
+        Path to the directory to place the conditioned recording files.
+    featfile : str
+        Path to the feature file to be generated.
+    """
     def __init__(self, rootdir, pid, sid, processor):
         self.sid = sid
         self.pid = pid
         self.processor = processor
 
         self.sessdir = filestruct.find_session_dir(rootdir, pid, sid)
-        self.datestr = filestruct.parse_date_string(self.sessdir)
-        self.featfile = filestruct.new_feature_file(
-            self.sessdir, pid, sid, self.datestr)
         self.rawdir = filestruct.get_recording_dir(self.sessdir)
         self.procdir = filestruct.get_processed_dir(self.sessdir)
+
+        self.featfile = filestruct.new_feature_file(
+            self.sessdir,
+            self.pid,
+            self.sid,
+            filestruct.parse_date_string(self.sessdir))
 
         if not os.path.exists(self.procdir):
             os.mkdir(self.procdir)
 
-        self.recording_file_list = \
-            filestruct.get_recording_file_list(self.rawdir)
-
-    def process(self):
+    def process(self, saveproc=True):
+        """
+        Iterates over all recordings in the session, processes them (see
+        Recording's process method), writes the conditioned data to procdir,
+        and writes the features to a CSV file.
+        """
         if os.path.isfile(self.featfile):
             os.remove(self.featfile)
 
-        feat_fid = open(self.featfile, 'ab')
+        with open(self.featfile, 'ab') as fid:
+            for f in filestruct.get_recording_file_list(self.rawdir):
+                try:
+                    rec = Recording(f, self.processor)
+                except KeyError:
+                    continue
 
-        for f in self.recording_file_list:
-            try:
-                rec = Recording(f, self.processor)
-            except KeyError:
-                continue
-            proc_data, features = rec.process()
+                proc_data, features = rec.process()
 
-            outfile = os.path.join(self.procdir, rec.filename)
-            fs_proc = self.processor.conditioner.f_down
-            wav.write(outfile, fs_proc, proc_data)
+                procfile = os.path.join(self.procdir, rec.filename)
+                fs_proc = self.processor.conditioner.f_down
+                wav.write(procfile, fs_proc, proc_data)
 
-            np.savetxt(feat_fid, features, delimiter=',', fmt='%.5e')
+                np.savetxt(fid, features, delimiter=',', fmt='%.5e')
 
 
 class Recording:
+    """
+    Representation of a single multi-channel raw recording.
 
-    def __init__(self, wavfile, processor, loc='leg'):
-        self.conditioner = processor.conditioner
-        self.feature_extractor = processor.feature_extractor
-        self.windower = processor.windower
+    Parameters
+    ----------
+    wavfile : str
+        Full path to the raw recording (WAV file).
+    processor : pygesture.analysis.processing.Processor
+        Processor used to transform the raw data to conditioned data and
+        feature data.
 
-        self.n_features = self.feature_extractor.n_features
+    Attributes
+    ----------
+    fs_raw : int
+        Sampling rate (Hz) of the raw recording as read from the WAV file.
+    filename : str
+        Name of the WAV file (name only, no path).
+    raw_data : array, shape (n_samples, n_channels)
+        Raw data as read from the WAV file.
+    trial_number : int
+        Trial number of the recording (pertains to the session it was recorded
+        in).
+    label : int
+        Label of the recording as a whole, relevant to recordings in which a
+        gesture is held throughout.
+    conditioned_data : array, shape (n_samples_conditioned, n_channels)
+        Raw data that has been transformed by the conditioner (of the input
+        processor)
+    feature_data : array, shape (n_windows, n_features+1)
+        Feature data with the label of the recording in the first column. If
+        rest bounds are given in the processor, the first rows of the feature
+        data will be rest data, and the remaining portion will be from the
+        gesture bounds given in the processor.
+    """
+    def __init__(self, wavfile, processor):
+        self.wavfile = wavfile
+        self.processor = processor
 
-        self.fs_raw, self.raw_data = wav.read(wavfile)
-        path, self.filename = os.path.split(wavfile)
-        self.location = loc
-        self.parse_details(self.filename)
+        self._conditioner = self.processor.conditioner
+        self._feature_extractor = self.processor.feature_extractor
+        self._windower = self.processor.windower
 
-        self.rest_ind = []
-        if processor.rest_bounds:
-            self.rest_ind = range(
-                processor.rest_bounds[0], processor.rest_bounds[1],
-                self.windower.length-self.windower.overlap)
+        self._read_file()
 
-        self.gest_ind = range(
-            processor.gesture_bounds[0], processor.gesture_bounds[1],
-            self.windower.length-self.windower.overlap)
+    def _read_file(self):
+        self.fs_raw, self.raw_data = wav.read(self.wavfile)
+        path, self.filename = os.path.split(self.wavfile)
 
-    def parse_details(self, filename):
-        self.trial_number = filestruct.parse_trial_number(filename)
-        self.label = filestruct.parse_label(filename)
+        self.trial_number = filestruct.parse_trial_number(self.filename)
+        self.label = filestruct.parse_label(self.filename)
 
     def process(self):
-        self.conditioner.clear()
-        cd = self.conditioner.process(self.raw_data)
+        """
+        Processes the raw recording data in two steps. The first step is to
+        condition the data (usually something like normalization, filtering,
+        etc.), specified by the conditioner belonging to this recording's
+        processor object. The second step is to calculate features from the
+        conditioned data. The conditioned data is windowed according to the
+        processor's windower (window length, overlap) and for each window, the
+        processor's feature extractor is applied. The conditioned data and the
+        feature data are returned.
 
-        num_gestures = len(self.rest_ind) + len(self.gest_ind)
-        fd = np.zeros((num_gestures, self.n_features+1))
-        for i, n in enumerate(self.rest_ind):
-            label = 0
-            x = cd[n:n+self.windower.length, :]
-            fd[i, 0] = label
-            fd[i, 1:] = self.feature_extractor.process(x)
+        Returns
+        -------
+        conditioned_data : array, shape (n_samples_conditioned, n_channels)
+            The conditioned data.
+        feature_data : array, shape (n_windows, n_features+1)
+            The feature data. Each row is an instance. The first column is
+            the gesture label. The rest of the columns are feature types.
+        """
+        self._conditioner.clear()
+        cd = self._conditioner.process(self.raw_data)
 
-        rl = len(self.rest_ind)
-        for i, n in enumerate(self.gest_ind):
-            x = cd[n:n+self.windower.length, :]
-            fd[rl+i, 0] = self.label
-            fd[rl+i, 1:] = self.feature_extractor.process(x)
+        rb = self.processor.rest_bounds
+        if rb is not None:
+            rest_data = cd[rb[0]:rb[1]]
+            rest_ind = list(
+                windowind(rest_data.shape[0], self._windower.length,
+                          overlap=self._windower.overlap))
+            n_rest = len(rest_ind)
+        else:
+            rest_ind = []
+            n_rest = 0
+
+        gb = self.processor.gesture_bounds
+        gest_data = cd[gb[0]:gb[1]]
+        gest_ind = list(
+            windowind(gest_data.shape[0], self._windower.length,
+                      overlap=self._windower.overlap))
+        n_gest = len(gest_ind)
+
+        n_rows = n_rest + n_gest
+        fd = np.zeros((n_rows, self._feature_extractor.n_features+1))
+        for i, ind in enumerate(rest_ind):
+            fd[i, 0] = 0
+            fd[i, 1:] = self._feature_extractor.process(
+                rest_data[ind[0]:ind[1]])
+        for i, ind in enumerate(gest_ind):
+            fd[n_rest+i, 0] = self.label
+            fd[n_rest+i, 1:] = self._feature_extractor.process(
+                gest_data[ind[0]:ind[1]])
 
         self.conditioned_data = cd
         self.feature_data = fd
 
-        return (cd, fd)
+        return self.conditioned_data, self.feature_data
 
-    def get_dict(self):
-        data_dict = {
-            'label': self.label,
-            'trial_number': self.trial_number,
-            'data': self.feature_data.tolist()}
 
-        return data_dict
+def window(x, length, overlap=0, axis=0):
+    """
+    Generates a sequence of windows of the input data, each with a specified
+    length and optional overlap with the previous window. Only windows of the
+    specified length are retrieved (if windows don't fit evenly into the data).
+    """
+    n = x.shape[axis]
+    for f, t in windowind(n, length, overlap=overlap):
+        if axis == 0:
+            yield x[f:t, :]
+        else:
+            yield x[:, f:t]
+
+
+def windowind(n, length, overlap=0):
+    """
+    Generates a sequence of pairs of indices corresponding to consecutive
+    windows of an array of length n. Returns a tuple (low_ind, high_ind) which
+    can be used to window an array like `win = data[low_ind, high_ind]`.
+    """
+    ind = range(0, n, length-overlap)
+    for i in ind:
+        if i + length < n:
+            yield i, i+length

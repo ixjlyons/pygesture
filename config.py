@@ -91,8 +91,8 @@ try:
     daq_st = trigno_daq
     daq = daq.TrignoDaq(
         channel_range=(min(channels), max(channels)),
-        samples_per_read=
-            daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
+        samples_per_read=daq_st['m']*(
+            daq_st['window_length']-daq_st['window_overlap'])
     )
 except:
     try:
@@ -101,8 +101,8 @@ except:
             rate=daq_st['f_samp'],
             input_range=daq_st['input_range'],
             channel_range=(min(channels), max(channels)),
-            samples_per_read=
-                daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
+            samples_per_read=daq_st['m']*(
+                daq_st['window_length']-daq_st['window_overlap'])
         )
     except:
         daq_st = trigno_daq
@@ -110,8 +110,8 @@ except:
             rate=daq_st['f_samp'],
             input_range=daq_st['input_range'],
             channel_range=(min(channels), max(channels)),
-            samples_per_read=
-                daq_st['m']*(daq_st['window_length']-daq_st['window_overlap'])
+            samples_per_read=daq_st['m']*(
+                daq_st['window_length']-daq_st['window_overlap'])
         )
 
 probe_channel = daq_st['probe_channel']

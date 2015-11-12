@@ -63,8 +63,6 @@ Optional:
 - [PyOpenGL](http://pyopengl.sourceforge.net/): If installed, the processing
   widget in the UI takes advantage of `pyqtgraph` 3D plotting functionality, so
   clusters of points in feature space are more easily explored.
-- [matplotlib](http://matplotlib.org/): The `plot_recordings` example script
-  uses matplotlib.
 
 
 ## Versions

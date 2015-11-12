@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from sklearn import cross_validation
@@ -264,7 +263,7 @@ class RecordingViewerWidget(QtWidgets.QWidget):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
             plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
-            #plot_item.showAxis('bottom', False)
+            # plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
             plot_item.setYRange(-0.2, 0.2)
             plot_item.setMouseEnabled(x=False)

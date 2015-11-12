@@ -42,7 +42,7 @@ def read(filename):
     """
     rate, data = siowav.read(filename)
     data = data / 32768.0
-    return (rate, data)
+    return rate, data
 
 
 class ContinuousWriter(object):
