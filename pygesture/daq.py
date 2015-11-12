@@ -225,7 +225,7 @@ class TrignoDaq(object):
                 packet += self.emg_socket.recv(l_des - l)
             except socket.timeout:
                 l = len(packet)
-                packet += b'\x00' * (l_des - l) * 4
+                packet += b'\x00' * (l_des - l)
                 self._initialize()
                 break
             l = len(packet)

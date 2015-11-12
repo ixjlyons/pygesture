@@ -26,11 +26,12 @@ trigno_daq = {
     'f_proc': 2000,
     'm': 1,
     'f_cutoff': [10, 500],
-    'filt_order': 2,
+    'filt_order': 4,
     'input_range': 1,
     'window_length': 432,
     'window_overlap': 216,
-    'probe_channel': 0
+    'probe_channel': 0,
+    'trial_duration': 6048,
 }
 
 # fallback data acquistion system parameters
@@ -43,7 +44,8 @@ mcc_daq = {
     'input_range': 2,
     'window_length': 512,
     'window_overlap': 256,
-    'probe_channel': 6
+    'probe_channel': 6,
+    'trial_duration': 6000,
 }
 
 
@@ -52,10 +54,6 @@ attributes picked up by pygesture.config
 """
 # number of times to repeat each gesture during training
 num_repeats = 4
-# length of each trial during training [seconds]
-trial_duration = 6
-# gesture onset and offset times for training [seconds]
-prompt_times = (2, 5)
 # time between trials in training [seconds]
 inter_trial_timeout = 3
 
@@ -116,6 +114,11 @@ except:
 
 probe_channel = daq_st['probe_channel']
 
+# length of each trial during training [ms]
+trial_duration = daq_st['trial_duration']
+# gesture onset and offset times for training [s]
+prompt_times = (2, 5)
+
 conditioner = pipeline.Conditioner(
     order=daq_st['filt_order'],
     f_cut=daq_st['f_cutoff'],
@@ -132,8 +135,8 @@ feature_extractor = features.FeatureExtractor(
     [
         features.MAV(),
         features.WL(),
-        features.ZC(thresh=0.001),
-        features.SSC(thresh=0.001)
+        features.ZC(thresh=0.003),
+        features.SSC(thresh=0.003)
     ],
     len(channels)
 )
@@ -149,8 +152,9 @@ post_processor = processing.Processor(
     windower=windower,
     feature_extractor=feature_extractor,
     rest_bounds=None,
-    gesture_bounds=(int((prompt_times[0]+0.5)*daq_st['f_proc']),
-                    int((prompt_times[1]-0.5)*daq_st['f_proc']))
+    gesture_bounds=(
+        int((prompt_times[0]+0.5)*daq_st['f_proc']),
+        int((prompt_times[1]-0.5)*daq_st['f_proc']))
 )
 
 controller = control.DBVRController(

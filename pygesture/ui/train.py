@@ -41,8 +41,8 @@ class TrainWidget(QtWidgets.QWidget):
         self.dispose_record_thread()
 
     def init_record_thread(self):
-        tpr = self.cfg.trial_duration * \
-            int(self.cfg.daq.rate / self.cfg.daq.samples_per_read)
+        tpr = int(self.cfg.trial_duration /
+            (self.cfg.daq.samples_per_read / (self.cfg.daq.rate/1000)))
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.set_fixed(triggers_per_record=tpr)
@@ -77,14 +77,14 @@ class TrainWidget(QtWidgets.QWidget):
         self.ui.gestureView.setPixmap(self.gesture_images[imgkey])
 
     def init_gesture_prompt(self):
-        self.ui.promptWidget.ticks = self.cfg.trial_duration
+        self.ui.promptWidget.ticks = int(self.cfg.trial_duration/1000)
         self.ui.promptWidget.transitions = self.cfg.prompt_times
-        self.ui.promptWidget.setMaximum(1000*self.cfg.trial_duration)
+        self.ui.promptWidget.setMaximum(self.cfg.trial_duration)
         self.prompt_anim = QtCore.QPropertyAnimation(
             self.ui.promptWidget, b'value')
-        self.prompt_anim.setDuration(1000*self.cfg.trial_duration)
+        self.prompt_anim.setDuration(self.cfg.trial_duration)
         self.prompt_anim.setStartValue(0)
-        self.prompt_anim.setEndValue(1000*self.cfg.trial_duration)
+        self.prompt_anim.setEndValue(self.cfg.trial_duration)
 
     def init_session_progressbar(self):
         self.ui.sessionProgressBar.setMinimum(0)
