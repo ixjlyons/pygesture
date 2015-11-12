@@ -117,6 +117,17 @@ that's done, install pydaqflex. Finally, try running the
 up correctly.
 
 
+## Setting up the Delsys Trigno wireless EMG system
+
+The Trigno system only has USB drivers for Windows, and interfacing with the
+device goes through the Trigno Control Utility. It is essentially a program
+that runs a TCP server to which you can connect to control the device and
+retrieve data. To use the Trigno system, start up Trigno Control Utility
+before running pygesture or some other script. Try running
+`examples/test_trigno.py` to see if things are set up correctly -- if no errors
+occur, it should be ready to go.
+
+
 ## Versions
 
 - v1.0 : Initial version, including real-time testing (TAC test). Used for the
