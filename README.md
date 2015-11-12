@@ -35,6 +35,11 @@ installs to somewhere like `C:\Program Files (x86)\V-REP3\V-REP_PRO_EDU`. Find
 this location (you should see lots of dlls) and add a `VREP` system environment
 variable.
 
+You can test communication with v-rep by loading up the
+`vrep_scenes/mpl_tac_test.ttt` scene and running `examples/test_vrep.py`. If
+that script runs smoothly, everything should be set up correctly. It also
+provides some example usage of the `vrepsim` module.
+
 
 ## Dependencies
 
