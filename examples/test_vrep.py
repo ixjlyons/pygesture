@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 This script tests pygesture's coordination with the v-rep robotic simulation
 environment. Before running, ensure the following are in place:
@@ -20,7 +18,6 @@ mode.
 """
 
 import sys
-import argparse
 import time
 import math
 import copy
@@ -28,13 +25,10 @@ import copy
 from numpy.testing import assert_approx_equal
 
 try:
-    from pygesture import config
+    from pygesture.simulation import vrepsim
 except ImportError:
     sys.path.insert(0, '..')
-    from pygesture import config
-
-from pygesture import control
-from pygesture.simulation import vrepsim
+    from pygesture.simulation import vrepsim
 
 
 rest_time = 0.75
@@ -62,9 +56,8 @@ position_commands = [
     }
 ]
 
-def main(args):
-    cfg = config.Config(args.config)
 
+def main():
     sim = vrepsim.VrepSimulation()
     sim.start()
 
@@ -134,14 +127,5 @@ def diff(init, current, name):
     return abs(math.degrees(init[name] - current[name]))
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Runs through a pre-programmed sequence of movements.")
-    parser.add_argument('-c', '--config', default='config.py',
-        help="Config file. Default is `config.py` (current directory).")
-
-    return parser.parse_args()
-
-
 if __name__ == '__main__':
-    main(parse_args())
+    main()

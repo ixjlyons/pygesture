@@ -9,7 +9,9 @@ lint:
 		pygesture/ \
 		config.py \
 		examples/analyze_classification \
-		examples/analyze_tactest
+		examples/analyze_tactest \
+		examples/test_vrep.py \
+		examples/test_mccdaq.py
 
 
 PYUIC=pyuic5

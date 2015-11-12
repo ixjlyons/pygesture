@@ -25,22 +25,6 @@ area that I would like to expand on a bit.
 for addition to the simulation options.
 
 
-## Setting up v-rep
-
-To get v-rep working, you need to set an environment variable `VREP` with the
-full path to v-rep's installed location. On Linux, this is wherever you extract
-the tarball v-rep distributes. You might want to put an appropriate entry in
-your bashrc, for example: `export VREP='~/usr/vrep/vrep-3.2.2'`. On Windows, it
-installs to somewhere like `C:\Program Files (x86)\V-REP3\V-REP_PRO_EDU`. Find
-this location (you should see lots of dlls) and add a `VREP` system environment
-variable.
-
-You can test communication with v-rep by loading up the
-`vrep_scenes/mpl_tac_test.ttt` scene and running `examples/test_vrep.py`. If
-that script runs smoothly, everything should be set up correctly. It also
-provides some example usage of the `vrepsim` module.
-
-
 ## Dependencies
 
 The direct dependencies are all Python packages (yay!), though many of them
@@ -68,6 +52,69 @@ Optional:
 - [PyOpenGL](http://pyopengl.sourceforge.net/): If installed, the processing
   widget in the UI takes advantage of `pyqtgraph` 3D plotting functionality, so
   clusters of points in feature space are more easily explored.
+
+
+## Development
+
+The recommended approach is to set up a virtual environment with system site
+packages (because the dependencies don't pip install nicely) and install in
+develop mode:
+
+```
+virtualenv --system-site-packages env
+source env/bin/activate
+python setup.py develop
+```
+
+Now you should be able to run the main GUI by just running `pygesture`.
+
+The test coverage is pretty terrible, but you can run tests anyway:
+
+```
+python setup.py test
+```
+
+Note that it isn't really feasible to test everything `pygesture` does with
+unit tests, such as data acquisition and simulation, since they assume you have
+additional software running or hardware connected. For these things, there are
+test scripts in the `examples/` directory. These "test-like" scripts are all
+named `test_*.py`. Specific instructions for running them are included in the
+scripts themselves.
+
+You can also run static code checks (requires
+[flake8](https://gitlab.com/pycqa/flake8)):
+
+```
+make lint
+```
+
+
+## Setting up v-rep
+
+To get v-rep working, you need to set an environment variable `VREP` with the
+full path to v-rep's installed location. On Linux, this is wherever you extract
+the tarball v-rep distributes. You might want to put an appropriate entry in
+your bashrc, for example: `export VREP='~/usr/vrep/vrep-3.2.2'`. On Windows, it
+installs to somewhere like `C:\Program Files (x86)\V-REP3\V-REP_PRO_EDU`. Find
+this location (you should see lots of dlls) and add a `VREP` system environment
+variable.
+
+You can test communication with v-rep by loading up the
+`vrep_scenes/mpl_tac_test.ttt` scene and running `examples/test_vrep.py`. If
+that script runs smoothly, everything should be set up correctly. It also
+provides some example usage of the `vrepsim` module.
+
+
+## Setting up the Measurement Computing USB DAQ
+
+The Measurement Computing (MCC) DAQ relies on the
+[DAQFlex](http://www.mccdaq.com/daq-software/DAQFlex.aspx) library and
+[pydaqflex](https://github.com/torfbolt/PyDAQFlex). Start by installing DAQFlex
+on your chosen platform. On Windows, that *should* be all that's needed. On
+Linux, you'll need to install the udev rule file (`tools/60-mcc.rules`). Once
+that's done, install pydaqflex. Finally, try running the
+`examples/test_mccdaq.py` script. If no errors occur, the device should be set
+up correctly.
 
 
 ## Versions
