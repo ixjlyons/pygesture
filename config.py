@@ -53,7 +53,7 @@ mcc_daq = {
 attributes picked up by pygesture.config
 """
 # number of times to repeat each gesture during training
-num_repeats = 4
+num_repeats = 1
 # time between trials in training [seconds]
 inter_trial_timeout = 2
 
