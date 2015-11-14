@@ -1,5 +1,6 @@
 import numpy as np
 
+from pygesture import daq
 from pygesture.ui.qt import QtCore
 
 
@@ -9,6 +10,7 @@ class RecordThread(QtCore.QThread):
     update_sig = QtCore.pyqtSignal(np.ndarray)
     finished_sig = QtCore.pyqtSignal(np.ndarray)
     prediction_sig = QtCore.pyqtSignal(object)
+    error_sig = QtCore.pyqtSignal()
 
     def __init__(self, daq):
         QtCore.QThread.__init__(self, parent=None)
@@ -39,7 +41,11 @@ class RecordThread(QtCore.QThread):
             if not self.running:
                 break
 
-            d = self.daq.read()
+            try:
+                d = self.daq.read()
+            except daq.DisconnectException:
+                self.error_sig.emit()
+                return
 
             if self.pipeline is not None:
                 y = self.pipeline.process(d.T)
@@ -64,7 +70,11 @@ class RecordThread(QtCore.QThread):
                 killed = True
                 break
 
-            d = self.daq.read()
+            try:
+                d = self.daq.read()
+            except daq.DisconnectException:
+                self.error_sig.emit()
+                return
 
             data[:, i*spr:(i+1)*spr] = d
             self.update_sig.emit(d)

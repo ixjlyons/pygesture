@@ -38,7 +38,7 @@ from pygesture.ui.templates.test_widget_template import Ui_TestWidget
 
 
 # time to wait before starting the recorder
-trial_start_delay = 2000
+trial_start_delay = 1000
 
 
 class TestWidget(QtWidgets.QWidget):
@@ -131,10 +131,12 @@ class TestWidget(QtWidgets.QWidget):
         self.record_thread.ready_sig.connect(self.on_recorder_ready)
         self.record_thread.prediction_sig.connect(self.prediction_callback)
         self.record_thread.update_sig.connect(self.record_callback)
+        self.record_thread.error_sig.connect(self.on_record_error)
 
     def dispose_record_thread(self):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
         self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
+        self.record_thread.error_sig.disconnect(self.on_record_error)
         self.record_thread.pipeline = None
         self.record_thread.kill()
 
@@ -356,6 +358,13 @@ class TestWidget(QtWidgets.QWidget):
     def record_callback(self, data):
         """Called by the `RecordThread` when it gets new recording data."""
         self.logger.record(data)
+
+    def on_record_error(self):
+        self.on_pause_clicked()
+        QtWidgets.QMessageBox().critical(
+            self, "Error",
+            "DAQ failure.",
+            QtWidgets.QMessageBox.Ok)
 
     def keyPressEvent(self, event):
         if self.test and self.trial_running:
