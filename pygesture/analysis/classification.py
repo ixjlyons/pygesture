@@ -23,8 +23,9 @@ import numpy as np
 from sklearn.lda import LDA
 from sklearn.metrics import confusion_matrix
 from sklearn.cross_validation import LeavePOut
+from sklearn.preprocessing import StandardScaler
 
-from pygesture import processing
+from pygesture.analysis import processing
 
 
 def run_single(rootdir, pids, clf_dict, clf=None, label_dict=None):
@@ -242,16 +243,10 @@ def accuracy_std(cm_list):
 
 
 def condition_data(X_train, X_test):
-    means = np.mean(X_train, 0)
-    stds = np.std(X_train, 0)
-
-    X_train = X_train - means
-    X_train = X_train / stds.T
-
-    X_test = X_test - means
-    X_test = X_test / stds.T
-
-    return (X_train, X_test)
+    scaler = StandardScaler()
+    X_train_out = scaler.fit_transform(X_train)
+    X_test_out = scaler.transform(X_test)
+    return X_train_out, X_test_out
 
 
 class ConfusionMatrix():

@@ -26,18 +26,24 @@ default_outfile = "data.csv"
 
 def main(args):
     cfg = config.Config(args.config)
-    pids = filestruct.get_participant_list(cfg.data_path)
+    if args.rootdir:
+        data_path = args.rootdir
+    else:
+        data_path = cfg.data_path
+
+    pids = filestruct.get_participant_list(data_path)
 
     d = []
     for pid in pids:
-        sids = filestruct.get_session_list(cfg.data_path, pid, search="test")
+        sids = filestruct.get_session_list(data_path, pid, search="test")
         for sid in sids:
-            session_dir = filestruct.find_session_dir(cfg.data_path, pid, sid)
+            session_dir = filestruct.find_session_dir(data_path, pid, sid)
             log_dir = filestruct.get_log_dir(session_dir)
             log_files = filestruct.get_log_file_list(log_dir)
             for f in log_files:
+                fname = os.path.basename(f)
                 data = tac.loadfile(f)
-                trial = filestruct.parse_trial_number(f)
+                trial = filestruct.parse_trial_number(fname)
                 limb = get_limb(sid)
                 target = '+'.join(tac.get_target(data))
 
@@ -76,6 +82,9 @@ def parse_args():
         dest='config',
         default='config.py',
         help="Config file. Default is `config.py` (current directory).")
+    parser.add_argument(
+        '-r', '--rootdir',
+        help="Path to root of the data. By default, the config is used.")
     parser.add_argument(
         '-o', '--outfile',
         help="Output file. Default is `{}`".format(default_outfile))
