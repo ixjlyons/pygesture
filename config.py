@@ -53,9 +53,9 @@ mcc_daq = {
 attributes picked up by pygesture.config
 """
 # number of times to repeat each gesture during training
-num_repeats = 4
+num_repeats = 1
 # time between trials in training [seconds]
-inter_trial_timeout = 3
+inter_trial_timeout = 2
 
 # path to save/load recordings and feature CSVs
 data_path = os.path.expanduser(
@@ -159,7 +159,7 @@ post_processor = processing.Processor(
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=10
+    ramp_length=5
 )
 
 tac_sessions = {

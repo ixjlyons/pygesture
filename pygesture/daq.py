@@ -34,6 +34,9 @@ class Daq(object):
     def stop(self):
         pass
 
+    def reset(self):
+        pass
+
     def set_channel_range(self, channel_range):
         self.num_channels = channel_range[1] - channel_range[0] + 1
 
@@ -206,12 +209,12 @@ class TrignoDaq(object):
 
         # create command socket and consume the servers initial response
         self.comm_socket = socket.create_connection(
-            (self.addr, self.CMD_PORT), 5)
+            (self.addr, self.CMD_PORT), 2)
         self.comm_socket.recv(1024)
 
         # create the EMG data socket
         self.emg_socket = socket.create_connection(
-            (self.addr, self.EMG_PORT), 5)
+            (self.addr, self.EMG_PORT), 2)
 
     def start(self):
         self._send_cmd('START')
@@ -226,8 +229,7 @@ class TrignoDaq(object):
             except socket.timeout:
                 l = len(packet)
                 packet += b'\x00' * (l_des - l)
-                self._initialize()
-                break
+                raise DisconnectException
             l = len(packet)
 
         data = np.asarray(
@@ -240,6 +242,9 @@ class TrignoDaq(object):
 
     def stop(self):
         self._send_cmd('STOP')
+
+    def reset(self):
+        self._initialize()
 
     def __del__(self):
         try:
@@ -266,3 +271,7 @@ class TrignoDaq(object):
         s = str(response)
         if 'OK' not in s:
             print("warning: TrignoDaq command failed: {}".format(s))
+
+
+class DisconnectException(Exception):
+    pass

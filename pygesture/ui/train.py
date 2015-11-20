@@ -48,11 +48,13 @@ class TrainWidget(QtWidgets.QWidget):
         self.record_thread.set_fixed(triggers_per_record=tpr)
         self.record_thread.ready_sig.connect(self.on_recorder_ready)
         self.record_thread.finished_sig.connect(self.record_finished)
+        self.record_thread.error_sig.connect(self.on_record_error)
 
     def dispose_record_thread(self):
         try:
             self.record_thread.finished_sig.disconnect(self.record_finished)
             self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
+            self.record_thread.error_sig.disconnect(self.on_record_error)
         except TypeError:
             pass
         self.record_thread.kill()
@@ -141,6 +143,13 @@ class TrainWidget(QtWidgets.QWidget):
         self.update_gesture_view(imgkey=gesture)
         self.ui.sessionProgressBar.setValue(trial)
         self.ui.redoButton.setEnabled(False)
+
+    def on_record_error(self):
+        self.on_pause_clicked()
+        QtWidgets.QMessageBox().critical(
+            self, "Error",
+            "DAQ failure.",
+            QtWidgets.QMessageBox.Ok)
 
     def record_finished(self, data):
         self.session.write_recording(data, self.cfg.daq.rate)
