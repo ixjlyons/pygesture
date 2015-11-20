@@ -33,7 +33,11 @@ class RecordThread(QtCore.QThread):
 
         self.daq.start()
         # discard first read
-        self.daq.read()
+        try:
+            self.daq.read()
+        except daq.DisconnectException:
+            self.error_sig.emit()
+            return
         self.running = True
         self.ready_sig.emit()
 
@@ -60,7 +64,11 @@ class RecordThread(QtCore.QThread):
         data = np.zeros((self.daq.num_channels, spr*self.triggers_per_record))
         self.daq.start()
         # discard first read
-        self.daq.read()
+        try:
+            self.daq.read()
+        except daq.DisconnectException:
+            self.error_sig.emit()
+            return
         self.running = True
         self.ready_sig.emit()
         killed = False
