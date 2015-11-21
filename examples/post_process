@@ -5,7 +5,9 @@ Processes raw recordings (WAV files), generating new WAV files and one feature
 file per session.
 
 Run with `--help` to see usage information. See the pygesture processing module
-for details on the processing done.
+for details on the processing done. This script essentially just runs
+`batch_process` configured with the given arguments. All of the computation is
+specified by the specified config file's `post_processor` attribute.
 """
 
 import os
@@ -22,9 +24,14 @@ from pygesture import filestruct
 from pygesture.analysis import processing
 
 
-def main(args):
-    rootdir = os.path.normpath(args.rootdir)
+def main(parser):
+    args = parser.parse_args()
     cfg = config.Config(args.config)
+
+    if args.rootdir:
+        rootdir = os.path.normpath(args.rootdir)
+    else:
+        rootdir = cfg.data_path
 
     all_pids = filestruct.get_participant_list(rootdir)
     if args.pid == 'all':
@@ -36,51 +43,46 @@ def main(args):
 
     if args.proc_all:
         for pid in pids:
-            processing.batch_process(
-                rootdir, pid, cfg.post_processor,
-                pool=args.pool)
-
+            processing.batch_process(rootdir, pid, cfg.post_processor,
+                                     pool=args.pool)
     else:
         if args.sid_list is None:
             parser.error("Must specify SID list if '-a' option isn't given.")
-
         for pid in pids:
-            processing.batch_process(
-                rootdir, pid, cfg.post_processor,
-                sid_list=args.sid_list,
-                pool=args.pool)
+            processing.batch_process(rootdir, pid, cfg.post_processor,
+                                     sid_list=args.sid_list,
+                                     pool=args.pool)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Process pygesture session data")
     parser.add_argument(
-        'rootdir',
-        help="root data directory")
-    parser.add_argument(
         'pid',
-        help="participant identifier (or 'all' to process all pids)")
+        help="Participant identifier (or 'all' to process all pids).")
+    parser.add_argument(
+        '-r', '--rootdir',
+        help="Root data directory (defaults to the path in the config).")
     parser.add_argument(
         '-s', '--sid',
         dest='sid_list', nargs='+',
-        help="session identifiers")
+        help="Session identifiers (use `-a` instead to process all).")
     parser.add_argument(
         '-a', '--all',
         dest='proc_all',
         action='store_true',
-        help="process all sessions for the specified pid")
+        help="Process all sessions for the specified pid.")
     parser.add_argument(
-        '-p',
-        '--pool',
+        '-p', '--pool',
         default=1,
         type=int,
-        help="number of processes to start (multiprocessing), default=1")
+        help="Number of processes to start (multiprocessing), default=1.")
     parser.add_argument(
         '-c', '--config',
         default='config.py',
         help="Config file. Default is `config.py` (current directory).")
 
-    return parser.parse_args()
+    return parser
 
 
 if __name__ == '__main__':

@@ -272,7 +272,8 @@ class ConfusionMatrix():
         print("Classifer: " + self.name)
         print("--")
         if normalized:
-            np.set_printoptions(precision=2)
+            np.set_printoptions(precision=3, suppress=True)
             print(self.data_norm)
+            print("avg: {}".format(self.get_avg_accuracy()))
         else:
             print(self.data)

@@ -42,10 +42,19 @@ from pygesture.analysis import classification
 
 def main(parser):
     args = parser.parse_args()
-    rootdir = os.path.normpath(args.rootdir)
     cfg = config.Config(args.config)
 
+    if args.rootdir:
+        rootdir = os.path.normpath(args.rootdir)
+    else:
+        rootdir = cfg.data_path
+
     labels = {g.label: (g.name, g.description) for g in cfg.gestures}
+    if args.labels:
+        try:
+            labels = {int(k): labels[int(k)] for k in args.labels.split(',')}
+        except KeyError:
+            parser.error("Labels specified weren't found.")
 
     if not args.pids:
         parser.error("Must provide at least one particpant ID with -p flat")
@@ -87,7 +96,7 @@ def main(parser):
 
         if args.show:
             for cm in cm_list:
-                cm.show()
+                cm.print_avg()
 
     elif args.lpo:
         n_train, sid_list = args.lpo
@@ -101,8 +110,6 @@ def main(parser):
             label_dict=labels)
 
         if args.show:
-            cm.show()
-        else:
             cm.print_avg()
 
     elif args.ids:
@@ -116,7 +123,9 @@ def main(parser):
         cm = classification.run_single(
             rootdir, pids, single_clf,
             label_dict=labels)
-        cm.show()
+
+        if args.show:
+            cm.print_avg()
 
     else:
         parser.error("Must use one option: -i, -j, or -p")
@@ -126,8 +135,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Run a classifier on single participant data.")
     parser.add_argument(
-        'rootdir',
-        help="Root data directory")
+        '-r', '--rootdir',
+        help="Root data directory. Defaults to the path in the config.")
     parser.add_argument(
         '-p', '--pids',
         dest='pids',
@@ -144,7 +153,7 @@ def parse_args():
         action='store',
         help="Batch process classifiers according to input JSON file.")
     parser.add_argument(
-        '-l', '--lpo',
+        '--lpo',
         dest='lpo',
         action='store',
         nargs=2,
@@ -169,12 +178,16 @@ def parse_args():
         '-w', '--show',
         dest='show',
         action='store_true',
+        default=True,
         help="Show confusion matrices that are generated.")
     parser.add_argument(
         '-c', '--config',
         dest='config',
         default='config.py',
         help="Config file. Default is `config.py` (current directory).")
+    parser.add_argument(
+        '-l', '--labels',
+        help="Comma-separated list of labels to include. All by default.")
 
     return parser
 
