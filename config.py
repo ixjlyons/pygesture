@@ -151,6 +151,4 @@ tac_sessions = {
 }
 
 ui_tabs = collections.OrderedDict()
-ui_tabs['Train'] = train.TrainWidget
-ui_tabs['Test'] = test.TestWidget
 ui_tabs['Cursor'] = cursor.CursorWidget

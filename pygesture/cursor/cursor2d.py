@@ -2,9 +2,17 @@ import sys
 
 from pygesture.ui.qt import QtCore, QtGui, QtWidgets
 
-class CursorInterface2D(QtWidgets.QGraphicsView):
 
-    initleft = -100
+class CursorInterface2D(QtWidgets.QGraphicsView):
+    """
+    A 2D cursor control interface implemented using a QGraphicsView.
+
+    This view essentially just holds a QGraphicsScene that grows to fit the
+    size of the view, keeping the aspect ratio square. The scene is displayed
+    with a gray border.
+    """
+
+    initleft = -200
     initbottom = initleft
     initwidth = -initleft*2
     initheight = -initleft*2
@@ -12,10 +20,10 @@ class CursorInterface2D(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
         super(CursorInterface2D, self).__init__(parent)
 
-        self.init_scene()
-        self.init_border()
+        self._init_scene()
+        self._init_border()
 
-    def init_scene(self):
+    def _init_scene(self):
         scene = QtWidgets.QGraphicsScene()
         scene.setSceneRect(self.initleft, self.initbottom,
                            self.initwidth, self.initheight)
@@ -25,7 +33,7 @@ class CursorInterface2D(QtWidgets.QGraphicsView):
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setBackgroundBrush(QtCore.Qt.white)
 
-    def init_border(self):
+    def _init_border(self):
         rect = self.scene().sceneRect()
         pen = QtGui.QPen(QtGui.QColor('#444444'))
         lines = [
@@ -45,27 +53,31 @@ class CursorInterface2D(QtWidgets.QGraphicsView):
         return size * (self.sceneRect().width()/2)
 
     def resizeEvent(self, event):
+        super(CursorInterface2D, self).resizeEvent(event)
         self.fitInView(self.sceneRect(), QtCore.Qt.KeepAspectRatio)
 
 
-class Circle(QtWidgets.QGraphicsObject):
+class CircleItem(QtWidgets.QGraphicsObject):
 
-    def __init__(self, diameter, color='#333333'):
-        super(Circle, self).__init__()
+    def __init__(self, width, color='#333333'):
+        super(CircleItem, self).__init__()
 
-        self.diameter = diameter
-
-        self._bounding_rect = QtCore.QRectF(-self.diameter/2, -self.diameter/2,
-                                            self.diameter, self.diameter)
-        p = QtGui.QPainterPath()
-        p.addEllipse(self._bounding_rect)
-        self._shape = p
-
+        self.width = width
         self._color = None
         self.color = color
-
         self._norm_x = 0
         self._norm_y = 0
+
+        self.init_bounding_rect(self.width)
+        self.init_shape()
+
+    def init_bounding_rect(self, width):
+        self._bounding_rect = QtCore.QRectF(-width/2, -width/2, width, width)
+
+    def init_shape(self):
+        p = QtGui.QPainterPath()
+        p.addEllipse(self.boundingRect())
+        self._shape = p
 
     def boundingRect(self):
         return self._bounding_rect
@@ -76,7 +88,6 @@ class Circle(QtWidgets.QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setPen(QtCore.Qt.NoPen)
         painter.setBrush(self._color)
-
         painter.drawEllipse(self._bounding_rect)
 
     @property
@@ -116,26 +127,25 @@ if __name__ == '__main__':
     dialog = QtWidgets.QDialog()
     layout = QtWidgets.QGridLayout()
 
-    interface = CursorInterface2D()
+    # normally this would come from a ui file
+    qtinterface = CursorInterface2D()
 
-    target = Circle(interface.map_size(0.2), color='#672311')
-    target.setPos(*interface.map_coords(0.5, 0.5))
+    interface = CursorInterface2D(qtinterface)
+    target = CircleItem(interface.map_size(0.2), color='#672311')
+    cursor = CircleItem(interface.map_size(0.1), color='#219421')
     interface.scene().addItem(target)
-
-    cursor = Circle(interface.map_size(0.1), color='#219421')
-    cursor.setPos(*interface.map_coords(0, 0))
     interface.scene().addItem(cursor)
 
+    target.set_norm_pos(0.5, 0.5)
+
     def timerEvent():
-        cursor.set_norm_pos(cursor.norm_x+0.01, cursor.norm_y+0.01)
+        cursor.set_norm_pos(cursor.norm_x+0.02, cursor.norm_y+0.02)
 
     timer = QtCore.QTimer()
     timer.timeout.connect(timerEvent)
-    timer.start(1000/33)
-
+    timer.start(50)
 
     layout.addWidget(interface)
     dialog.setLayout(layout)
-
     dialog.show()
     sys.exit(app.exec_())

@@ -85,7 +85,14 @@ class CursorWidget(QtWidgets.QWidget):
 
     def init_cursor_view(self):
         self.cursor_view = self.ui.cursorView
-        self.cursor_view.scene().addItem(cursor2d.Circle(30))
+        self.cursor = cursor2d.CircleItem(self.cursor_view.map_size(0.1),
+                                          color='#291859')
+        self.target = cursor2d.CircleItem(self.cursor_view.map_size(0.3),
+                                          color='#285491')
+        self.cursor_view.scene().addItem(self.cursor)
+        self.cursor_view.scene().addItem(self.target)
+
+        self.target.set_norm_pos(0.5, -0.4)
 
     def init_timers(self):
         # timer which delays start of a trial (after trial initialization)
@@ -191,15 +198,15 @@ class CursorWidget(QtWidgets.QWidget):
 
     def record_callback(self, data):
         """Called by the `RecordThread` when it gets new recording data."""
-        pass
+        print('hey')
 
     def keyPressEvent(self, event):
         if self.test and self.trial_running:
-            label = self.tac_session.trials[self.trial_number-1][0].label
-            if event.key() == QtCore.Qt.Key_PageUp:
-                self.prediction = label
-            elif event.key() == QtCore.Qt.Key_PageDown:
+            key = event.key()
+            if key == QtCore.Qt.Key_Up:
                 self.prediction = 0
+            elif key == QtCore.Qt.Key_Down:
+                self.prediction = 1
             else:
                 super().keyPressEvent(event)
         else:
