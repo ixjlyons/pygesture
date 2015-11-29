@@ -59,20 +59,25 @@ class CursorInterface2D(QtWidgets.QGraphicsView):
 
 class CircleItem(QtWidgets.QGraphicsObject):
 
-    def __init__(self, width, color='#333333'):
+    POSITION_CTRL = 0
+    VELOCITY_CTRL = 1
+
+    def __init__(self, radius, color='#333333'):
         super(CircleItem, self).__init__()
 
-        self.width = width
+        self._radius = None
+        self.radius = radius
         self._color = None
         self.color = color
         self._norm_x = 0
         self._norm_y = 0
 
-        self.init_bounding_rect(self.width)
+        self.init_bounding_rect(self._radius)
         self.init_shape()
 
-    def init_bounding_rect(self, width):
-        self._bounding_rect = QtCore.QRectF(-width/2, -width/2, width, width)
+    def init_bounding_rect(self, radius):
+        self._bounding_rect = QtCore.QRectF(-radius, -radius,
+                                            2*radius, 2*radius)
 
     def init_shape(self):
         p = QtGui.QPainterPath()
@@ -90,6 +95,12 @@ class CircleItem(QtWidgets.QGraphicsObject):
         painter.setBrush(self._color)
         painter.drawEllipse(self._bounding_rect)
 
+    def advance(self, progress=1.0):
+        if self.ctrl_mode == self.POSITION_CTRL:
+            print
+        elif self.ctrl_mode == self.VELOCITY_CTRL:
+            print
+
     @property
     def color(self):
         return self._color
@@ -97,6 +108,16 @@ class CircleItem(QtWidgets.QGraphicsObject):
     @color.setter
     def color(self, value):
         self._color = QtGui.QColor(value)
+        self.update()
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        self._radius = value
+        self.init_bounding_rect(self._radius)
         self.update()
 
     def set_norm_pos(self, nx, ny):
@@ -121,31 +142,64 @@ class CircleItem(QtWidgets.QGraphicsObject):
         self._norm_y = value
         self.setY(-self.scene().width()/2*self._norm_y)
 
+    def move_to(self, nx, ny):
+        pass
+
+    def move_toward(self, vx, vy):
+        pass
+
+
+class _TestDialog(QtWidgets.QDialog):
+
+    def __init__(self, parent=None):
+        super(_TestDialog, self).__init__(parent)
+        self.layout = QtWidgets.QGridLayout()
+        self.interface = CursorInterface2D()
+        self.layout.addWidget(self.interface)
+        self.setLayout(self.layout)
+
+        self.target = CircleItem(self.interface.map_size(0.1), color='#672311')
+        self.cursor = CircleItem(self.interface.map_size(0.05), color='#219421')
+        self.interface.scene().addItem(self.target)
+        self.interface.scene().addItem(self.cursor)
+
+        self.target.set_norm_pos(0.5, 0.5)
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.on_timer_timeout)
+
+    def showEvent(self, event):
+        self.timer.start(250)
+
+    def hideEvent(self, event):
+        self.timer.stop()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        dx = 0
+        dy = 0
+        inc = 0.04
+        if key == QtCore.Qt.Key_W:
+            dy += inc
+        elif key == QtCore.Qt.Key_S:
+            dy -= inc
+        elif key == QtCore.Qt.Key_D:
+            dx += inc
+        elif key == QtCore.Qt.Key_A:
+            dx -= inc
+        else:
+            super().keyPressEvent(event)
+            return
+
+        self.cursor.set_norm_pos(self.cursor.norm_x+dx,
+                                 self.cursor.norm_y+dy)
+
+    def on_timer_timeout(self):
+        pass
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    dialog = QtWidgets.QDialog()
-    layout = QtWidgets.QGridLayout()
-
-    # normally this would come from a ui file
-    qtinterface = CursorInterface2D()
-
-    interface = CursorInterface2D(qtinterface)
-    target = CircleItem(interface.map_size(0.2), color='#672311')
-    cursor = CircleItem(interface.map_size(0.1), color='#219421')
-    interface.scene().addItem(target)
-    interface.scene().addItem(cursor)
-
-    target.set_norm_pos(0.5, 0.5)
-
-    def timerEvent():
-        cursor.set_norm_pos(cursor.norm_x+0.02, cursor.norm_y+0.02)
-
-    timer = QtCore.QTimer()
-    timer.timeout.connect(timerEvent)
-    timer.start(50)
-
-    layout.addWidget(interface)
-    dialog.setLayout(layout)
+    dialog = _TestDialog()
     dialog.show()
     sys.exit(app.exec_())
