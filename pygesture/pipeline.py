@@ -290,4 +290,7 @@ class Classifier(PipelineBlock):
         self.clf.fit(X, y)
 
     def process(self, data):
+        # passing a 1-D array is deprecated in scikit-learn
+        if data.ndim == 1:
+            data = data.reshape(1, -1)
         return self.clf.predict(data)[0]
