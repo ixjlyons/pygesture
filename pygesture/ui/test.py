@@ -101,6 +101,12 @@ class TestWidget(QtWidgets.QWidget):
             item = QtWidgets.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
+            try:
+                filestruct.find_feature_file(self.cfg.data_path,
+                                             self.pid, sid)
+            except:
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
+
 
         self.lefty = True if self.base_session.hand == 'left' else False
 
