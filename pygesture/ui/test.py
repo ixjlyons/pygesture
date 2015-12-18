@@ -143,6 +143,7 @@ class TestWidget(QtWidgets.QWidget):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
         self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
         self.record_thread.error_sig.disconnect(self.on_record_error)
+        self.record_thread.update_sig.disconnect(self.record_callback)
         self.record_thread.pipeline = None
         self.record_thread.kill()
 
