@@ -107,7 +107,6 @@ class TestWidget(QtWidgets.QWidget):
             except:
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
 
-
         self.lefty = True if self.base_session.hand == 'left' else False
 
     def init_session_type_combo(self):

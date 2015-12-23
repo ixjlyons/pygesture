@@ -42,7 +42,7 @@ class TrainWidget(QtWidgets.QWidget):
 
     def init_record_thread(self):
         tpr = int(self.cfg.trial_duration /
-            (self.cfg.daq.samples_per_read / (self.cfg.daq.rate/1000)))
+                  (self.cfg.daq.samples_per_read / (self.cfg.daq.rate/1000)))
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
         self.record_thread.set_fixed(triggers_per_record=tpr)
