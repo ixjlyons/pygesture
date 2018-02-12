@@ -132,3 +132,5 @@ occur, it should be ready to go.
 
 - v1.0 : Initial version, including real-time testing (TAC test). Used for the
   first TAC test experiment.
+- v2.0 : Second version, used for the second TAC test experiment published in
+  IEEE Transactions on Neural Systems and Rehabilitation Engineering.
