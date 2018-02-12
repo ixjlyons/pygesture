@@ -1,5 +1,6 @@
 # pygesture
 
+[![DOI](https://zenodo.org/badge/44645368.svg)](https://zenodo.org/badge/latestdoi/44645368)
 
 ## Description
 
