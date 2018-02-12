@@ -13,7 +13,9 @@ class TACSession(object):
         called `dof`. Pairs of gestures (e.g. elbow flexion/extension) should
         have the same dof.
     simul : int, default=1
-        Number of DOFs for each target.
+        Number of DOFs for each target. Can be a list (or tuple) to specify
+        that mutltiple values will be used in the set of trials (e.g. 1-DOF and
+        2-DOF gestures included in the trial set).
     rep : int, default=1
         Number of repetitions of each possible target.
     timeout : number, default=0
@@ -46,10 +48,22 @@ class TACSession(object):
         self.tol = tol
         self.dwell = dwell
 
-        t = list(_gesture_combinations(gestures, k=simul))
+        if hasattr(simul, '__iter__'):
+            t = []
+            for k in simul:
+                t.extend(list(_gesture_combinations(gestures, k=k)))
+        else:
+            t = list(_gesture_combinations(gestures, k=simul))
 
         self.targets = t
-        self.trials = generate_trials(self.targets, n_repeat=rep)
+        self.reshuffle()
+
+    def reshuffle(self):
+        """
+        Re-generates the trial order, so the same object can be used for
+        repeated "cycles" having the same configuration.
+        """
+        self.trials = generate_trials(self.targets, n_repeat=self.rep)
 
 
 def _gesture_combinations(gestures, k=1):

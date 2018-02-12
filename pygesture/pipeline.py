@@ -36,40 +36,41 @@ class Pipeline(object):
     def __init__(self, blocks):
         self.blocks = blocks
 
-    def add_block(self, block):
-        """
-        Adds a block to the end of the pipeline in series.
-        """
-        self.blocks.append(block)
-
     def process(self, data):
-        out = _process_block(self.blocks, data)
+        out = _call_block('process', self.blocks, data)
         return out
 
+    def clear(self):
+        _call_block('clear', self.blocks)
 
-def _process_block(block, data):
+
+def _call_block(fname, block, data=None):
     if type(block) is list:
-        out = _process_list(block, data)
+        out = _call_list(fname, block, data)
     elif type(block) is tuple:
-        out = _process_tuple(block, data)
+        out = _call_tuple(fname, block, data)
     else:
-        out = block.process(data)
+        f = getattr(block, fname)
+        if data is not None:
+            out = f(data)
+        else:
+            out = f()
 
     return out
 
 
-def _process_list(block, data):
+def _call_list(fname, block, data):
     out = data
     for b in block:
-        out = _process_block(b, out)
+        out = _call_block(fname, b, out)
 
     return out
 
 
-def _process_tuple(block, data):
+def _call_tuple(fname, block, data):
     out = []
     for b in block:
-        out.append(_process_block(b, data))
+        out.append(_call_block(fname, b, data))
 
     return out
 
@@ -90,6 +91,9 @@ class PipelineBlock(object):
     def process(self, data):
         out = data  # usually some function
         return out
+
+    def clear(self):
+        pass
 
     def __repr__(self):
         return "%s.%s()" % (
@@ -117,6 +121,9 @@ class Windower(PipelineBlock):
         self.length = length
         self.overlap = overlap
 
+        self.clear()
+
+    def clear(self):
         self._out = None
 
     def process(self, data):
@@ -175,7 +182,7 @@ class Conditioner(PipelineBlock):
 
         self.f_samp = f_samp
 
-        self.filter = BandpassFilter(order, f_cut, f_samp, overlap)
+        self.filt = BandpassFilter(order, f_cut, f_samp, overlap)
 
         if f_down is None:
             f_down = f_samp
@@ -185,9 +192,12 @@ class Conditioner(PipelineBlock):
 
     def process(self, data):
         data_centered = data - np.mean(data, axis=0)
-        data_filtered = self.filter.process(data_centered)
+        data_filtered = self.filt.process(data_centered)
         data_downsampled = data_filtered[::self.m, :]
         return data_downsampled
+
+    def clear(self):
+        self.filt.clear()
 
     def __repr__(self):
         return "%s.%s(n=%s, fc=%s, fs=%s)" % (
@@ -224,17 +234,21 @@ class BandpassFilter(PipelineBlock):
         self.overlap = overlap
 
         self._build_filter()
-        self.zi = None
+        self.clear()
 
     def _build_filter(self):
         wc = [f / (self.f_samp/2.0) for f in self.f_cut]
         self.b, self.a = signal.butter(self.order, wc, 'bandpass')
 
+    def clear(self):
+        self.x_prev = None
+        self.y_prev = None
+
     def process(self, data):
-        if self.zi is None:
-            # initial pass, get ICs from filter coefficients
-            zi = signal.lfilter_zi(self.b, self.a)
-            self.zi = np.tile(zi, (data.shape[1], 1)).T
+        if self.x_prev is None:
+            # first pass has no initial conditions
+            out = signal.lfilter(
+                self.b, self.a, data, axis=0)
         else:
             # subsequent passes get ICs from previous input/output
             num_ch = data.shape[1]
@@ -248,8 +262,8 @@ class BandpassFilter(PipelineBlock):
                     self.y_prev[-(self.overlap+1)::-1, c],
                     self.x_prev[-(self.overlap+1)::-1, c])
 
-        out, zf = signal.lfilter(
-            self.b, self.a, data, axis=0, zi=self.zi)
+            out, zf = signal.lfilter(
+                self.b, self.a, data, axis=0, zi=self.zi)
 
         self.x_prev = data
         self.y_prev = out
@@ -276,4 +290,7 @@ class Classifier(PipelineBlock):
         self.clf.fit(X, y)
 
     def process(self, data):
+        # passing a 1-D array is deprecated in scikit-learn
+        if data.ndim == 1:
+            data = data.reshape(1, -1)
         return self.clf.predict(data)[0]

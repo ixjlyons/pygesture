@@ -148,8 +148,10 @@ class DBVRController(Controller):
 
         for i in self._vin:
             self._vin[i] = self.boosts[i] * mav_avg
-            self._vout[self.mapping[i]] = self._gains[i] * self._vin[i]
-
+            v = self._gains[i] * self._vin[i]
+            if v > 1:
+                v = 1.0
+            self._vout[self.mapping[i]] = v
 
         return self._vout.copy()
 

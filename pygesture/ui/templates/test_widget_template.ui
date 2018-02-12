@@ -71,31 +71,6 @@
          <item row="0" column="0">
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
-              <widget class="QLabel" name="classifierLabel">
-               <property name="text">
-                <string>Classifier:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="classifierComboBox">
-               <item>
-                <property name="text">
-                 <string>LDA</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>SVM</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
               <widget class="QLabel" name="sessionTypeLabel">
@@ -187,8 +162,7 @@
              </property>
              <property name="icon">
               <iconset theme="media-playback-start">
-               <normaloff/>
-              </iconset>
+               <normaloff>.</normaloff>.</iconset>
              </property>
             </widget>
            </item>
@@ -202,8 +176,7 @@
              </property>
              <property name="icon">
               <iconset theme="media-playback-pause">
-               <normaloff/>
-              </iconset>
+               <normaloff>.</normaloff>.</iconset>
              </property>
             </widget>
            </item>

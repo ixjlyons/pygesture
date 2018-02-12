@@ -84,8 +84,8 @@ class TestDBVRController(object):
             mapping, ramp_length=5, boosts=boosts)
 
         out = _run_controller(controller, data)
-        assert out[5]['0'] == boosts[0]
-        assert out[-1]['1'] == boosts[1]
+        assert out[5]['0'] == 1
+        assert out[-1]['1'] == 1
 
     def test_mav(self):
         mapping = {0: '0', 1: '1'}
@@ -93,8 +93,8 @@ class TestDBVRController(object):
         controller = control.DBVRController(
             mapping, ramp_length=1, boosts=1)
 
-        out = controller.process((2, 0))
-        assert out == {'0': 2, '1': 0}
+        out = controller.process((0.8, 0))
+        assert out == {'0': 0.8, '1': 0}
 
 
 def _run_controller(controller, data):

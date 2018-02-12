@@ -1,10 +1,10 @@
 import numpy as np
 
-from sklearn.lda import LDA
 from sklearn import cross_validation
 
 from pygesture import filestruct
-from pygesture import processing
+from pygesture import pipeline
+from pygesture.analysis import processing
 
 from pygesture.ui.qt import QtCore, QtWidgets
 from .templates.signal_widget_template import Ui_SignalWidget
@@ -12,7 +12,12 @@ from .templates.recording_viewer_template import Ui_RecordingViewerWidget
 from .templates.process_widget_template import Ui_ProcessWidget
 
 import pyqtgraph as pg
-import pyqtgraph.opengl as gl
+try:
+    import pyqtgraph.opengl as gl
+    USE_GL = True
+except:
+    USE_GL = False
+    pass
 
 
 class SignalWidget(QtWidgets.QWidget):
@@ -40,21 +45,26 @@ class SignalWidget(QtWidgets.QWidget):
         self.ui = Ui_SignalWidget()
         self.ui.setupUi(self)
 
+        self.pipeline = pipeline.Pipeline(self.cfg.conditioner)
+
         self.init_plot()
         self.init_button_group()
 
     def showEvent(self, event):
-        self.record_thread.set_continuous()
-        self.record_thread.update_sig.connect(self.update_plot)
+        self.init_record_thread()
         self.set_mode_callback()
 
     def hideEvent(self, event):
-        try:
-            self.record_thread.update_sig.disconnect(self.update_plot)
-        except TypeError:
-            # thrown if the signal isn't connected yet
-            pass
+        self.dispose_record_thread()
 
+    def init_record_thread(self):
+        self.record_thread.set_continuous()
+        self.record_thread.set_pipeline(self.pipeline)
+        self.record_thread.prediction_sig.connect(self.update_plot)
+
+    def dispose_record_thread(self):
+        self.record_thread.prediction_sig.disconnect(self.update_plot)
+        self.record_thread.pipeline = None
         self.record_thread.kill()
 
     def init_plot(self):
@@ -83,13 +93,14 @@ class SignalWidget(QtWidgets.QWidget):
 
     def update_num_channels(self):
         self.ui.plotWidget.clear()
+        self.cfg.conditioner.clear()
 
         self.plot_items = []
         self.plot_data_items = []
+        pen = MultiPen(self.n_channels)
         for i in range(self.n_channels):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
-            plot_data_item = plot_item.plot(
-                pen=(i, self.n_channels), antialias=True)
+            plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
             plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
@@ -112,6 +123,7 @@ class SignalWidget(QtWidgets.QWidget):
         self.buf = np.zeros((self.n_channels, self.hist*self.samp_per_read))
 
     def update_plot(self, data):
+        data = data.T
         n_channels, spr = data.shape
         if self.n_channels != n_channels:
             return
@@ -125,6 +137,23 @@ class SignalWidget(QtWidgets.QWidget):
 
         for i in range(self.n_channels):
             self.plot_data_items[i].setData(self.buf[i, :])
+
+
+class MultiPen(object):
+
+    MIN_HUE = 160
+    HUE_INC = 20
+    VAL = 200
+
+    def __init__(self, n_colors):
+        self.n_colors = n_colors
+        self.max_hue = self.MIN_HUE + n_colors*self.HUE_INC
+
+    def get_pen(self, index):
+        return pg.intColor(
+            index, hues=self.n_colors,
+            minHue=self.MIN_HUE, maxHue=self.max_hue,
+            minValue=self.VAL, maxValue=self.VAL)
 
 
 class RecordingViewerWidget(QtWidgets.QWidget):
@@ -152,30 +181,42 @@ class RecordingViewerWidget(QtWidgets.QWidget):
     def init_buttons(self):
         self.ui.nextButton.clicked.connect(self.next_plot_callback)
         self.ui.previousButton.clicked.connect(self.prev_plot_callback)
+        self.ui.conditionedCheckBox.stateChanged.connect(
+            self.condition_callback)
+        self.condition = \
+            self.ui.conditionedCheckBox.checkState() == QtCore.Qt.Checked
 
     def init_browser(self):
         self.ui.sessionBrowser.participant_selected.connect(
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_session_filter("train")
         self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
         self.pid = pid
 
     def on_session_selected(self, sid):
+        self.sid = sid
         session = processing.Session(self.cfg.data_path, self.pid, sid, None)
+        file_list = filestruct.get_recording_file_list(session.rawdir)
 
-        if not session.recording_file_list:
+        if not file_list:
             return
 
         self.data_list = []
-        for f in session.recording_file_list:
+        for f in file_list:
             rec = processing.Recording(f, self.cfg.post_processor)
+            data = rec.raw_data
+
+            if self.condition:
+                self.cfg.conditioner.clear()
+                data = self.cfg.conditioner.process(data)
+
             n_samples, n_channels = rec.raw_data.shape
             rate = rec.fs_raw
             t = np.arange(0, n_samples/rate, 1/float(rate))
-            data = rec.raw_data
             self.data_list.append(
                 (t, data, rec.trial_number, rec.label))
 
@@ -203,19 +244,28 @@ class RecordingViewerWidget(QtWidgets.QWidget):
 
         self.set_data(self.data_list[self.trial_index])
 
+    def condition_callback(self, state):
+        if state == QtCore.Qt.Checked:
+            self.condition = True
+        else:
+            self.condition = False
+
+        if self.sid is not None:
+            self.on_session_selected(self.sid)
+
     def update_num_channels(self, num_channels):
         self.ui.plotWidget.clear()
 
         self.plot_items = []
         self.plot_data_items = []
+        pen = MultiPen(num_channels)
         for i in range(num_channels):
             plot_item = self.ui.plotWidget.addPlot(row=i, col=0)
-            plot_data_item = plot_item.plot(
-                pen=(i, num_channels), antialias=True)
+            plot_data_item = plot_item.plot(pen=pen.get_pen(i), antialias=True)
 
-            plot_item.showAxis('bottom', False)
+            # plot_item.showAxis('bottom', False)
             plot_item.showGrid(y=True, alpha=0.5)
-            plot_item.setYRange(-1, 1)
+            plot_item.setYRange(-0.2, 0.2)
             plot_item.setMouseEnabled(x=False)
 
             if i > 0:
@@ -249,9 +299,12 @@ class ProcessWidget(QtWidgets.QWidget):
         self.ui.processButton.clicked.connect(self.process_button_callback)
 
     def init_plot(self):
-        self.plotWidget = gl.GLViewWidget()
-        g = gl.GLGridItem()
-        self.plotWidget.addItem(g)
+        if USE_GL:
+            self.plotWidget = gl.GLViewWidget()
+            g = gl.GLGridItem()
+            self.plotWidget.addItem(g)
+        else:
+            self.plotWidget = pg.PlotWidget()
 
     def init_layout(self):
         self.ui.verticalLayout.addWidget(self.plotWidget)
@@ -261,6 +314,7 @@ class ProcessWidget(QtWidgets.QWidget):
             self.on_participant_selected)
         self.ui.sessionBrowser.session_selected.connect(
             self.on_session_selected)
+        self.ui.sessionBrowser.set_session_filter("train")
         self.ui.sessionBrowser.set_data_path(self.cfg.data_path)
 
     def on_participant_selected(self, pid):
@@ -269,6 +323,7 @@ class ProcessWidget(QtWidgets.QWidget):
     def on_session_selected(self, sid):
         self.sid = sid
         self.ui.processButton.setEnabled(True)
+
         try:
             f = filestruct.find_feature_file(
                 self.cfg.data_path, self.pid, self.sid)
@@ -301,19 +356,23 @@ class ProcessWidget(QtWidgets.QWidget):
         self.clear_plot()
 
         # get the simple cross validation score
-        clf = LDA()
+        clf = self.cfg.learner.clf
         scores = cross_validation.cross_val_score(clf, X, y, cv=5)
         score = np.mean(scores)
         self.ui.titleLabel.setText("Accuracy: %.2f" % score)
 
-        # project the data to 3D for visualization
-        clf = LDA(n_components=3)
+        # project the data for visualization
         X_proj = clf.fit(X, y).transform(X)
 
         labels = sorted(np.unique(y))
         for i in labels:
-            plot = gl.GLScatterPlotItem(
-                pos=X_proj[y == i], color=pg.glColor(pg.intColor(i)))
+            if USE_GL:
+                plot = gl.GLScatterPlotItem(
+                    pos=X_proj[y == i, :3], color=pg.glColor(pg.intColor(i)))
+            else:
+                plot = pg.ScatterPlotItem(
+                    pos=X_proj[y == i, :2],
+                    brush=pg.mkBrush(pg.intColor(i)))
             self.plotWidget.addItem(plot)
             self.plot_items.append(plot)
 
@@ -339,3 +398,10 @@ class SessionProcessorThread(QtCore.QThread):
         self.session.process()
 
         self.finished.emit()
+
+
+class TaskTabDesc(object):
+
+    def __init__(self, name, cls):
+        self.name = name
+        self.cls = cls

@@ -1,50 +1,65 @@
 import os
+import collections
+
+from sklearn.lda import LDA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
 from pygesture import util
 from pygesture import pipeline
 from pygesture import features
-from pygesture import processing
 from pygesture import daq
 from pygesture import control
 from pygesture import experiment
+from pygesture.analysis import processing
+
+from pygesture.ui import train
+from pygesture.ui import test
 
 """
 some things for local use
 """
-# sampling frequency for the DAQ [Hz]
-f_samp = 5120
-# frequency of signals for processing [Hz]
-f_proc = 2560
-# cutoff frequencies for bandpass conditioning filter [Hz]
-f_cutoff = [8, 512]
-# order of conditioning filter
-filt_order = 4
-# voltage input range for the DAQ
-input_range = 2
 
-# length of sliding window [ms]
-window_length = 150
-# amount of overlap between adjacent windows [ms]
-window_overlap = 100
+# default data acquisition system parameters
+trigno_daq = {
+    'f_samp': 2000,
+    'f_proc': 2000,
+    'm': 1,
+    'f_cutoff': [10, 500],
+    'filt_order': 4,
+    'input_range': 1,
+    'window_length': 432,
+    'window_overlap': 216,
+    'probe_channel': 0,
+    'trial_duration': 6048,
+}
+
+# fallback data acquistion system parameters
+mcc_daq = {
+    'f_samp': 5120,
+    'f_proc': 2560,
+    'm': 2,
+    'f_cutoff': [8, 512],
+    'filt_order': 2,
+    'input_range': 2,
+    'window_length': 512,
+    'window_overlap': 256,
+    'probe_channel': 6,
+    'trial_duration': 6000,
+}
 
 
 """
 attributes picked up by pygesture.config
 """
 # number of times to repeat each gesture during training
-num_repeats = 4
-# length of each trial during training [seconds]
-trial_duration = 6
-# gesture onset and offset times for training [seconds]
-prompt_times = (2, 5)
+num_repeats = 1
 # time between trials in training [seconds]
-inter_trial_timeout = 3
+inter_trial_timeout = 2
 
 # path to save/load recordings and feature CSVs
-data_path = os.path.expanduser('~/pygesture-data/tactest')
-# path to v-rep (needed for simulation package)
-vrep_path = os.path.expanduser('~/usr/vrep/vrep-3.2.1')
-# port that the v-rep is listening on (in remoteApiConnections.txt)
-vrep_port = 20013
+data_path = os.path.expanduser(
+    os.path.join('~', 'pygesture-data', 'tactest2'))
 
 # sensor mappings
 sensors = [
@@ -57,7 +72,6 @@ sensors = [
 ]
 
 channels = [s.channel for s in sensors]
-probe_channel = 6
 
 gestures = [
     util.Gesture(0, "NC", "no-contraction"),
@@ -72,40 +86,65 @@ gestures = [
 ]
 
 try:
-    daq = daq.MccDaq(
-        rate=f_samp,
-        input_range=input_range,
+    daq_st = trigno_daq
+    daq = daq.TrignoDaq(
         channel_range=(min(channels), max(channels)),
-        samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
+        samples_per_read=daq_st['m']*(
+            daq_st['window_length']-daq_st['window_overlap'])
     )
-except ValueError:
-    daq = daq.Daq(
-        rate=f_samp,
-        input_range=input_range,
-        channel_range=(min(channels), max(channels)),
-        samples_per_read=int(f_samp*(window_length-window_overlap)/1000)
-    )
+except:
+    try:
+        daq_st = mcc_daq
+        daq = daq.MccDaq(
+            rate=daq_st['f_samp'],
+            input_range=daq_st['input_range'],
+            channel_range=(min(channels), max(channels)),
+            samples_per_read=daq_st['m']*(
+                daq_st['window_length']-daq_st['window_overlap'])
+        )
+    except:
+        daq_st = trigno_daq
+        daq = daq.Daq(
+            rate=daq_st['f_samp'],
+            input_range=daq_st['input_range'],
+            channel_range=(min(channels), max(channels)),
+            samples_per_read=daq_st['m']*(
+                daq_st['window_length']-daq_st['window_overlap'])
+        )
+
+probe_channel = daq_st['probe_channel']
+
+# length of each trial during training [ms]
+trial_duration = daq_st['trial_duration']
+# gesture onset and offset times for training [s]
+prompt_times = (2, 5)
 
 conditioner = pipeline.Conditioner(
-    order=filt_order,
-    f_cut=f_cutoff,
-    f_samp=f_samp,
-    f_down=f_proc
+    order=daq_st['filt_order'],
+    f_cut=daq_st['f_cutoff'],
+    f_samp=daq_st['f_samp'],
+    f_down=daq_st['f_proc']
 )
 
 windower = pipeline.Windower(
-    length=int(f_proc*window_length/1000),
-    overlap=int(f_proc*window_overlap/1000)
+    length=daq_st['window_length'],
+    overlap=daq_st['window_overlap']
 )
 
 feature_extractor = features.FeatureExtractor(
     [
         features.MAV(),
         features.WL(),
-        features.ZC(thresh=0.001),
-        features.SSC(thresh=0.001)
+        features.ZC(thresh=0.003),
+        features.SSC(thresh=0.003)
     ],
     len(channels)
+)
+
+learner = pipeline.Classifier(
+    Pipeline([
+        ('preproc', StandardScaler()),
+        ('clf', LDA())])
 )
 
 post_processor = processing.Processor(
@@ -113,30 +152,35 @@ post_processor = processing.Processor(
     windower=windower,
     feature_extractor=feature_extractor,
     rest_bounds=None,
-    gesture_bounds=(int(2.0*f_proc), int(4.0*f_proc))
+    gesture_bounds=(
+        int((prompt_times[0]+0.5)*daq_st['f_proc']),
+        int((prompt_times[1]-0.5)*daq_st['f_proc']))
 )
 
 controller = control.DBVRController(
     mapping={g.label: g.action for g in gestures},
-    ramp_length=10,
-    boosts=0.5
+    ramp_length=5
 )
 
 tac_sessions = {
     '3 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=1, rep=4, timeout=15, dist=60, tol=10, dwell=2),
+            simul=1, rep=2, timeout=15, dist=60, tol=10, dwell=2),
     '3 active, 2 target':
         experiment.TACSession(
             [g for g in gestures if g.dof in [1, 2, 3]],
-            simul=2, rep=2, timeout=20, dist=60, tol=10, dwell=2),
+            simul=(1, 2), rep=1, timeout=20, dist=60, tol=10, dwell=2),
     '4 active, 1 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=1, rep=3, timeout=15, dist=60, tol=10, dwell=2),
+            simul=1, rep=2, timeout=15, dist=60, tol=10, dwell=2),
     '4 active, 2 target':
         experiment.TACSession(
             [g for g in gestures if g.dof is not None],
-            simul=2, rep=1, timeout=20, dist=60, tol=10, dwell=2)
+            simul=(1, 2), rep=1, timeout=20, dist=60, tol=10, dwell=2)
 }
+
+ui_tabs = collections.OrderedDict()
+ui_tabs['Train'] = train.TrainWidget
+ui_tabs['Test'] = test.TestWidget

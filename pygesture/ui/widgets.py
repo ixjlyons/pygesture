@@ -85,6 +85,9 @@ class PromptWidget(QtWidgets.QProgressBar):
         self.draw_ticks(painter)
         painter.end()
 
+    def reset(self):
+        self.setValue(0)
+
     def draw_ticks(self, painter):
         w = self.width()
         h = self.height()
@@ -131,6 +134,9 @@ class NewSessionDialog(QtWidgets.QDialog):
         self.ui = Ui_NewSessionDialog()
         self.ui.setupUi(self)
 
+    def set_task_list(self, task_list):
+        self.ui.taskComboBox.addItems(task_list)
+
     def get_data(self):
         data = {
             'pid':
@@ -138,7 +144,7 @@ class NewSessionDialog(QtWidgets.QDialog):
             'sid':
                 str(self.ui.sessionLineEdit.text()),
             'task':
-                str(self.ui.taskGroup.checkedButton().text()),
+                str(self.ui.taskComboBox.currentText()),
             'configuration':
                 str(self.ui.configurationGroup.checkedButton().text()),
             'hand':
@@ -162,7 +168,16 @@ class SessionBrowser(QtWidgets.QWidget):
         self.ui = Ui_SessionBrowser()
         self.ui.setupUi(self)
 
+        self.session_filter = ""
+
         self.ui.refreshButton.clicked.connect(self.on_refresh_clicked)
+
+    def set_session_filter(self, search):
+        """
+        Allows for filtering of the session list by requiring `search` to be
+        contained in the session ID.
+        """
+        self.session_filter = search
 
     def set_data_path(self, path):
         self.data_path = path
@@ -193,7 +208,8 @@ class SessionBrowser(QtWidgets.QWidget):
 
         self.pid = pid
 
-        self.sid_list = filestruct.get_session_list(self.data_path, self.pid)
+        self.sid_list = filestruct.get_session_list(
+            self.data_path, self.pid, search=self.session_filter)
 
         self.ui.sessionList.clear()
         for sid in self.sid_list:

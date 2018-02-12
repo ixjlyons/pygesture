@@ -41,8 +41,11 @@ def read(filename):
         num_channels).
     """
     rate, data = siowav.read(filename)
+    # make sure we get a 2D array even if there's only one channel
+    if data.ndim == 1:
+        data = data[:, np.newaxis]
     data = data / 32768.0
-    return (rate, data)
+    return rate, data
 
 
 class ContinuousWriter(object):

@@ -126,12 +126,13 @@ def get_participant_list(rootdir):
     return sorted([d for d in l if os.path.isdir(os.path.join(rootdir, d))])
 
 
-def get_session_list(rootdir, pid):
+def get_session_list(rootdir, pid, search=""):
     """
     Obtains a list of the session IDs the given participant has produced.
     """
     dirs = sorted(os.listdir(os.path.join(rootdir, pid)))
-    return [d.split('_')[-1] for d in dirs]
+    sessions = [d.split('_')[-1] for d in dirs]
+    return [s for s in sessions if search in s]
 
 
 def get_feature_file_list(rootdir, pid, sid_list):

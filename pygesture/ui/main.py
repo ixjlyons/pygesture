@@ -10,8 +10,6 @@ from pygesture.ui.qt import QtWidgets
 
 from pygesture.ui.templates.main_template import Ui_PygestureMainWindow
 from pygesture.ui import recorder
-from pygesture.ui import train
-from pygesture.ui import test
 from pygesture.ui import tabs
 from pygesture.ui import widgets
 
@@ -28,6 +26,7 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.record_thread = recorder.RecordThread(self.cfg.daq)
+        self.init_paths()
         self.init_tabs()
 
         self.statusbar_label = QtWidgets.QLabel("not signed in")
@@ -38,6 +37,10 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if self.record_thread is not None:
             self.record_thread.kill()
+
+    def init_paths(self):
+        if not os.path.isdir(self.cfg.data_path):
+            os.makedirs(self.cfg.data_path)
 
     def init_tabs(self):
         self.permanent_tabs = [
@@ -63,6 +66,7 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
 
     def show_new_session_dialog(self):
         dialog = widgets.NewSessionDialog(self)
+        dialog.set_task_list(list(self.cfg.ui_tabs.keys()))
         if dialog.exec_():
             data = dialog.get_data()
             self.new_session(data)
@@ -100,15 +104,12 @@ class PygestureMainWindow(QtWidgets.QMainWindow):
                 self.session.init_file_structure(force=True)
 
         self.remove_session_tab()
-        if self.session.task == "train":
-            name = "Train"
-            widget = train.TrainWidget(
-                self.cfg, self.record_thread, self.session, parent=self)
-        else:
-            name = "Test"
-            widget = test.TestWidget(
-                self.cfg, self.record_thread, self.session, parent=self)
-        self.ui.tabWidget.addTab(widget, name)
+
+        widgetcls = self.cfg.ui_tabs[self.session.task]
+        widget = widgetcls(
+            self.cfg, self.record_thread, self.session, parent=self)
+
+        self.ui.tabWidget.addTab(widget, self.session.task)
         self.ui.tabWidget.setCurrentIndex(self.ui.tabWidget.count()-1)
 
         self.statusbar_label.setText("Session " + str(self.session))

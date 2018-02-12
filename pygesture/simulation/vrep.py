@@ -26,14 +26,41 @@
 #
 # This file was automatically created for V-REP release V3.1.3 on Sept. 30th 2014
 
+import sys
 import os
+import platform
 import struct
 from ctypes import *
 from ctypes.util import find_library
 
 from pygesture.simulation.vrep_const import *
 
-libsimx = CDLL(os.environ['VREPLIB'])
+try:
+    vrep_dir = os.environ['VREP']
+except KeyError:
+    print("No \"VREP\" environment variable.")
+    sys.exit()
+
+lib_dir = os.path.join(
+    vrep_dir, 'programming', 'remoteApiBindings', 'lib', 'lib')
+
+if platform.architecture()[0] == '64bit':
+    lib_dir = os.path.join(lib_dir, '64Bit')
+else:
+    lib_dir = os.path.join(lib_dir, '32Bit')
+
+if platform.system() =='cli':
+    lib_name = 'remoteApi.dll'
+elif platform.system() =='Windows':
+    lib_name = 'remoteApi.dll'
+elif platform.system() == 'Darwin':
+    lib_name = 'remoteApi.dylib'
+else:
+    lib_name = 'remoteApi.so'
+lib_path = os.path.join(lib_dir, lib_name)
+
+libsimx = CDLL(lib_path)
+
 
 #ctypes wrapper prototypes 
 c_GetJointPosition          = CFUNCTYPE(c_int32,c_int32, c_int32, POINTER(c_float), c_int32)(("simxGetJointPosition", libsimx))

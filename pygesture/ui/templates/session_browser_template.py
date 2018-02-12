@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/templates/session_browser_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.2
+# Created by: PyQt5 UI code generator 5.5
 #
 # WARNING! All changes made in this file will be lost!
 

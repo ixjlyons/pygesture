@@ -40,10 +40,8 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'matplotlib',
         'scikit-learn',
-        'pyqtgraph',
-        'pydaqflex'
+        'pyqtgraph'
     ],
 
     extras_require={},
@@ -57,4 +55,7 @@ setup(
             'pygesture=pygesture.ui.main:main'
          ],
     },
+
+    tests_require=['nose'],
+    test_suite='nose.collector',
 )

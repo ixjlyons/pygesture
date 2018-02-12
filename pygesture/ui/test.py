@@ -24,17 +24,13 @@ import json
 import pkg_resources
 
 import numpy as np
-from sklearn.lda import LDA
-from sklearn.svm import SVC
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
 
 from pygesture import filestruct
-from pygesture import processing
-from pygesture import pipeline
 from pygesture import features
 from pygesture import wav
 from pygesture import control
+from pygesture import pipeline
+from pygesture.analysis import processing
 from pygesture.simulation import vrepsim
 
 from pygesture.ui.qt import QtGui, QtCore, QtWidgets
@@ -42,7 +38,7 @@ from pygesture.ui.templates.test_widget_template import Ui_TestWidget
 
 
 # time to wait before starting the recorder
-trial_start_delay = 2000
+trial_start_delay = 1000
 
 
 class TestWidget(QtWidgets.QWidget):
@@ -100,11 +96,16 @@ class TestWidget(QtWidgets.QWidget):
         self.pid = self.base_session.pid
         self.ui.trainingList.clear()
         self.sid_list = filestruct.get_session_list(
-            self.cfg.data_path, self.pid)
+            self.cfg.data_path, self.pid, search="train")
         for sid in self.sid_list:
             item = QtWidgets.QListWidgetItem(sid, self.ui.trainingList)
             item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             item.setCheckState(QtCore.Qt.Unchecked)
+            try:
+                filestruct.find_feature_file(self.cfg.data_path,
+                                             self.pid, sid)
+            except:
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEnabled)
 
         self.lefty = True if self.base_session.hand == 'left' else False
 
@@ -123,8 +124,7 @@ class TestWidget(QtWidgets.QWidget):
         self.ui.sessionProgressBar.setValue(0)
 
     def init_simulation(self):
-        vrepsim.set_path(self.cfg.vrep_path)
-        self.sim_connect_thread = SimulationConnectThread(self.cfg.vrep_port)
+        self.sim_connect_thread = SimulationConnectThread()
         self.sim_connect_thread.finished.connect(
             self.on_simulation_connected)
         self.sim_connect_thread.start()
@@ -133,11 +133,16 @@ class TestWidget(QtWidgets.QWidget):
         self.record_thread.set_continuous()
         self.cfg.daq.set_channel_range(
             (min(self.cfg.channels), max(self.cfg.channels)))
+        self.record_thread.ready_sig.connect(self.on_recorder_ready)
         self.record_thread.prediction_sig.connect(self.prediction_callback)
         self.record_thread.update_sig.connect(self.record_callback)
+        self.record_thread.error_sig.connect(self.on_record_error)
 
     def dispose_record_thread(self):
         self.record_thread.prediction_sig.disconnect(self.prediction_callback)
+        self.record_thread.ready_sig.disconnect(self.on_recorder_ready)
+        self.record_thread.error_sig.disconnect(self.on_record_error)
+        self.record_thread.update_sig.disconnect(self.record_callback)
         self.record_thread.pipeline = None
         self.record_thread.kill()
 
@@ -164,10 +169,10 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_start_timer.setSingleShot(True)
         self.trial_start_timer.timeout.connect(self.start_trial)
 
-        # timer which enforces the timeout of a trial
-        self.trial_timeout_timer = QtCore.QTimer(self)
-        self.trial_timeout_timer.setSingleShot(True)
-        self.trial_timeout_timer.timeout.connect(self.finish_trial)
+        # manually keep track of trial timing
+        self.seconds_per_read = \
+            self.cfg.daq.samples_per_read / self.cfg.daq.rate
+        self.reads_per_trial = 0  # will be set on trial start
 
         # timer to wait between trials
         self.intertrial_timer = QtCore.QTimer(self)
@@ -213,6 +218,7 @@ class TestWidget(QtWidgets.QWidget):
     def start_session(self):
         self.session_started.emit()
 
+        self.tac_session.reshuffle()
         self.session = Session(self.base_session, self.tac_session)
 
         self.ui.sessionInfoBox.setEnabled(False)
@@ -221,7 +227,8 @@ class TestWidget(QtWidgets.QWidget):
 
         self.trial_number = 1
         self.dwell_timer.setInterval(self.tac_session.dwell*1000)
-        self.trial_timeout_timer.setInterval(self.tac_session.timeout*1000)
+        self.reads_per_trial = int(
+            self.tac_session.timeout / self.seconds_per_read)
         self.initialize_trial()
         self.session_running = True
 
@@ -233,7 +240,10 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = True
         self.ui.sessionProgressBar.setValue(self.trial_number)
 
-        self.logger = Logger(self.tac_session, self.trial_number-1,
+        self.record_thread.set_pipeline(self.pipeline)
+
+        self.logger = Logger(
+            self.tac_session, self.trial_number-1,
             self.training_sessions, self.boosts)
 
         if self.simulation is not None:
@@ -242,24 +252,20 @@ class TestWidget(QtWidgets.QWidget):
                 self.simulation.clientId, 'target_acquired')
             self.state_signal = vrepsim.IntegerSignal(
                 self.simulation.clientId, 'trial_state')
-            self.robot = vrepsim.IRB140Arm(
-                self.simulation.clientId,
-                lefty=self.lefty)
-            self.target_robot = vrepsim.IRB140Arm(
-                self.simulation.clientId,
-                suffix='#0',
-                position_controlled=True,
-                lefty=self.lefty)
-
-            self.robot.set_tolerance(self.tac_session.tol)
+            self.tol_signal = vrepsim.FloatSignal(
+                self.simulation.clientId, 'tolerance')
+            self.robot = vrepsim.MPL(self.simulation.clientId)
 
         self.trial_start_timer.start()
 
         if self.simulation is not None:
             gestures = self.tac_session.trials[self.trial_number-1]
-            target = {g.action: 60 for g in gestures}
+            target = {g.action: self.tac_session.dist for g in gestures}
+            self.tol_signal.write(self.tac_session.tol)
             self.state_signal.write(2)
-            self.target_robot.command(target)
+            self.robot.set_visible(False)
+            self.robot.position_controlled = True
+            self.robot.command(target)
 
     def start_trial(self):
         """
@@ -269,29 +275,32 @@ class TestWidget(QtWidgets.QWidget):
         self.trial_initializing = False
         self.trial_running = True
         self.record_thread.start()
-        self.trial_timeout_timer.start()
+
+    def on_recorder_ready(self):
+        self.current_read_count = 0
         if self.simulation is not None:
             self.state_signal.write(3)
+            self.robot.position_controlled = False
+            self.robot.set_visible(True)
 
     def pause_trial(self):
-        self.trial_timeout_timer.stop()
         self.dwell_timer.stop()
         self.intertrial_timer.stop()
         self.trial_start_timer.stop()
 
-        self.record_thread.kill()
-        self.trial_running = False
-
         if self.simulation is not None:
             self.robot.stop()
-            self.target_robot.stop()
             self.simulation.stop()
+
+        self.record_thread.kill()
+        self.trial_running = False
 
     def finish_trial(self, success=False):
         self.pause_trial()
         self.prediction = 0
         self.update_gesture_view()
 
+        self.logger.success = success
         self.session.write_trial(
             self.trial_number,
             self.logger.get_data(),
@@ -330,7 +339,8 @@ class TestWidget(QtWidgets.QWidget):
         if not self.test:
             self.prediction = label
         else:
-            data = ([0.5], self.prediction)
+            # negative input because user reverses target movements
+            data = ([-0.5], self.prediction)
 
         if self.simulation is not None:
             commands = self.controller.process(data)
@@ -347,9 +357,20 @@ class TestWidget(QtWidgets.QWidget):
 
         self.update_gesture_view()
 
+        self.current_read_count += 1
+        if self.current_read_count > self.reads_per_trial:
+            self.finish_trial()
+
     def record_callback(self, data):
         """Called by the `RecordThread` when it gets new recording data."""
         self.logger.record(data)
+
+    def on_record_error(self):
+        self.on_pause_clicked()
+        QtWidgets.QMessageBox().critical(
+            self, "Error",
+            "DAQ failure.",
+            QtWidgets.QMessageBox.Ok)
 
     def keyPressEvent(self, event):
         if self.test and self.trial_running:
@@ -428,42 +449,28 @@ class TestWidget(QtWidgets.QWidget):
             boosts[label] = 1 / np.mean(-np.partition(-mav_avg, 10)[:10])
         self.boosts = boosts
 
+        # re-create the controller to make sure it has the correct mapping
         self.controller = control.DBVRController(
             mapping=mapping,
             ramp_length=self.cfg.controller.ramp_length,
             boosts=1 if self.test else boosts)
 
-        clf_type = self.ui.classifierComboBox.currentText()
-        if clf_type == 'LDA':
-            clf = LDA()
-        elif clf_type == 'SVM':
-            clf = SVC(C=50, kernel='linear')
-        else:
-            clf = LDA()
+        self.cfg.learner.fit(*training_data)
 
-        preproc = StandardScaler()
-        skpipeline = Pipeline([('preproc', preproc), ('clf', clf)])
+        self.pipeline = pipeline.Pipeline([
+            self.cfg.conditioner,
+            self.cfg.windower,
+            (
+                features.FeatureExtractor(
+                    [features.MAV()], len(self.cfg.channels)),
+                [
+                    self.cfg.feature_extractor,
+                    self.cfg.learner
+                ],
+            )
+        ])
 
-        classifier = pipeline.Classifier(skpipeline)
-        classifier.fit(*training_data)
-
-        pl = pipeline.Pipeline(
-            [
-                self.cfg.conditioner,
-                self.cfg.windower,
-                (
-                    features.FeatureExtractor(
-                        [features.MAV()],
-                        len(self.cfg.channels)),
-                    [
-                        self.cfg.feature_extractor,
-                        classifier
-                    ],
-                )
-            ]
-        )
-
-        self.record_thread.set_pipeline(pl)
+        self.record_thread.set_pipeline(self.pipeline)
 
 
 class Session(object):
@@ -510,6 +517,7 @@ class Logger(object):
 
     def __init__(self, tac_session, trial_index, training_sessions, boosts):
         self.started = False
+        self.success = False
 
         self.tac_session = tac_session
         self.trial_index = trial_index
@@ -564,7 +572,8 @@ class Logger(object):
             boosts=self.boosts,
             active_classes=self.active_classes,
             trial_data=self.trial_data,
-            target=self.target
+            target=self.target,
+            success=self.success
         )
         log = json.dumps(d, indent=4)
 
@@ -575,13 +584,12 @@ class SimulationConnectThread(QtCore.QThread):
 
     finished = QtCore.pyqtSignal(object)
 
-    def __init__(self, port):
+    def __init__(self):
         super(SimulationConnectThread, self).__init__()
-        self.port = port
 
     def run(self):
         try:
-            sim = vrepsim.VrepSimulation(self.port)
+            sim = vrepsim.VrepSimulation()
         except:
             sim = None
 

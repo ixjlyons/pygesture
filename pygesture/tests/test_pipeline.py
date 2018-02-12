@@ -24,6 +24,19 @@ class _TwoInputBlock(pipeline.PipelineBlock):
         return x + y
 
 
+class _ClearableBlock(pipeline.PipelineBlock):
+
+    def __init__(self):
+        self.clear()
+
+    def process(self, data):
+        self.internal_var += data
+        return self.internal_var
+
+    def clear(self):
+        self.internal_var = 1
+
+
 class TestPipeline(object):
 
     def setUp(self):
@@ -60,6 +73,15 @@ class TestPipeline(object):
         p = pipeline.Pipeline([self.a, (self.b, [c, d]), e])
         out = p.process(self.data)
         assert out == self.data+2 + self.data+3
+
+    def test_clear(self):
+        b = _ClearableBlock()
+        internal_start = b.internal_var
+        p = pipeline.Pipeline(b)
+        out = p.process(self.data)
+        assert b.internal_var == out
+        p.clear()
+        assert b.internal_var == internal_start
 
 
 class TestConditioner(object):

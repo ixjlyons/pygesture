@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pygesture/ui/templates/test_widget_template.ui'
 #
-# Created by: PyQt5 UI code generator 5.4.2
+# Created by: PyQt5 UI code generator 5.5
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -48,17 +48,6 @@ class Ui_TestWidget(object):
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.classifierLabel = QtWidgets.QLabel(self.sessionInfoBox)
-        self.classifierLabel.setObjectName("classifierLabel")
-        self.horizontalLayout.addWidget(self.classifierLabel)
-        self.classifierComboBox = QtWidgets.QComboBox(self.sessionInfoBox)
-        self.classifierComboBox.setObjectName("classifierComboBox")
-        self.classifierComboBox.addItem("")
-        self.classifierComboBox.addItem("")
-        self.horizontalLayout.addWidget(self.classifierComboBox)
-        self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.sessionTypeLabel = QtWidgets.QLabel(self.sessionInfoBox)
@@ -127,9 +116,6 @@ class Ui_TestWidget(object):
         _translate = QtCore.QCoreApplication.translate
         TestWidget.setWindowTitle(_translate("TestWidget", "Form"))
         self.sessionInfoBox.setTitle(_translate("TestWidget", "Session"))
-        self.classifierLabel.setText(_translate("TestWidget", "Classifier:"))
-        self.classifierComboBox.setItemText(0, _translate("TestWidget", "LDA"))
-        self.classifierComboBox.setItemText(1, _translate("TestWidget", "SVM"))
         self.sessionTypeLabel.setText(_translate("TestWidget", "Type:"))
         self.trainingLabel.setText(_translate("TestWidget", "Training Data:"))
         self.trainButton.setText(_translate("TestWidget", "Train"))

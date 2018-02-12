@@ -8,11 +8,10 @@ config_options = [
     "prompt_times",
     "inter_trial_timeout",
     "data_path",
-    "vrep_path",
-    "vrep_port",
     "conditioner",
     "windower",
     "feature_extractor",
+    "learner",
     "post_processor",
     "sensors",
     "channels",
@@ -20,7 +19,8 @@ config_options = [
     "daq",
     "gestures",
     "controller",
-    "tac_sessions"
+    "tac_sessions",
+    "ui_tabs"
 ]
 
 

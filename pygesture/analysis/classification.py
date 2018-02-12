@@ -23,11 +23,9 @@ import numpy as np
 from sklearn.lda import LDA
 from sklearn.metrics import confusion_matrix
 from sklearn.cross_validation import LeavePOut
+from sklearn.preprocessing import StandardScaler
 
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
-
-from pygesture import processing
+from pygesture.analysis import processing
 
 
 def run_single(rootdir, pids, clf_dict, clf=None, label_dict=None):
@@ -245,55 +243,10 @@ def accuracy_std(cm_list):
 
 
 def condition_data(X_train, X_test):
-    means = np.mean(X_train, 0)
-    stds = np.std(X_train, 0)
-
-    X_train = X_train - means
-    X_train = X_train / stds.T
-
-    X_test = X_test - means
-    X_test = X_test / stds.T
-
-    return (X_train, X_test)
-
-
-def generate_plot(cm, acc, labels, title, fig=None, savepath=None):
-    if fig is None:
-        fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.matshow(cm, cmap='hot_r')
-
-    lbls = []
-    for idx, label in enumerate(labels):
-        num = round(cm[idx, idx], 2)
-        if num > 0.5:
-            color = 'w'
-        else:
-            color = 'k'
-        ax.text(idx, idx, str(num), color=color, va='center', ha='center')
-        lbls.append(label)
-
-    notes = np.where(cm > 0.01)
-    for i in range(np.size(notes[0])):
-        x, y = notes[0][i], notes[1][i]
-        if x != y:
-            num = round(cm[x, y], 2)
-            if num > 0.5:
-                color = 'w'
-            else:
-                color = 'k'
-            ax.text(y, x, str(num), color=color, va='center', ha='center')
-
-    ax.set_title(title + (': %.2f' % (acc*100)) + '% accuracy')
-    ml = MultipleLocator(1)
-    ax.xaxis.set_major_locator(ml)
-    ax.yaxis.set_major_locator(ml)
-    ax.set_xticklabels(['']+lbls)
-    ax.set_yticklabels(['']+lbls)
-    if savepath:
-        plt.savefig(savepath + '/' + title + '.pdf', bbox_inches='tight')
-    else:
-        plt.show()
+    scaler = StandardScaler()
+    X_train_out = scaler.fit_transform(X_train)
+    X_test_out = scaler.transform(X_test)
+    return X_train_out, X_test_out
 
 
 class ConfusionMatrix():
@@ -314,16 +267,13 @@ class ConfusionMatrix():
         num_correct = np.sum(self.data.diagonal(0))
         return num_correct / float(num_instances)
 
-    def show(self, fig=None):
-        generate_plot(self.data_norm, self.accuracy, self.labels, self.name,
-                      fig=fig)
-
     def print_avg(self, normalized=True):
         print("--")
         print("Classifer: " + self.name)
         print("--")
         if normalized:
-            np.set_printoptions(precision=2)
+            np.set_printoptions(precision=3, suppress=True)
             print(self.data_norm)
+            print("avg: {}".format(self.get_avg_accuracy()))
         else:
             print(self.data)
